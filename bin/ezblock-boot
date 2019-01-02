@@ -1,0 +1,12 @@
+#!/usr/bin/python3
+# # -*- coding utf-8 -*-
+
+from libezblock import Boot
+import time
+
+def main():
+    b = Boot()
+    b.main()
+
+if __name__ == '__main__':
+    main()
