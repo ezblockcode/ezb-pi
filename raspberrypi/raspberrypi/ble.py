@@ -1,6 +1,6 @@
 from raspberrypi.basic import _Basic_class
 from raspberrypi.uart import UART
-from raspberrypi import delay
+from time import sleep
 
 class BLE(_Basic_class):
     # Delay between every 20 Byte
@@ -25,7 +25,7 @@ class BLE(_Basic_class):
         data = data.encode('utf-8')
         for i in range(0, len(data), self.DATA_LENGTH):
             temp = data[i:i+self.DATA_LENGTH]
-            delay(self.SEND_DELAY)
+            sleep(self.SEND_DELAY/1000.0)
             self.uart.write(temp)
 
     def verify(self, raw_data):
