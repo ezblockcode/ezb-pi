@@ -112,8 +112,6 @@ class Camera(_Basic_class):
                     '<h1>{0!s} not found</h1>'.format(self.path).encode())
                 self.wfile.write('</body></html>'.encode())
 
-def test():
-
 if __name__ == '__main__':
     try:
         Camera().start()
