@@ -6,7 +6,7 @@ class BLE(_Basic_class):
     # Delay between every 20 Byte
     SEND_DELAY = 100
     # Length of every package bluetooth sent
-    DATA_LENGTH = 20
+    DATA_LENGTH = 19
     def __init__(self, debug=False):
         super().__init__()
         self.uart = UART()
@@ -25,6 +25,7 @@ class BLE(_Basic_class):
         data = data.encode('utf-8')
         for i in range(0, len(data), self.DATA_LENGTH):
             temp = data[i:i+self.DATA_LENGTH]
+            self._debug("Raspberrypi.Ble.write.temp: %s"%temp)
             sleep(self.SEND_DELAY/1000.0)
             self.uart.write(temp)
 

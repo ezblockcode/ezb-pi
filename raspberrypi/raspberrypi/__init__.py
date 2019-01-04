@@ -17,7 +17,7 @@ from raspberrypi.camera import Camera
 
 # from raspberrypi.uart import UART
 SCRIPT_NAME = 'raspberrypi'
-
+is_print_init = False
 def reset():
     from os import system as run
     import os
@@ -45,19 +45,25 @@ def main():
 
 __PRINT__ = print
 
+def print_init():
+    global ble, is_print_init
+    if not is_print_init:
+        ble = BLE()
+        ble.debug = "debug"
+        is_print_init = True
 
 def print(msg, end='\n', tag='[DEBUG]'):
-	ble = BLE()
-	msg = '%s %s' % (tag, msg)
-	__PRINT__(msg, end=end)
-	msg = msg+end
-	ble.write(msg)
+    print_init()
+    msg = '%s %s %s' % (tag, msg, tag)
+    __PRINT__(msg, end=end)
+    # msg = msg+end
+    ble.write(msg)
 
 # airprint = print
 
 
 def delay(ms):
-	sleep(ms/1000)
+    sleep(ms/1000)
 
 def wifi_setup(country, ssid, psk):
     import os
