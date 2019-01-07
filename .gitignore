@@ -5,6 +5,8 @@
 __pycache__/
 *.py[cod]
 
+# VS Code
+.vscode/
 
 # Distribution / packaging
 build/

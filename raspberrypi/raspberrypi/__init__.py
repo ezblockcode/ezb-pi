@@ -65,6 +65,9 @@ def print(msg, end='\n', tag='[DEBUG]'):
 def delay(ms):
     sleep(ms/1000)
 
+def mapping(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
 def wifi_setup(country, ssid, psk):
     import os
     template = 'ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\nupdate_config=1\ncountry=%s\nnetwork={\n\tssid="%s"\n\tpsk="%s"\n}'
