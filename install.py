@@ -109,8 +109,8 @@ def install():
     print("Install dependency")
     do(msg="install clang",
         cmd='run_command("sudo apt-get install clang -y")')
-    # do(msg="install python-opencv",
-    #     cmd='run_command("sudo apt-get install python-opencv -y")')
+    # do(msg="install opencv-python",
+    #     cmd='run_command("sudo pip3 install opencv-python")')
     do(msg="unpackaging swift",
         cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
     do(msg="copy swift to /usr",

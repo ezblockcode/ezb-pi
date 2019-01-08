@@ -6,14 +6,14 @@ from raspberrypi.signal import Signal
 from raspberrypi.spi import SPI
 from raspberrypi.switch import Switch
 from raspberrypi.uart import UART
-# from raspberrypi.i2c import I2C
+from raspberrypi.i2c import I2C
 from raspberrypi.adc import ADC
 from raspberrypi.ble import BLE
 from raspberrypi.iot import IOT
 from time import sleep
 from raspberrypi.sensorkit import DHT11, Ultrasonicranging, DS18B20
 from raspberrypi.taskmgr import Taskmgr
-from raspberrypi.camera import Camera
+# from raspberrypi.camera import Camera
 
 # from raspberrypi.uart import UART
 SCRIPT_NAME = 'raspberrypi'
