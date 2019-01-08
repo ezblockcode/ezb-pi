@@ -109,6 +109,8 @@ def install():
     print("Install dependency")
     do(msg="install clang",
         cmd='run_command("sudo apt-get install clang -y")')
+    # do(msg="install python-opencv",
+    #     cmd='run_command("sudo apt-get install python-opencv -y")')
     do(msg="unpackaging swift",
         cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
     do(msg="copy swift to /usr",
@@ -148,11 +150,13 @@ def install():
     do(msg="copy workspace",
         cmd='run_command("sudo cp -r ./workspace /opt/ezblock")')
 
+    os.chdir("./raspberrypi")
     print("Install Raspberry Pi python package")
     do(msg="run setup file",
-        cmd='run_command("sudo python3 raspberrypi/setup.py install")')
+        cmd='run_command("sudo python3 setup.py install")')
     do(msg="cleanup",
         cmd='run_command("sudo rm -rf raspberrypi.egg-info")')
+    os.chdir("../")
 
     if len(errors) == 0:
         print("Finished")
