@@ -77,14 +77,14 @@ class PWM(_Basic_class):
             # print("CCR: %s"%CCR)
             self.i2c_write(self.channel, CCR)
 
-    def Servo_angle(self, angle):
-        self.angle = angle
-        self.prescaler(351)
-        self.period(4095)
-        _period = 1000000/int(72000000.0/self.prescaler/self.period)
-        pw = int(self.angle / 180.0 * 2000 + 500)
-        value = int(pw / _period * 4095.0)
-        self.pulse_width(value)
+    def pulse_width_percentage(self, *pulse_width_percentage):
+        if len(pulse_width_percentage) == 0:
+            return self._pulse_width_percentage
+        else:
+            self._pulse_width_percentage = pulse_width_percentage[0] / 100.0
+            pulse_width = self._pulse_width_percentage * self._arr
+            self.pulse_width(self.pulse_width)
+
         
 def test():
     import time
