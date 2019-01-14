@@ -49,17 +49,13 @@ def print_init():
     global ble, is_print_init
     if not is_print_init:
         ble = BLE()
-        ble.debug = "debug"
         is_print_init = True
 
 def print(msg, end='\n', tag='[DEBUG]'):
     print_init()
     msg = '%s %s %s' % (tag, msg, tag)
     __PRINT__(msg, end=end)
-    # msg = msg+end
     ble.write(msg)
-
-# airprint = print
 
 
 def delay(ms):
