@@ -92,9 +92,9 @@ class Remote(BLE):
         try:
             _values = (self.get_value('JOYSTICK', id, 'VALUE')).split('-')
             if coord == 'X':
-                return _values[0]
+                return int(_values[0])
             elif coord == 'Y':
-                return _values[1]
+                return int(_values[1])
             else:
                 return 0
         except:
