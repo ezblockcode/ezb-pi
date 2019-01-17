@@ -66,3 +66,64 @@ class BLE(_Basic_class):
         else:
             self._debug("Verified error, head or tail not found")
         return [None, None, False]
+
+class Remote(BLE):
+    def __init__(self):
+        self._value = {}
+
+    def read_from_remote(self):
+        _ = self.read(60)
+        if _:
+            _ = _.decode('utf-8')
+            _data_type, _, _status = self.verify(_)
+            if _status and _data_type == 'REMOTE':
+                _ = _.split("#")
+                _device = _[0]
+                _id = _[1]
+                _name = _[2]
+                _value = _[3]
+                self._value[_device] = {_id: {_name: _value}}
+
+    def get_value(self, ctrl, id, name):
+        _result = self._value.get(ctrl, {}).get(id, {}).get(name, 0)
+        return _result
+
+    def get_joystick_value(id, coord):
+        try:
+            _values = (self.get_value('JOYSTICK', id, 'VALUE')).split('-')
+            if coord == 'X':
+                return int(_values[0])
+            elif coord == 'Y':
+                return int(_values[1])
+            else:
+                return 0
+        except:
+            return 0
+    
+    def get_slider_value(id):
+        try:
+            _value = int(self.get_value('SLIDER', id, 'VALUE',))
+            return _value
+        except:
+            return 0
+    
+    def get_dpad_value(id, direction):
+        try:
+            _value = int(self.get_value('DPAD', id, direction,))
+            return _value
+        except:
+            return 0
+            
+    def get_button_value(id):
+        try:
+            _value = int(self.get_value('BUTTON', id, 'VALUE',))
+            return _value
+        except:
+            return 0
+            
+    def get_switch_value(id):
+        try:
+            _value = int(self.get_value('SWITCH', id, 'VALUE',))
+            return _value
+        except:
+            return 0
