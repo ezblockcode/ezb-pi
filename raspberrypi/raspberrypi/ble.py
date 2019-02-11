@@ -69,28 +69,30 @@ class BLE(_Basic_class):
 
 class Remote(BLE):
     def __init__(self):
+        super().__init__()
         self._value = {}
 
-    def read_from_remote(self):
-        _ = self.read(60)
+    def read(self):
+        _ = super().read(50)
         if _:
             _ = _.decode('utf-8')
             _data_type, _, _status = self.verify(_)
             if _status and _data_type == 'REMOTE':
                 _ = _.split("#")
-                _device = _[0]
-                _id = _[1]
-                _name = _[2]
-                _value = _[3]
-                self._value[_device] = {_id: {_name: _value}}
+                if len(_) == 4:
+                    _device = _[0]
+                    _id = _[1]
+                    _name = _[2]
+                    _value = _[3]
+                    self._value[_device] = {_id: {_name: _value}}
 
     def get_value(self, ctrl, id, name):
         _result = self._value.get(ctrl, {}).get(id, {}).get(name, 0)
         return _result
 
-    def get_joystick_value(id, coord):
+    def get_joystick_value(self, id, coord):
         try:
-            _values = (self.get_value('JOYSTICK', id, 'VALUE')).split('-')
+            _values = (self.get_value('JS', id, 'V')).split('-')
             if coord == 'X':
                 return int(_values[0])
             elif coord == 'Y':
@@ -100,30 +102,30 @@ class Remote(BLE):
         except:
             return 0
     
-    def get_slider_value(id):
+    def get_slider_value(self, id):
         try:
-            _value = int(self.get_value('SLIDER', id, 'VALUE',))
+            _value = int(self.get_value('SL', id, 'V',))
             return _value
         except:
             return 0
     
-    def get_dpad_value(id, direction):
+    def get_dpad_value(self, id, direction):
         try:
-            _value = int(self.get_value('DPAD', id, direction,))
+            _value = int(self.get_value('DP', id, direction,))
             return _value
         except:
             return 0
             
-    def get_button_value(id):
+    def get_button_value(self, id):
         try:
-            _value = int(self.get_value('BUTTON', id, 'VALUE',))
+            _value = int(self.get_value('BT', id, 'V',))
             return _value
         except:
             return 0
             
-    def get_switch_value(id):
+    def get_switch_value(self, id):
         try:
-            _value = int(self.get_value('SWITCH', id, 'VALUE',))
+            _value = int(self.get_value('SW', id, 'V',))
             return _value
         except:
             return 0

@@ -14,8 +14,6 @@ class _Basic_class(object):
               }
     DEBUG_NAMES = ['critical', 'error', 'warning', 'info', 'debug']
 
-    SYS_ADDRESS = 0x10
-
     def __init__(self):
         self._debug_level = 0
         self.logger = logging.getLogger(self._class_name)
