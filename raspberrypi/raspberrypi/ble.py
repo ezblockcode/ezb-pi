@@ -92,7 +92,7 @@ class Remote(BLE):
 
     def get_joystick_value(self, id, coord):
         try:
-            _values = (self.get_value('JS', id, 'V')).split('-')
+            _values = (self.get_value('JS', id, 'V')).split('+')
             if coord == 'X':
                 return int(_values[0])
             elif coord == 'Y':
