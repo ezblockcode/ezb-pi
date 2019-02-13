@@ -1,6 +1,17 @@
 # from tools.makeversionhdr import make_version_file
-import sys
-version = sys.argv[1]
+import sys, os
+
+
+if len(sys.argv) == 1:
+    with open("./raspberrypi/raspberrypi/version.py", "r") as f:
+        VERSION = f.read().strip().split('=')[1].strip().strip()
+    versionlist = VERSION.replace('v', '').split('.')
+    version = "v%s.%s.%s"%(versionlist[0], versionlist[1], int(versionlist[2])+1)
+elif len(sys.argv) == 2:
+    version = sys.argv[1]
+else:
+    print("\nUsage: python3 publish.py <version>\n\nExample:\n    python3 publish.py ")
+    exit()
 
 def run_command(cmd=""):
     import subprocess
@@ -12,6 +23,6 @@ def run_command(cmd=""):
     # print(status)
     return status, result
 
-run_command("echo 'VERSION = %s' > ./raspberrypi/raspberrypi/version.py"%version)
-
-run_command("git tag %s -m '%s'"%(version, version))
+print("New version: %s"%(version))
+os.system("echo 'VERSION = %s' > ./raspberrypi/raspberrypi/version.py"%version)
+os.system("git tag %s -m '%s'"%(version, version))
