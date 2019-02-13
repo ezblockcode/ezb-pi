@@ -17,12 +17,12 @@ case "$1" in
         echo "Starting ezblock"
         # sudo modprobe w1-gpio
         # sudo modprobe w1-therm
-        sudo ezblock-boot &
+        sudo ezblock-service &
         ;;
     stop)
         echo "Stopping ezblock"
-        sudo kill $(ps aux | grep -m 1 'ezblock-boot' | awk '{ print $2 }')
-        sudo kill $(ps aux | grep -m 1 'ezblock-boot' | awk '{ print $2 }')
+        sudo kill $(ps aux | grep -m 1 'ezblock-service' | awk '{ print $2 }')
+        sudo kill $(ps aux | grep -m 1 'ezblock-service' | awk '{ print $2 }')
         sudo kill $(ps aux | grep -m 1 '/opt/ezblock/main' | awk '{ print $2 }')
         sudo kill $(ps aux | grep -m 1 '/opt/ezblock/main' | awk '{ print $2 }')
         ;;

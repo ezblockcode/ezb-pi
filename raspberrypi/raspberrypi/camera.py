@@ -8,6 +8,12 @@
 # 2. Uses cv2.VideoCapture(0)
 # 3. remove argparse
 
+# install dependency:
+# sudo pip3 install opencv-python
+# sudo apt-get install libatlas-base-dev
+# sudo apt-get install libjasper-dev
+# sudo apt-get install libqtgui4
+
 from raspberrypi.basic import _Basic_class
 import cv2
 from http.server import BaseHTTPRequestHandler, HTTPServer

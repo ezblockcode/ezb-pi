@@ -139,12 +139,24 @@ def install():
         cmd='run_command("sudo cp ./bin/ezblock /etc/init.d/ezblock")')
     do(msg="update service settings for ezblock",
         cmd='run_command("sudo update-rc.d ezblock defaults")')
-    do(msg="add excutable mode for ezblock-boot",
-        cmd='run_command("sudo chmod +x ./bin/ezblock-boot")')
-    do(msg="copy ezblock-boot file",
-        cmd='run_command("sudo cp ./bin/ezblock-boot /usr/bin")')
+    do(msg="add excutable mode for ezblock-service",
+        cmd='run_command("sudo chmod +x ./bin/ezblock-service")')
+    do(msg="copy ezblock-service file",
+        cmd='run_command("sudo cp ./bin/ezblock-service /usr/bin")')
     do(msg="copy libezblock file",
         cmd='run_command("sudo cp ./lib/libezblock.so /usr/local/lib/python3.5/dist-packages")')
+
+    print("Setup ezblock-reset service")
+    do(msg="add excutable mode for ezblock-reset",
+        cmd='run_command("sudo chmod +x ./bin/ezblock-reset")')
+    do(msg="copy ezblock-reset file",
+        cmd='run_command("sudo cp ./bin/ezblock-reset /etc/init.d/ezblock-reset")')
+    do(msg="update service settings for ezblock-reset",
+        cmd='run_command("sudo update-rc.d ezblock-reset defaults")')
+    do(msg="add excutable mode for ezblock-reset-service",
+        cmd='run_command("sudo chmod +x ./bin/ezblock-reset-service")')
+    do(msg="copy ezblock-reset-service file",
+        cmd='run_command("sudo cp ./bin/ezblock-reset-service /usr/bin")')
 
     print("Create workspace")
     do(msg="copy workspace",

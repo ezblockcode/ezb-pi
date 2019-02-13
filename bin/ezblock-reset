@@ -1,0 +1,31 @@
+#!/bin/bash
+# /etc/init.d/ezblock-reset
+
+### BEGIN INIT INFO
+# Provides:          sunfounder
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ezblock reset service
+# Description:       This service is used to startup ezblock reset service
+### END INIT INFO
+
+
+case "$1" in
+    start)
+        echo "Starting ezblock-reset"
+        sudo ezblock-reset-service &
+        ;;
+    stop)
+        echo "Stopping ezblock-reset"
+        sudo kill $(ps aux | grep -m 1 'ezblock-reset-service' | awk '{ print $2 }')
+        sudo kill $(ps aux | grep -m 1 'ezblock-reset-service' | awk '{ print $2 }')
+        ;;
+    *)
+        echo "Usage: sudo service ezblock-reset start|stop|restart"
+        exit 1
+        ;;
+esac
+
+exit 0

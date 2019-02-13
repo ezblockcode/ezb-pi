@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+# -*- coding utf-8 -*-
+
+from raspberrypi import Pin
+reset_switch = Pin("RST")
+
+reset_switch.pull(Pin.PULL_UP)
+
+def run_command(cmd):
+    import tempfile
+    import subprocess
+    with tempfile.TemporaryFile() as f:
+        subprocess.call(cmd, shell=True, stdout=f, stderr=f)
+        f.seek(0)
+        output = f.read()
+        return output.decode()
+
+def reset_callback_handler(ev):
+    run_command("sudo service ezblock restart")
+
+reset_switch.irq(reset_callback_handler, Pin.IRQ_FALLING)
