@@ -24,5 +24,7 @@ def run_command(cmd=""):
     return status, result
 
 print("New version: %s"%(version))
-os.system("echo 'VERSION = %s' > ./raspberrypi/raspberrypi/version.py"%version)
+# os.system("echo \"VERSION = \"%s\"\" > ./raspberrypi/raspberrypi/version.py"%version)
+with open("./raspberrypi/raspberrypi/version.py", "w") as f:
+    f.write('VERSION = "%s"'%version)
 os.system("git tag %s -m '%s'"%(version, version))
