@@ -88,7 +88,7 @@ class PWM(_Basic_class):
         else:
             self._pulse_width_percentage = pulse_width_percentage[0] / 100.0
             pulse_width = self._pulse_width_percentage * self._arr
-            self.pulse_width(self.pulse_width)
+            self.pulse_width(pulse_width)
 
         
 def test():
