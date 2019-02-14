@@ -35,10 +35,15 @@ class PWM(_Basic_class):
             return self._freq
         else:
             self._freq = freq[0]
+            # [prescaler,arr] list
             result_ap = []
+            # accuracy list
             result_acy = []
+            # middle value for equal arr prescaler
             st = int(math.sqrt(self.CLOCK/self._freq))
+            # get -5 value as start
             st -= 5
+            # prevent negetive value
             if st <= 0:
                 st = 1
             for psc in range(st,st+10):
