@@ -3,6 +3,14 @@ from distutils.spawn import find_executable
 
 class TTS(_Basic_class):
     _class_name = 'TTS'
+    SUPPORTED_LANGUAUE = [
+        'en-US',
+        'en-GB',
+        'de-DE',
+        'es-ES',
+        'fr-FR',
+        'it-IT',
+    ]
 
     def __init__(self, engine='pico'):
         super().__init__()
@@ -25,10 +33,15 @@ class TTS(_Basic_class):
         else:
             self._debug('Festival is busy. Pass')
 
-    @property
-    def lang(self):
-        return self._lang
-    
-    @lang.setter
-    def lang(self, value):
-        self.lang = value
+    def lang(self, *value):
+        if len(value) == 0:
+            return self._lang
+        else if len(value) == 1:
+            v = value[0]
+            if v in self.SUPPORTED_LANGUAUE:
+                self._lang = v
+                return self._lang
+        raise ValueError("Arguement \"%s\" is not supported. run tts.supported_lang to get supported language type."%value)
+
+    def supported_lang(self):
+        return self.SUPPORTED_LANGUAUE
