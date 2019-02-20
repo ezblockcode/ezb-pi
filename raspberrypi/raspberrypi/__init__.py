@@ -11,6 +11,7 @@ from raspberrypi.adc import ADC
 from raspberrypi.ble import BLE
 from raspberrypi.ble import Remote
 from raspberrypi.iot import IOT
+from raspberrypi.tts import TTS
 from time import sleep
 from raspberrypi.sensorkit import DHT11, Ultrasonicranging, DS18B20
 from raspberrypi.taskmgr import Taskmgr

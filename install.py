@@ -109,6 +109,9 @@ def install():
     print("Install dependency")
     do(msg="install clang",
         cmd='run_command("sudo apt-get install clang -y")')
+
+    do(msg="install libttspico-utils",
+        cmd='run_command("sudo apt-get install libttspico-utils -y")')
     # do(msg="install opencv-python",
     #     cmd='run_command("sudo pip3 install opencv-python")')
     do(msg="unpackaging swift",
