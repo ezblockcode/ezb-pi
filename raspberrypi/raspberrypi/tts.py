@@ -36,7 +36,7 @@ class TTS(_Basic_class):
     def lang(self, *value):
         if len(value) == 0:
             return self._lang
-        else if len(value) == 1:
+        elif len(value) == 1:
             v = value[0]
             if v in self.SUPPORTED_LANGUAUE:
                 self._lang = v
