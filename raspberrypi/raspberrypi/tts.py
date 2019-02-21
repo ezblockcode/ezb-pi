@@ -4,12 +4,12 @@ from distutils.spawn import find_executable
 class TTS(_Basic_class):
     _class_name = 'TTS'
     SUPPORTED_LANGUAUE = [
-        'en-US',
-        'en-GB',
-        'de-DE',
-        'es-ES',
-        'fr-FR',
-        'it-IT',
+        'en-US', #英语(美国)English-United States
+        'en-GB', # 英语(英国)English-United Kingdom
+        'de-DE', # 德语(德国)Germany-Deutsch
+        'es-ES', # 西班牙语(西班牙)España-Español
+        'fr-FR', #  法语(法国)France-Le français
+        'it-IT', # 意大利语(意大利)Italia-lingua italiana
     ]
 
     def __init__(self, engine='pico'):
@@ -36,7 +36,7 @@ class TTS(_Basic_class):
     def lang(self, *value):
         if len(value) == 0:
             return self._lang
-        else if len(value) == 1:
+        elif len(value) == 1:
             v = value[0]
             if v in self.SUPPORTED_LANGUAUE:
                 self._lang = v
@@ -45,3 +45,12 @@ class TTS(_Basic_class):
 
     def supported_lang(self):
         return self.SUPPORTED_LANGUAUE
+
+def test():
+    tts = TTS()
+    tts.lang("de-DE")
+    tts.say("Wer bin ich")
+    
+
+if __name__ == "__main__":
+    test()
