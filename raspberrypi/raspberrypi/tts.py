@@ -31,7 +31,7 @@ class TTS(_Basic_class):
             self.run_command(cmd)
             self._debug('command: %s' %cmd)
         else:
-            self._debug('Festival is busy. Pass')
+            self._debug('pico is busy. Pass')
 
     def lang(self, *value):
         if len(value) == 0:
