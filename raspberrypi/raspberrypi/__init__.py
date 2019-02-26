@@ -17,9 +17,14 @@ from raspberrypi.sensorkit import DHT11, Ultrasonicranging, DS18B20
 from raspberrypi.taskmgr import Taskmgr
 # from raspberrypi.camera import Camera
 
+ble = BLE()
+
+ble.write('NAME+ezb-RPi')
+# ble.write('ADVP+') # 0~F
+
 # from raspberrypi.uart import UART
 SCRIPT_NAME = 'raspberrypi'
-is_print_init = False
+# is_print_init = False
 def reset():
     from os import system as run
     import os
@@ -39,22 +44,19 @@ def reset():
     # quit()
     # os.execl("raspberrypi", "")
 
-
-
 def main():
     from raspberrypi import _boot
 
-
 __PRINT__ = print
 
-def print_init():
-    global ble, is_print_init
-    if not is_print_init:
-        ble = BLE()
-        is_print_init = True
+# def print_init():
+#     global ble, is_print_init
+#     if not is_print_init:
+#         ble = BLE()
+#         is_print_init = True
 
 def print(msg, end='\n', tag='[DEBUG]'):
-    print_init()
+#     print_init()
     msg = '%s %s %s' % (tag, msg, tag)
     __PRINT__(msg, end=end)
     ble.write(msg)
