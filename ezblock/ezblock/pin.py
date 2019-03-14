@@ -1,4 +1,4 @@
-from raspberrypi.basic import _Basic_class
+from ezblock.basic import _Basic_class
 import RPi.GPIO as GPIO
 
 class Pin(_Basic_class):
@@ -61,7 +61,7 @@ class Pin(_Basic_class):
                 self._dict = _dict
             else:
                 self._error(
-                    'argument should be a pin dictionary like {"my pin": raspberrypi.Pin.cpu.GPIO17}, not %s' % _dict)
+                    'argument should be a pin dictionary like {"my pin": ezblock.Pin.cpu.GPIO17}, not %s' % _dict)
 
     def __call__(self, value):
         return self.value(value)

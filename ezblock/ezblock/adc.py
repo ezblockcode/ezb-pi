@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-from raspberrypi.i2c import I2C
-# from raspberrypi.basic import _Basic_class
-# import smbus
-import time
+from ezblock.i2c import I2C
 
 class ADC(I2C):
     ADDR=0x14

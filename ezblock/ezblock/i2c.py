@@ -1,4 +1,4 @@
-from raspberrypi.basic import _Basic_class
+from ezblock.basic import _Basic_class
 from smbus import SMBus
 
 class I2C(_Basic_class):

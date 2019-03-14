@@ -1,4 +1,4 @@
-from raspberrypi.basic import _Basic_class
+from ezblock.basic import _Basic_class
 from distutils.spawn import find_executable
 
 class TTS(_Basic_class):

@@ -1,5 +1,5 @@
 import smbus, math
-from raspberrypi.basic import _Basic_class
+from ezblock.basic import _Basic_class
 
 class PWM(_Basic_class):
     REG_PSC = 0x28

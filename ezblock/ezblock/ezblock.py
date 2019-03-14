@@ -1,4 +1,4 @@
-from raspberrypi import BLE
+from ezblock import BLE
 from time import sleep
 
 __PRINT__ = print

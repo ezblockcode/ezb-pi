@@ -1,4 +1,4 @@
-from raspberrypi.pwm import PWM
+from ezblock.pwm import PWM
 import time
 
 

@@ -14,7 +14,7 @@
 # sudo apt-get install libjasper-dev
 # sudo apt-get install libqtgui4
 
-from raspberrypi.basic import _Basic_class
+from ezblock.basic import _Basic_class
 import cv2
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import ssl

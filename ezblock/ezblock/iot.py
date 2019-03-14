@@ -47,10 +47,10 @@ class IOT(object):
 
 def test():
     import time
-    # print("set to: (epuubHMC3Bj5b0fb, raspberrypi, temperature), value: 25")
-    # IOT('3qNtOfNL07v5Uj59', 'raspberrypi').post('actuators#Switch#1', 20)
-    a = IOT('3qNtOfNL07v5Uj59', 'raspberrypi').get('actuators#Switch#1')
-    # print("get from: (epuubHMC3Bj5b0fb, raspberrypi, temperature), value: %s"%a)
+    # print("set to: (epuubHMC3Bj5b0fb, ezblock, temperature), value: 25")
+    # IOT('3qNtOfNL07v5Uj59', 'ezblock').post('actuators#Switch#1', 20)
+    a = IOT('3qNtOfNL07v5Uj59', 'ezblock').get('actuators#Switch#1')
+    # print("get from: (epuubHMC3Bj5b0fb, ezblock, temperature), value: %s"%a)
     print(a)
     time.sleep(2)
 
