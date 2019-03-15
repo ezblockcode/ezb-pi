@@ -168,12 +168,12 @@ def install():
     do(msg="touch .info file",
         cmd='run_command("sudo touch /opt/ezblock/.info")')
 
-    os.chdir("./raspberrypi")
+    os.chdir("./ezblock")
     print("Install Raspberry Pi python package")
     do(msg="run setup file",
         cmd='run_command("sudo python3 setup.py install")')
     do(msg="cleanup",
-        cmd='run_command("sudo rm -rf raspberrypi.egg-info")')
+        cmd='run_command("sudo rm -rf ezblock.egg-info")')
     os.chdir("../")
 
     if len(errors) == 0:
@@ -191,7 +191,7 @@ def test():
 
 def cleanup():
     do(msg="cleanup",
-        cmd='run_command("sudo rm -rf usr raspberrypi.egg-info")')
+        cmd='run_command("sudo rm -rf usr ezblock.egg-info")')
 
 if __name__ == "__main__":
     try:
