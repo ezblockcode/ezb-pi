@@ -15,7 +15,7 @@ from ezblock.tts import TTS
 from ezblock.irq import IRQ
 from time import sleep
 from ezblock.taskmgr import Taskmgr
-from modules import *
+from ezblock.modules import *
 
 # from ezblock.camera import Camera
 
