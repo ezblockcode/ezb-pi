@@ -109,8 +109,13 @@ class Pin(_Basic_class):
     def low(self):
         return self.off()
 
-    def mode(self):
-        return self._mode
+    def mode(self, *value):
+        if len(value) == 0:
+            return self._mode
+        else:
+            mode = value[0]
+            self._mode = mode
+            GPIO.setup(self._pin, mode)
 
     def pull(self, *value):
         return self._pull
