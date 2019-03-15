@@ -1,5 +1,6 @@
 from ezblock.basic import _Basic_class
 from ezblock.uart import UART
+from time import sleep
 
 class BLE(_Basic_class):
     # Delay between every 20 Byte
