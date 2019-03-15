@@ -45,12 +45,14 @@ class _Basic_class(object):
         self._debug('Set logging level to [%s]' % self._debug_level)
 
     def run_command(self, cmd):
-        self._debug('Run command: "%s"' % cmd)
-        with tempfile.TemporaryFile() as f:
-            subprocess.call(cmd, shell=True, stdout=f, stderr=f)
-            f.seek(0)
-            output = f.read()
-            return output
+        import subprocess
+        p = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result = p.stdout.read().decode('utf-8')
+        status = p.poll()
+        # print(result)
+        # print(status)
+        return status, result
 
     def map(self, x, in_min, in_max, out_min, out_max):
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min

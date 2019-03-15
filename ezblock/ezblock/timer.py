@@ -1,7 +1,7 @@
 import smbus, math
 from ezblock.basic import _Basic_class
 
-class PWM(_Basic_class):
+class Timer(_Basic_class):
     REG_PSC = 0x28
     REG_ARR = 0x2A
     ADDR = 0x14
@@ -47,7 +47,7 @@ class PWM(_Basic_class):
             if st <= 0:
                 st = 1
             for psc in range(st,st+10):
-                arr = int(self.CLOCK/self._freq/psc)
+                arr = int(self.CLOCK/self._freq/psc)     # 72000000/50/
                 result_ap.append([psc, arr])
                 result_acy.append(abs(self._freq-self.CLOCK/psc/arr))
             i = result_acy.index(min(result_acy))
@@ -56,7 +56,7 @@ class PWM(_Basic_class):
             self._debug("prescaler: %s, period: %s"%(psc, arr))
             self.prescaler(psc)
             self.period(arr)
-
+    
     def prescaler(self, *prescaler):
         if len(prescaler) == 0:
             return self._prescaler
@@ -78,11 +78,11 @@ class PWM(_Basic_class):
             return self._pulse_width
         else:
             self._pulse_width = pulse_width[0]
-            CCR = int(self._pulse_width/self.PRECISION * self._arr)
+            CCR = int(self._pulse_width/self.PRECISION * self._arr) # 4095 / 4095 * period(周期默认)
             # print("CCR: %s"%CCR)
             self.i2c_write(self.channel, CCR)
 
-    def pulse_width_percentage(self, *pulse_width_percentage):
+    def pulse_width_percent(self, *pulse_width_percentage):
         if len(pulse_width_percentage) == 0:
             return self._pulse_width_percentage
         else:
@@ -90,10 +90,10 @@ class PWM(_Basic_class):
             pulse_width = self._pulse_width_percentage * self._arr
             self.pulse_width(pulse_width)
 
-        
+
 def test():
     import time
-    p = PWM(5)
+    p = Timer(5)
     # p.debug = 'debug'
     p.period(1000)
     p.prescaler(10)

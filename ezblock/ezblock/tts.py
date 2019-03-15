@@ -50,7 +50,7 @@ def test():
     tts = TTS()
     tts.lang("de-DE")
     tts.say("Wer bin ich")
-    
+
 
 if __name__ == "__main__":
     test()

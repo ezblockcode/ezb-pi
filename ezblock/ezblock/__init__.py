@@ -12,6 +12,7 @@ from ezblock.ble import BLE
 from ezblock.ble import Remote
 from ezblock.iot import IOT
 from ezblock.tts import TTS
+from ezblock.irq import IRQ
 from time import sleep
 from ezblock.sensorkit import DHT11, Ultrasonicranging, DS18B20
 from ezblock.taskmgr import Taskmgr
@@ -22,14 +23,13 @@ ble = BLE()
 ble.write('NAME+ezb-RPi')
 # ble.write('ADVP+') # 0~F
 
-SCRIPT_NAME = 'ezblock'
-
 __PRINT__ = print
 
 def print(msg, end='\n', tag='[DEBUG]'):
     msg = '%s %s %s' % (tag, msg, tag)
     __PRINT__(msg, end=end)
     ble.write(msg)
+
 
 def delay(ms):
     sleep(ms/1000)
@@ -42,5 +42,11 @@ def wifi_setup(country, ssid, psk):
     template = 'ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\nupdate_config=1\ncountry=%s\nnetwork={\n\tssid="%s"\n\tpsk="%s"\n}'
     data = template % (country, ssid, psk)
     with open(r"/etc/wpa_supplicant/wpa_supplicant.conf", "w+") as f:
+        # old = f.read()
+        # f.seek(0)
         f.write(data)
+        # f.write(old)
+        # print("1")
+        # print(self.ssid)
+        # echo 'data'>>
     os.system("sudo ifconfig wlan0 down && sudo ifconfig wlan0 up")
