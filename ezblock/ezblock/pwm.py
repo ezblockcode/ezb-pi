@@ -82,12 +82,12 @@ class PWM(_Basic_class):
             # print("CCR: %s"%CCR)
             self.i2c_write(self.channel, CCR)
 
-    def pulse_width_percentage(self, *pulse_width_percentage):
-        if len(pulse_width_percentage) == 0:
-            return self._pulse_width_percentage
+    def pulse_width_percent(self, *pulse_width_percent):
+        if len(pulse_width_percent) == 0:
+            return self._pulse_width_percent
         else:
-            self._pulse_width_percentage = pulse_width_percentage[0] / 100.0
-            pulse_width = self._pulse_width_percentage * self._arr
+            self._pulse_width_percent = pulse_width_percent[0] / 100.0
+            pulse_width = self._pulse_width_percent * self._arr
             self.pulse_width(pulse_width)
 
         

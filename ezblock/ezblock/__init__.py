@@ -14,8 +14,9 @@ from ezblock.iot import IOT
 from ezblock.tts import TTS
 from ezblock.irq import IRQ
 from time import sleep
-from ezblock.sensorkit import DHT11, Ultrasonicranging, DS18B20
 from ezblock.taskmgr import Taskmgr
+from modules import *
+
 # from ezblock.camera import Camera
 
 ble = BLE()
