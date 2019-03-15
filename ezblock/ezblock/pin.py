@@ -8,6 +8,7 @@ class Pin(_Basic_class):
     IRQ_RISING = GPIO.RISING
     PULL_UP = GPIO.PUD_UP
     PULL_DOWN = GPIO.PUD_DOWN
+    PULL_NONE = None
     _dict = {
         "D0":  17,
         "D1":  18,
@@ -33,10 +34,20 @@ class Pin(_Basic_class):
         "BLEINT": 13,
     }
 
-    def __init__(self, pin):
+    def __init__(self, *value):
         super().__init__()
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
+        if len(value) > 0:
+            pin = value[0]
+        if len(value) > 1:
+            mode = value[1]
+        else:
+            mode = None
+        if len(value) > 2:
+            setup = value[2]
+        else:
+            setup = None
         if isinstance(pin, str):
             try:
                 self._bname = pin
@@ -49,10 +60,18 @@ class Pin(_Basic_class):
         else:
             self._error('Pin should be in %s, not %s' % (self._dict, pin))
         self._value = 0
-        self._pull = self.PULL_UP
-        self._mode = None
+        self.init(mode, pull=setup)
         self._info("Pin init finished.")
         
+    def init(self, mode, pull=PULL_NONE):
+        self._pull = pull
+        self._mode = mode
+        if mode != None:
+            if pull != None:
+                GPIO.setup(self._pin, mode, pull_up_down=pull)
+            else:
+                GPIO.setup(self._pin, mode)
+
     def dict(self, *_dict):
         if len(_dict) == 0:
             return self._dict
@@ -90,24 +109,11 @@ class Pin(_Basic_class):
     def low(self):
         return self.off()
 
-    def mode(self, *value):
-        if len(value) == 0:
-            return self._mode
-        else:
-            value = value[0]
-            if value != self._mode:
-                self._mode = value
-                GPIO.setup(self._pin, self._mode)
-                return self._mode
+    def mode(self):
+        return self._mode
 
     def pull(self, *value):
-        if len(value) == 0:
-            return self._pull
-        else:
-            value = value[0]
-            self._pull = value
-            self._mode = self.IN
-            GPIO.setup(self._pin, self._mode, pull_up_down=value)
+        return self._pull
 
     def irq(self, handler=None, trigger=None):
         self.mode(self.IN)
