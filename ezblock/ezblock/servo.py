@@ -6,6 +6,7 @@ class Servo(_Basic_class):
     MIN_PW = 500
     _freq = 50
     def __init__(self, pwm):
+        super().__init__()
         self.pwm = pwm
         self.pwm.period(4095)
         prescaler = int(float(self.pwm.CLOCK) /self.pwm._freq/self.pwm._arr)
