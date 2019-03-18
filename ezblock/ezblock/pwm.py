@@ -2,11 +2,13 @@ import smbus, math
 from ezblock.basic import _Basic_class
 
 class PWM(_Basic_class):
-    REG_PSC = 0x28
-    REG_ARR = 0x2A
+    REG_CHN = 0x20
+    REG_FRE = 0x30
+    REG_PSC = 0x40
+    REG_ARR = 0x44
+
     ADDR = 0x14
 
-    PRECISION = 4095
     CLOCK = 72000000
 
     def __init__(self, channel):
@@ -15,8 +17,9 @@ class PWM(_Basic_class):
             if channel.startswith("P"):
                 channel = int(channel[1:])
             else:
-                raise ValueError("PWM channel should be between [P1, P8], not {0}".format(channel))
-        self.channel = channel + 0x20
+                raise ValueError("PWM channel should be between [P1, P14], not {0}".format(channel))
+        self.channel = channel
+        self.timer = int(channel/4)
         self.bus = smbus.SMBus(1)
         self._pulse_width = 0
         self._freq = 50
@@ -61,26 +64,29 @@ class PWM(_Basic_class):
         if len(prescaler) == 0:
             return self._prescaler
         else:
-            self._prescaler = prescaler[0]
+            self._prescaler = prescaler[0] - 1
+            reg = self.REG_PSC + self.timer
             self._debug("Set prescaler to: %s"%self._prescaler)
-            self.i2c_write(self.REG_PSC, self._prescaler)
+            self.i2c_write(reg, self._prescaler)
 
     def period(self, *arr):
         if len(arr) == 0:
             return self._arr
         else:
-            self._arr = arr[0]
+            self._arr = arr[0] - 1
+            reg = self.REG_ARR + self.timer
             self._debug("Set arr to: %s"%self._arr)
-            self.i2c_write(self.REG_ARR, self._arr)
+            self.i2c_write(reg, self._arr)
 
     def pulse_width(self, *pulse_width):
         if len(pulse_width) == 0:
             return self._pulse_width
         else:
             self._pulse_width = pulse_width[0]
-            CCR = int(self._pulse_width/self.PRECISION * self._arr)
+            reg = self.REG_CHN + self.channel
+            # CCR = int(self._pulse_width/self.PRECISION * self._arr)
             # print("CCR: %s"%CCR)
-            self.i2c_write(self.channel, CCR)
+            self.i2c_write(reg, self._pulse_width)
 
     def pulse_width_percent(self, *pulse_width_percent):
         if len(pulse_width_percent) == 0:
