@@ -37,7 +37,7 @@ class PWM(_Basic_class):
         if len(freq) == 0:
             return self._freq
         else:
-            self._freq = freq[0]
+            self._freq = int(freq[0])
             # [prescaler,arr] list
             result_ap = []
             # accuracy list
@@ -64,7 +64,7 @@ class PWM(_Basic_class):
         if len(prescaler) == 0:
             return self._prescaler
         else:
-            self._prescaler = prescaler[0] - 1
+            self._prescaler = int(prescaler[0]) - 1
             reg = self.REG_PSC + self.timer
             self._debug("Set prescaler to: %s"%self._prescaler)
             self.i2c_write(reg, self._prescaler)
@@ -73,7 +73,7 @@ class PWM(_Basic_class):
         if len(arr) == 0:
             return self._arr
         else:
-            self._arr = arr[0] - 1
+            self._arr = int(arr[0]) - 1
             reg = self.REG_ARR + self.timer
             self._debug("Set arr to: %s"%self._arr)
             self.i2c_write(reg, self._arr)
@@ -82,7 +82,7 @@ class PWM(_Basic_class):
         if len(pulse_width) == 0:
             return self._pulse_width
         else:
-            self._pulse_width = pulse_width[0]
+            self._pulse_width = int(pulse_width[0])
             reg = self.REG_CHN + self.channel
             # CCR = int(self._pulse_width/self.PRECISION * self._arr)
             # print("CCR: %s"%CCR)
