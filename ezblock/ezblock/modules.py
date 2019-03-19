@@ -70,8 +70,8 @@ class DS18X20():
 class ADXL345():
     REG_DEVID        = 0x14 # Device ID
     REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
-    REG_DATA_Y       = 0x34 # X-axis data 0 (6 bytes for X/Y/Z)
-    REG_DATA_Z       = 0x36 # X-axis data 0 (6 bytes for X/Y/Z)
+    REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
+    REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
     REG_POWER_CTL    = 0x2D # Power-saving features control
     AXISES = [REG_DATA_X, REG_DATA_Y, REG_DATA_Z]
 
