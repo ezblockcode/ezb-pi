@@ -15,7 +15,7 @@
 case "$1" in
     start)
         echo "Starting ezblock-reset"
-        sudo ezblock-reset-service &
+        sudo ezblock-reset-service 2>&1 >> /opt/ezblock/log &
         ;;
     stop)
         echo "Stopping ezblock-reset"

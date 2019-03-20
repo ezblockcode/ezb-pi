@@ -1,14 +1,20 @@
 #!/usr/bin/python3
 # -*- coding utf-8 -*-
 
-from raspberrypi import Pin, delay
+from ezblock import Pin, delay
+import time
+import tempfile
+import subprocess
 reset_switch = Pin("RST")
 
 reset_switch.pull(Pin.PULL_UP)
 
+def log(msg):
+    msg = "EZblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
+    print(msg)
+
 def run_command(cmd):
-    import tempfile
-    import subprocess
+    log('run command: "{}"'.format(cmd))
     with tempfile.TemporaryFile() as f:
         subprocess.call(cmd, shell=True, stdout=f, stderr=f)
         f.seek(0)
@@ -16,9 +22,13 @@ def run_command(cmd):
         return output.decode()
 
 def reset_callback_handler(ev):
+    log("reset")
     run_command("sudo service ezblock restart")
 
+log('Start')
+log('Setup irq')
 reset_switch.irq(reset_callback_handler, Pin.IRQ_FALLING)
+log('Finished')
 
 while True:
     delay(1000)

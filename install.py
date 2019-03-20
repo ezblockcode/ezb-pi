@@ -164,9 +164,10 @@ def install():
     print("Create workspace")
     do(msg="copy workspace",
         cmd='run_command("sudo cp -r ./workspace /opt/ezblock")')
-    print("Touch .info file")
     do(msg="touch .info file",
         cmd='run_command("sudo touch /opt/ezblock/.info")')
+    do(msg="add write permission to log file",
+        cmd='run_command("sudo chmod 666 /opt/ezblock/log")')
 
     os.chdir("./ezblock")
     print("Install Raspberry Pi python package")

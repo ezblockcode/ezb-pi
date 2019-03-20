@@ -1,11 +1,19 @@
 #!/usr/bin/python3
 # -*- coding utf-8 -*-
 
-from libezblock import Boot
+import libezblock
 import time
 
+
+def log(msg, end="\n"):
+    msg = "abc {}".format(msg)
+    print(msg, end=end)
+
+libezblock.print = log
+
 def main():
-    b = Boot()
+    # libezblock.print = log
+    b = libezblock.Boot()
     b.main()
 
 if __name__ == '__main__':
