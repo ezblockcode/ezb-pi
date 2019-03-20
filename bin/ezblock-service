@@ -4,15 +4,7 @@
 import libezblock
 import time
 
-
-def log(msg, end="\n"):
-    msg = "abc {}".format(msg)
-    print(msg, end=end)
-
-libezblock.print = log
-
 def main():
-    # libezblock.print = log
     b = libezblock.Boot()
     b.main()
 
