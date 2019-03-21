@@ -114,12 +114,12 @@ def install():
         cmd='run_command("sudo apt-get install libttspico-utils -y")')
     # do(msg="install opencv-python",
     #     cmd='run_command("sudo pip3 install opencv-python")')
-    do(msg="unpackaging swift",
-        cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
-    do(msg="copy swift to /usr",
-        cmd='run_command("sudo cp -r usr /")')
-    do(msg="cleanup",
-        cmd='run_command("sudo rm -rf usr")')
+    # do(msg="unpackaging swift",
+    #     cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
+    # do(msg="copy swift to /usr",
+    #     cmd='run_command("sudo cp -r usr /")')
+    # do(msg="cleanup",
+    #     cmd='run_command("sudo rm -rf usr")')
 
     print("Setup interfaces")
     do(msg="turn on I2C",
@@ -170,7 +170,7 @@ def install():
         cmd='run_command("sudo chmod 666 /opt/ezblock/log")')
 
     os.chdir("./ezblock")
-    print("Install Raspberry Pi python package")
+    print("Install ezblock python package")
     do(msg="run setup file",
         cmd='run_command("sudo python3 setup.py install")')
     do(msg="cleanup",

@@ -11,10 +11,10 @@ reset_switch.pull(Pin.PULL_UP)
 
 def log(msg):
     msg = "EZblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
+    run_command("echo {} >> /opt/ezblock/log".format(msg))
     print(msg)
 
 def run_command(cmd):
-    log('run command: "{}"'.format(cmd))
     with tempfile.TemporaryFile() as f:
         subprocess.call(cmd, shell=True, stdout=f, stderr=f)
         f.seek(0)
