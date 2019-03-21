@@ -16,6 +16,7 @@ from ezblock.irq import IRQ
 from time import sleep
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
+from ezblock.send_email import SendMail
 
 # from ezblock.camera import Camera
 

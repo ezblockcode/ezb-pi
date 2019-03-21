@@ -42,7 +42,7 @@ class SendMail(object):
 
 
 def test():
-    sendmail = SendMail().send('845864704@qq.com', "用户体验调查问卷")
+    sendmail = SendMail().send('845864704@qq.com', "Devin send email")
 
 if __name__ == "__main__":
     test()
