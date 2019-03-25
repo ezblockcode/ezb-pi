@@ -14,7 +14,9 @@
 # sudo apt-get install libjasper-dev
 # sudo apt-get install libqtgui4
 
-from ezblock.basic import _Basic_class
+# sudo apt-get install libqt4-test
+
+from basic import _Basic_class
 import cv2
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import ssl
@@ -29,10 +31,18 @@ import re
 class Camera(_Basic_class):
 
     port = 9000
+    RES = [
+        [320, 240],
+        [640, 480],
+        [1024, 576],
+        [1280, 800],
+    ]
 
-    def __init__(self):
+    def __init__(self, res):
         self.getCamera()
-        self.setUpCameraCV(320, 240)
+        width = self.RES[res][0]
+        height = self.RES[res][1]
+        self.setUpCameraCV(width, height)
         ipv4, ipv6 = self.getIP('wlan0')
         self.ip = ipv4
         self.hostname = Socket.gethostname()
@@ -61,7 +71,8 @@ class Camera(_Basic_class):
                         os.popen(search_str).read()).groups()[0]
         ipv6 = re.search(re.compile(r'(?<=inet6 )(.*)(?=\/)', re.M),
                         os.popen(search_str).read()).groups()[0]
-        return ipv4, ipv6
+        ip = [ipv4, ipv6]
+        return ip
 
     def setUpCameraCV(self, width, height):
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -82,7 +93,8 @@ class Camera(_Basic_class):
 
     class mjpgServer(BaseHTTPRequestHandler):
         camera = None
-        def do_GET(self):
+        def do_GET(self, freq=50):
+            print("do_get successed")
             if self.path == '/mjpg':
                 self.send_response(200)
                 self.send_header(
@@ -107,7 +119,7 @@ class Camera(_Basic_class):
                     self.send_header('Content-length', str(jpg.size))
                     self.end_headers()
                     self.wfile.write(jpg.tostring())
-                    # time.sleep(0.05)
+                    time.sleep(1.0/freq)
             else:
                 print('error', self.path)
                 self.send_response(404)
@@ -120,6 +132,7 @@ class Camera(_Basic_class):
 
 if __name__ == '__main__':
     try:
-        Camera().start()
+        print(Camera(0).getIP('wlan0')[0])
+        Camera(0).start()
     except KeyboardInterrupt:
         print('KeyboardInterrupt')
