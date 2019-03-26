@@ -12,7 +12,7 @@ class IRQ(_Basic_class):
         self.trigger = trigger
         self.callback = callback
         self.pin.mode(self.pin.IN)
-        GPIO.add_event_detect(self.pin, trigger, callback=callback)
+        GPIO.add_event_detect(self.pin._pin, trigger, callback=callback)
 
     def disable(self):
         # Disable the interrupt associated with the ExtInt object. This could be useful for debouncing.
