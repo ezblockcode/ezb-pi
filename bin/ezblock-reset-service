@@ -6,8 +6,12 @@ import time
 import tempfile
 import subprocess
 reset_switch = Pin("RST")
+ble_reset = Pin("BLERST")
+status_led = Pin("LED")
 
 reset_switch.pull(Pin.PULL_UP)
+
+is_reset = None
 
 def log(msg):
     msg = "EZblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
@@ -22,13 +26,43 @@ def run_command(cmd):
         return output.decode()
 
 def reset_callback_handler(ev):
-    log("reset")
-    run_command("sudo service ezblock restart")
+    global is_reset
+    value = reset_switch.value()
+    if value == 0:
+        is_reset = True
+        status_led.value(0)
+    else:
+        is_reset = False
+        status_led.value(0)
 
 log('Start')
 log('Setup irq')
-reset_switch.irq(reset_callback_handler, Pin.IRQ_FALLING)
+reset_switch.irq(reset_callback_handler, Pin.IRQ_RISING_FALLING)
 log('Finished')
+ble_reset.value(1)
 
-while True:
-    delay(1000)
+def main():
+    global is_reset
+    count = 0
+    while True:
+        if is_reset == True:
+            count += 1
+            if count > 6:
+                status_led.value(1)
+        elif is_reset == False:
+            if count > 6:
+                log("hard reset")
+                ble_reset.value(0)
+                time.sleep(0.5)
+                ble_reset.value(1)
+            else:
+                log("soft reset")
+            run_command("sudo service ezblock restart")
+            is_reset = None
+        delay(500)
+
+if __name__ == "__main__":
+    try:
+        main()
+    finally:
+        ble_reset.value(0)
