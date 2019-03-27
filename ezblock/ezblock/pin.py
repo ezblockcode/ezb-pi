@@ -32,6 +32,7 @@ class Pin(_Basic_class):
         "PWR": 12,
         "RST": 16,
         "BLEINT": 13,
+        "BLERST": 20,
     }
 
     def __init__(self, *value):
