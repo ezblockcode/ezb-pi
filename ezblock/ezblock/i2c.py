@@ -4,6 +4,7 @@ from smbus import SMBus
 class I2C(_Basic_class):
     MASTER = 0
     SLAVE  = 1
+    RETRY = 5
 
     def __init__(self, bus=None, baudrate=None):
         super().__init__()
@@ -14,6 +15,58 @@ class I2C(_Basic_class):
         # self._addr = addr
         self._baudrate = baudrate
         self._smbus = SMBus(self._bus)
+
+    def _i2c_write_byte(self, **karg):
+        for i in range(self.RETRY):
+            try:
+                return self._smbus.write_byte(**karg)
+                return True
+            except:
+                pass
+        return self._smbus.write_byte(**karg)
+    
+    def _i2c_write_byte_data(self, **karg):
+        for i in range(self.RETRY):
+            try:
+                return self._smbus.write_byte_data(**karg)
+                return True
+            except:
+                pass
+        return self._smbus.write_byte_data(**karg)
+    
+    def _i2c_write_word_data(self, **karg):
+        for i in range(self.RETRY):
+            try:
+                return self._smbus.write_word_data(**karg)
+                return True
+            except:
+                pass
+        return self._smbus.write_word_data(**karg)
+    
+    def _i2c_write_i2c_block_data(self, **karg):
+        for i in range(self.RETRY):
+            try:
+                return self._smbus.write_i2c_block_data(**karg)
+                return True
+            except:
+                pass
+        return self._smbus.write_i2c_block_data(**karg)
+    
+    def _i2c_read_byte(self, **karg):
+        for i in range(self.RETRY):
+            try:
+                return self._smbus.read_byte(**karg)
+            except:
+                pass
+        self._smbus.read_byte(**karg)
+
+    def _i2c_read_i2c_block_data(self, **karg):
+        for i in range(self.RETRY):
+            try:
+                return self._smbus.read_i2c_block_data(**karg)
+            except:
+                pass
+        self._smbus.read_i2c_block_data(**karg)
 
     def is_ready(self, addr):
         addresses = self.scan()
@@ -51,19 +104,19 @@ class I2C(_Basic_class):
             data_all.reverse()
         if len(data_all) == 1:
             data = data_all[0]
-            self._smbus.write_byte(addr, data)
+            self._i2c_write_byte(addr, data)
         elif len(data_all) == 2:
             reg = data_all[0]
             data = data_all[1]
-            self._smbus.write_byte_data(addr, reg, data)
+            self._i2c_write_byte_data(addr, reg, data)
         elif len(data_all) == 3:
             reg = data_all[0]
             data = data_all[1] << 8 + data_all[2]
-            self._smbus.write_word_data(addr, reg, data)
+            self._i2c_write_word_data(addr, reg, data)
         else:
             reg = data_all[0]
             data = list(data_all[1:])
-            self._smbus.write_i2c_block_data(addr, reg, data)
+            self._i2c_write_i2c_block_data(addr, reg, data)
 
     def recv(self, recv, addr=0x00, timeout=0):
         if isinstance(recv, int):
@@ -73,7 +126,7 @@ class I2C(_Basic_class):
         else:
             return False
         for i in range(len(result)):
-            result[i] = self._smbus.read_byte(addr)
+            result[i] = self._i2c_read_byte(addr)
         return result
 
     def mem_write(self, data, addr, memaddr, timeout=5000, addr_size=8): #memaddr match to chn
@@ -88,7 +141,7 @@ class I2C(_Basic_class):
                 else:
                     data_all.append(d)
             data_all.reverse()
-        self._smbus.write_i2c_block_data(addr, memaddr, data_all)
+        self._i2c_write_i2c_block_data(addr, memaddr, data_all)
     
     def mem_read(self, data, addr, memaddr, timeout=5000, addr_size=8):
         if isinstance(data, int):
@@ -98,5 +151,5 @@ class I2C(_Basic_class):
         else:
             return False
         result = bytearray(num)
-        result = self._smbus.read_i2c_block_data(addr, memaddr, num)
+        result = self._i2c_read_i2c_block_data(addr, memaddr, num)
         return result

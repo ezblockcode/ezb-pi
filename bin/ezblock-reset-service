@@ -58,6 +58,7 @@ def main():
             else:
                 log("soft reset")
             run_command("sudo service ezblock restart")
+            count = 0
             is_reset = None
         delay(500)
 
