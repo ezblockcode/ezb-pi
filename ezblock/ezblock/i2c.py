@@ -6,14 +6,9 @@ class I2C(_Basic_class):
     SLAVE  = 1
     RETRY = 5
 
-    def __init__(self, bus=None, baudrate=None):
+    def __init__(self, *args, **kargs):
         super().__init__()
-        if bus == None:
-            self._bus = 1
-        else:
-            self._bus = bus
-        # self._addr = addr
-        self._baudrate = baudrate
+        self._bus = 1
         self._smbus = SMBus(self._bus)
 
     def _i2c_write_byte(self, **karg):
