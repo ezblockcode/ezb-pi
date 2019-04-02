@@ -28,15 +28,16 @@ class Ultrasonic():
         return during * 340 / 2 * 100
 
 class DS18X20():
-    def __init__(self, pin):
-        self.pin = pin
+    def __init__(self, *args, **kargs):
+        # self.pin = pin
+        pass
     
     def scan(self):
         import os
         roms = []
         for rom in os.listdir('/sys/bus/w1/devices'):
             if rom.startswith('28-'):
-                roms.append(roms)
+                roms.append(rom)
         return roms
 
     def convert_temp(self):
