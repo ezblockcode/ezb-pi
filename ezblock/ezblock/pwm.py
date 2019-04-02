@@ -1,7 +1,7 @@
 import smbus, math
-from ezblock.basic import _Basic_class
+from ezblock.i2c import I2C
 
-class PWM(_Basic_class):
+class PWM(I2C):
     REG_CHN = 0x20
     REG_FRE = 0x30
     REG_PSC = 0x40
@@ -18,6 +18,11 @@ class PWM(_Basic_class):
                 channel = int(channel[1:])
             else:
                 raise ValueError("PWM channel should be between [P1, P14], not {0}".format(channel))
+        try:
+            self.send(reg, self.ADDR)
+        except IOError:
+            self.ADDR = 0x15
+
         self.channel = channel
         self.timer = int(channel/4)
         self.bus = smbus.SMBus(1)
@@ -28,9 +33,9 @@ class PWM(_Basic_class):
     def i2c_write(self, reg, value):
         value_h = value >> 8
         value_l = value & 0xff
-        self.bus.write_byte(self.ADDR, reg)
-        self.bus.write_byte(self.ADDR, value_h)
-        self.bus.write_byte(self.ADDR, value_l)
+        self.send(reg, self.ADDR)
+        self.send(value_h, self.ADDR)
+        self.send(value_l, self.ADDR)
         self._debug("i2c write: [0x%02X, 0x%02X, 0x%02X, 0x%02X]"%(self.ADDR, reg, value_h, value_l))
 
     def freq(self, *freq):

@@ -4,7 +4,7 @@ from ezblock.i2c import I2C
 class ADC(I2C):
     ADDR=0x14
 
-    def __init__(self,chn):
+    def __init__(self, chn):
         super().__init__()
         if isinstance(chn, str):
             if chn.startswith("A"):
@@ -34,12 +34,6 @@ class ADC(I2C):
         value = (value_h << 8) + value_l
         self._debug("Read value: %s"%value)
         return value
-        
-    # def read_1(self):
-    #     self._debug("Write 0x%02X to 0x%02X"%(self.chn, self.ADDR))
-        
-        
-
 
     def read_voltage(self):
         return self.read*3.3/4095
