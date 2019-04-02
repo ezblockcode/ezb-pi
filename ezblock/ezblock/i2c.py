@@ -11,57 +11,57 @@ class I2C(_Basic_class):
         self._bus = 1
         self._smbus = SMBus(self._bus)
 
-    def _i2c_write_byte(self, **karg):
+    def _i2c_write_byte(self, *args, **kargs):
         for i in range(self.RETRY):
             try:
-                return self._smbus.write_byte(**karg)
+                return self._smbus.write_byte(*args, **kargs)
                 return True
             except:
                 pass
-        return self._smbus.write_byte(**karg)
+        return self._smbus.write_byte(*args, **kargs)
     
-    def _i2c_write_byte_data(self, **karg):
+    def _i2c_write_byte_data(self, *args, **kargs):
         for i in range(self.RETRY):
             try:
-                return self._smbus.write_byte_data(**karg)
+                return self._smbus.write_byte_data(*args, **kargs)
                 return True
             except:
                 pass
-        return self._smbus.write_byte_data(**karg)
+        return self._smbus.write_byte_data(*args, **kargs)
     
-    def _i2c_write_word_data(self, **karg):
+    def _i2c_write_word_data(self, *args, **kargs):
         for i in range(self.RETRY):
             try:
-                return self._smbus.write_word_data(**karg)
+                return self._smbus.write_word_data(*args, **kargs)
                 return True
             except:
                 pass
-        return self._smbus.write_word_data(**karg)
+        return self._smbus.write_word_data(*args, **kargs)
     
-    def _i2c_write_i2c_block_data(self, **karg):
+    def _i2c_write_i2c_block_data(self, *args, **kargs):
         for i in range(self.RETRY):
             try:
-                return self._smbus.write_i2c_block_data(**karg)
+                return self._smbus.write_i2c_block_data(*args, **kargs)
                 return True
             except:
                 pass
-        return self._smbus.write_i2c_block_data(**karg)
+        return self._smbus.write_i2c_block_data(*args, **kargs)
     
-    def _i2c_read_byte(self, **karg):
+    def _i2c_read_byte(self, *args, **kargs):
         for i in range(self.RETRY):
             try:
-                return self._smbus.read_byte(**karg)
+                return self._smbus.read_byte(*args, **kargs)
             except:
                 pass
-        self._smbus.read_byte(**karg)
+        self._smbus.read_byte(*args, **kargs)
 
-    def _i2c_read_i2c_block_data(self, **karg):
+    def _i2c_read_i2c_block_data(self, *args, **kargs):
         for i in range(self.RETRY):
             try:
-                return self._smbus.read_i2c_block_data(**karg)
+                return self._smbus.read_i2c_block_data(*args, **kargs)
             except:
                 pass
-        self._smbus.read_i2c_block_data(**karg)
+        self._smbus.read_i2c_block_data(*args, **kargs)
 
     def is_ready(self, addr):
         addresses = self.scan()
