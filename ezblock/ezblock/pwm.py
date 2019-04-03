@@ -19,7 +19,7 @@ class PWM(I2C):
             else:
                 raise ValueError("PWM channel should be between [P1, P14], not {0}".format(channel))
         try:
-            self.send(reg, self.ADDR)
+            self.send(0x10, self.ADDR)
         except IOError:
             self.ADDR = 0x15
 
