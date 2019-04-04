@@ -19,10 +19,13 @@ class PWM(I2C):
             else:
                 raise ValueError("PWM channel should be between [P1, P14], not {0}".format(channel))
         try:
-            self.send(0x10, self.ADDR)
+            self.send(0x2C, self.ADDR)
+            self.send(0, self.ADDR)
+            self.send(0, self.ADDR)
         except IOError:
             self.ADDR = 0x15
 
+        self._debug("PWM address: {:02X}".format(self.ADDR))
         self.channel = channel
         self.timer = int(channel/4)
         self.bus = smbus.SMBus(1)

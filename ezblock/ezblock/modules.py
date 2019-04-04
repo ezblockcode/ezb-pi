@@ -25,7 +25,8 @@ class Ultrasonic():
             if pulse_end - timeout_start > self.timeout:
                 return -1
         during = pulse_end - pulse_start
-        return during * 340 / 2 * 100
+        cm = round(during * 340 / 2 * 100, 2)
+        return cm
 
 class DS18X20():
     def __init__(self, *args, **kargs):
