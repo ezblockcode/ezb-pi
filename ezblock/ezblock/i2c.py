@@ -28,7 +28,7 @@ class I2C(_Basic_class):
         return self._smbus.write_i2c_block_data(*args, **kargs)
     
     def _i2c_read_byte(self, *args, **kargs):
-        self._debug("_i2c_read_byte: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
+        # self._debug("_i2c_read_byte: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
         return self._smbus.read_byte(*args, **kargs)
 
     def _i2c_read_i2c_block_data(self, *args, **kargs):
@@ -95,7 +95,7 @@ class I2C(_Basic_class):
         else:
             return False
         for i in range(len(result)):
-            result[i] = self._i2c_read_byte(addr)
+            result[i] = self._i2c_read_byte(recv)
         return result
 
     def mem_write(self, data, addr, memaddr, timeout=5000, addr_size=8): #memaddr match to chn
