@@ -82,7 +82,11 @@ class ADXL345():
         self.address = address
 
     def read(self, axis):
+        # print(self.address)
         result = self.i2c.recv(self.address, self.REG_DEVID)
+        # self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
+        # self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
+        # print(result)
         send = (0x08<< 8) + self.REG_POWER_CTL
         if result:
             self.i2c.send(send, self.address)
@@ -129,7 +133,7 @@ class Buzzer():
         self.pin.pulse_width_percent(50)
     
     def off(self):
-        self.pin.pulse_width_percent(50)
+        self.pin.pulse_width_percent(0)
     
     def note(self, note):
         self.pin.freq(note)
@@ -187,3 +191,17 @@ class Joystick():
         else:
             i = 0
         return state[i]
+
+
+def test():
+    import time
+    adxl345 = ADXL345()
+    a1 = adxl345.read(0)
+    a2 = adxl345.read(1)
+    a3 = adxl345.read(2)
+    a = [a1, a2, a3]
+    print(a)
+    time.sleep(1)
+
+if __name__ == "__main__":
+    test()
