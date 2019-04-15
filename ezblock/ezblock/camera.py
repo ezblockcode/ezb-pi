@@ -16,7 +16,7 @@
 
 # sudo apt-get install libqt4-test
 
-from basic import _Basic_class
+from ezblock.basic import _Basic_class
 import cv2
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import ssl
@@ -38,7 +38,7 @@ class Camera(_Basic_class):
         [1280, 800],
     ]
 
-    def __init__(self, res):
+    def __init__(self, res=0):
         self.getCamera()
         width = self.RES[res][0]
         height = self.RES[res][1]
@@ -65,7 +65,7 @@ class Camera(_Basic_class):
         if not camera_works:
             raise IOError("Camera not found, please the connection of your camera")
 
-    def getIP(self, iface):
+    def getIP(self, iface='wlan0'):
         search_str = 'ip addr show wlan0'.format(iface)
         ipv4 = re.search(re.compile(r'(?<=inet )(.*)(?=\/)', re.M),
                         os.popen(search_str).read()).groups()[0]
