@@ -17,6 +17,7 @@ from time import sleep
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
 from ezblock.send_email import SendMail
+import time, os
 
 # from ezblock.camera import Camera
 
@@ -28,6 +29,8 @@ ble.write('NAME+ezb-RPi')
 __PRINT__ = print
 
 def print(msg, end='\n', tag='[DEBUG]'):
+    _msg = "EZblock [{}] [DEBUG] {}".format(time.asctime(), msg)
+    os.system("echo {} >> /opt/ezblock/log".format(_msg))
     msg = '%s %s %s' % (tag, msg, tag)
     __PRINT__(msg, end=end)
     ble.write(msg)
