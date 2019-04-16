@@ -70,7 +70,7 @@ class DS18X20():
         return temps
 
 class ADXL345():
-    REG_DEVID        = 0x14 # Device ID
+    # REG_DEVID        = 0x14 # Device ID
     REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
     REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
     REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
@@ -83,7 +83,7 @@ class ADXL345():
 
     def read(self, axis):
         # print(self.address)
-        result = self.i2c.recv(self.address, self.REG_DEVID)
+        result = self.i2c._i2c_read_byte(self.address)
         # self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
         # self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
         # print(result)
