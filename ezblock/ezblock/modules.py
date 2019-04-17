@@ -82,11 +82,15 @@ class ADXL345():
 
     def read(self, axis):
         result = self.i2c._i2c_read_byte(self.address)
-        self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
-        self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
         send = (0x08<< 8) + self.REG_POWER_CTL
         if result:
             self.i2c.send(send, self.address)
+        self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
+        self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
+        raw = self.i2c.mem_read(2, self.address, self.AXISES[axis])
+        # 第一次读的值总是为0，所以多读取一次
+        self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
+        self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
         raw = self.i2c.mem_read(2, self.address, self.AXISES[axis])
         if raw[1]>>7 == 1:
             raw[1] = -((((raw[1]^128)^127)+1))
@@ -191,13 +195,14 @@ class Joystick():
 
 
 def test():
-    import time
-    adxl345 = ADXL345()
-    a1 = adxl345.read(0)
-    a2 = adxl345.read(1)
-    a3 = adxl345.read(2)
-    a = [a1, a2, a3]
-    print(a)
+    # import time
+    # adxl345 = ADXL345()
+    # a1 = adxl345.read(0)
+    # a2 = adxl345.read(1)
+    # a3 = adxl345.read(2)
+    # a = [a1, a2, a3]
+    # print(a)
+    print("%s"%ADXL345().read(0))
     time.sleep(1)
 
 if __name__ == "__main__":
