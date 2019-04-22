@@ -65,7 +65,9 @@ class DS18X20():
             if unit == 0:
                 temp = 32 + temp * 1.8
             temps.append(temp)
-        if len(temps) == 1:
+        if len(temps) == 0:
+            raise IOError("Cannot detect any DS18X20, please check the connection")
+        elif len(temps) == 1:
             temps = temps[0]
         return temps
 
