@@ -95,7 +95,6 @@ class Pin(_Basic_class):
             return result
         else:                               # 如果value不为空， 取出第一个值，设置为输出模式，将值传给引脚
             value = value[0]
-            value = value[0]
             self.mode(self.OUT)
             GPIO.output(self._pin, value)
             return value
