@@ -84,7 +84,7 @@ class I2C(_Basic_class):
             self._i2c_write_byte_data(addr, reg, data)
         elif len(data_all) == 3:                    # 如果data_all只有三组数
             reg = data_all[0]
-            data = (data_all[1] << 8) + data_all[2]
+            data = (data_all[2] << 8) + data_all[1]
             self._i2c_write_word_data(addr, reg, data)
         else:
             reg = data_all[0]
