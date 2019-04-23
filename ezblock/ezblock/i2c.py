@@ -11,42 +11,42 @@ class I2C(_Basic_class):
         self._bus = 1
         self._smbus = SMBus(self._bus)
 
-    def _i2c_write_byte(self, *args, **kargs):   # i2C 写系列函数
-        self._debug("_i2c_write_byte: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
-        return self._smbus.write_byte(*args, **kargs)
+    def _i2c_write_byte(self, addr, data):   # i2C 写系列函数
+        self._debug("_i2c_write_byte: [0x{:02X}] [0x{:02X}]".format(addr, data))
+        return self._smbus.write_byte(addr, data)
     
-    def _i2c_write_byte_data(self, *args, **kargs):
-        self._debug("_i2c_write_byte_data: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
-        return self._smbus.write_byte_data(*args, **kargs)
+    def _i2c_write_byte_data(self, addr, reg, data):
+        self._debug("_i2c_write_byte_data: [0x{:02X}] [0x{:02X}] [0x{:02X}]".format(addr, reg, data))
+        return self._smbus.write_byte_data(addr, reg, data)
     
-    def _i2c_write_word_data(self, *args, **kargs):
-        self._debug("_i2c_write_word_data: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
-        return self._smbus.write_word_data(*args, **kargs)
+    def _i2c_write_word_data(self, addr, reg, data):
+        self._debug("_i2c_write_word_data: [0x{:02X}] [0x{:02X}] [0x{:04X}]".format(addr, reg, data))
+        return self._smbus.write_word_data(addr, reg, data)
     
-    def _i2c_write_i2c_block_data(self, *args, **kargs):
-        self._debug("_i2c_write_i2c_block_data: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
-        return self._smbus.write_i2c_block_data(*args, **kargs)
+    def _i2c_write_i2c_block_data(self, addr, reg, data):
+        self._debug("_i2c_write_i2c_block_data: [0x{:02X}] [0x{:02X}] {}".format(addr, reg, data))
+        return self._smbus.write_i2c_block_data(addr, reg, data)
     
-    def _i2c_read_byte(self, *args, **kargs):   # i2C 读系列函数
-        # self._debug("_i2c_read_byte: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
-        return self._smbus.read_byte(*args, **kargs)
+    def _i2c_read_byte(self, addr):   # i2C 读系列函数
+        self._debug("_i2c_read_byte: [0x{:02X}]".format(addr))
+        return self._smbus.read_byte(addr)
 
-    def _i2c_read_i2c_block_data(self, *args, **kargs):
-        self._debug("_i2c_read_i2c_block_data: [0x{:02X}] [0x{:02X}]".format(*args, **kargs))
-        return self._smbus.read_i2c_block_data(*args, **kargs)
+    def _i2c_read_i2c_block_data(self, addr, reg, num):
+        self._debug("_i2c_read_i2c_block_data: [0x{:02X}] [0x{:02X}] [{}]".format(addr, reg, num))
+        return self._smbus.read_i2c_block_data(addr, reg, num)
 
     def is_ready(self, addr):
         addresses = self.scan()
-        if addr in address:
+        if addr in addresses:
             return True
         else:
             return False
 
     def scan(self):                             # 查看有哪些i2c设备
         cmd = "i2cdetect -y %s" % self._bus
-        output = self.run_command(cmd)          # 调用basic中的方法，在linux中运行cmd指令，并返回运行后的内容
+        _, output = self.run_command(cmd)          # 调用basic中的方法，在linux中运行cmd指令，并返回运行后的内容
         outputs = output.split('\n')[1:]        # 以回车符为分隔符，分割第二行之后的所有行
-        self.debug("outputs")
+        self._debug("outputs")
         addresses = []
         for tmp_addresses in outputs:
             tmp_addresses = tmp_addresses.split(':')[1]
@@ -54,7 +54,7 @@ class I2C(_Basic_class):
             for address in tmp_addresses:
                 if address != '--':
                     addresses.append(address)
-        self.debug("Conneceted i2c device: %s"%addresses)                   # append以列表的方式添加address到addresses中
+        self._debug("Conneceted i2c device: %s"%addresses)                   # append以列表的方式添加address到addresses中
         return addresses
 
     def send(self, send, addr, timeout=0):                      # 发送数据，addr为从机地址，send为数据
