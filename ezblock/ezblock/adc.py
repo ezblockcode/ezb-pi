@@ -21,7 +21,7 @@ class ADC(I2C):
     def read(self):                     # adc通道读取数---写一次数据，读取两次数据 （读取的数据范围是0~4095）
         self._debug("Write 0x%02X to 0x%02X"%(self.chn, self.ADDR))
         # self.bus.write_byte(self.ADDR, self.chn)      # 写入数据
-        self.send(self.chn, self.ADDR)
+        self.send([self.chn, 0, 0], self.ADDR)
 
         self._debug("Read from 0x%02X"%(self.ADDR))
         # value_h = self.bus.read_byte(self.ADDR)

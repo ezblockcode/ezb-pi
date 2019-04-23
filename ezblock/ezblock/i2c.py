@@ -69,8 +69,12 @@ class I2C(_Basic_class):
                 tmp = int(d[i:i+2], 16)             # 将两位字符转化为16进制
                 # print(tmp)
                 data_all.append(tmp)                # 添加到data_all数组中
-
             data_all.reverse()
+        elif isinstance(send, list):
+            data_all = send
+        else:
+            raise ValueError("send data must be int, list, or bytearray, not {}".format(type(send)))
+
         if len(data_all) == 1:                      # 如果data_all只有一组数
             data = data_all[0]
             self._i2c_write_byte(addr, data)
