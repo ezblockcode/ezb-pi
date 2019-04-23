@@ -25,7 +25,7 @@ class PWM(I2C):
         except IOError:
             self.ADDR = 0x15
 
-        self.debug(debug)
+        self.debug = debug
         self._debug("PWM address: {:02X}".format(self.ADDR))
         self.channel = channel
         self.timer = int(channel/4)
