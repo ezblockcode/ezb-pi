@@ -11,7 +11,7 @@ class PWM(I2C):
 
     CLOCK = 72000000
 
-    def __init__(self, channel):
+    def __init__(self, channel, debug="critical"):
         super().__init__()
         if isinstance(channel, str):
             if channel.startswith("P"):
@@ -25,6 +25,7 @@ class PWM(I2C):
         except IOError:
             self.ADDR = 0x15
 
+        self.debug(debug)
         self._debug("PWM address: {:02X}".format(self.ADDR))
         self.channel = channel
         self.timer = int(channel/4)
@@ -105,7 +106,7 @@ class PWM(I2C):
         
 def test():
     import time
-    p = PWM(5)
+    p = PWM(0)
     # p.debug = 'debug'
     p.period(1000)
     p.prescaler(10)
