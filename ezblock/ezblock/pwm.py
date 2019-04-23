@@ -36,9 +36,7 @@ class PWM(I2C):
     def i2c_write(self, reg, value):
         value_h = value >> 8
         value_l = value & 0xff
-        self.send(reg, self.ADDR)
-        self.send(value_h, self.ADDR)
-        self.send(value_l, self.ADDR)
+        self.send([reg, value_h, value_l], self.ADDR)
         self._debug("i2c write: [0x%02X, 0x%02X, 0x%02X, 0x%02X]"%(self.ADDR, reg, value_h, value_l))
 
     def freq(self, *freq):
