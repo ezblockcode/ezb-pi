@@ -1,4 +1,5 @@
 from ezblock.ble import BLE
+import time
 import os
 
 ble = BLE()
@@ -16,7 +17,7 @@ def print(msg, end='\n', tag='[DEBUG]'):
     ble.write(msg)
 
 def delay(ms):
-    sleep(ms/1000)
+    time.sleep(ms/1000)
 
 def mapping(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
