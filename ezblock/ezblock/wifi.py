@@ -7,13 +7,13 @@ class WiFi(_Basic_class):
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country={}
-network={{
+network=\{\{
 	ssid="{}"
 	psk="{}"
 	key_mgmt=WPA-PSK 
-}}"""
+\}\}"""
  
-	def write(self, ssid, psk, country="CN"):                                   # 传入wifi名称、密码和国家
+	def write(self, country, ssid, psk):                                   # 传入wifi名称、密码和国家
 		print("connecting to \"{}\" ...".format(ssid))
 		message = self.message.format(country, ssid, psk)                       # 将名称、密码和国家传入到message中
 		with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:         # 将message传入到树莓派的wifi配置文件中
@@ -26,7 +26,6 @@ network={{
 			time.sleep(1)
 			time_start = time.time()
 			while True:																# 最多循环5秒，在此期间检测到WiFi连接成功就返回“success”，否则5秒后返回“failed”
-				# result = self.run_command("sudo ifconfig wlan0")
 				_, output = self.run_command("hostname -I")							# 返回IP地址
 				output = output.strip().strip()
 				if output != "":
