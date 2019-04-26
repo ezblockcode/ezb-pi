@@ -1,4 +1,5 @@
 from ezblock.basic import _Basic_class
+from ezblock import print
 import re
 import time
 # re-正则表达式
