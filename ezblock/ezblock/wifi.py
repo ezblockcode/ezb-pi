@@ -14,7 +14,7 @@ network={{
 }}"""
  
 	def write(self, country, ssid, psk):                                   # 传入wifi名称、密码和国家
-		print("connecting to \"{}\" ...".format(ssid))
+		print("Connecting to \"{}\"...".format(ssid))
 		message = self.message.format(country, ssid, psk)                       # 将名称、密码和国家传入到message中
 		with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:         # 将message传入到树莓派的wifi配置文件中
 			f.write(message)
