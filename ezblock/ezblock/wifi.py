@@ -7,11 +7,11 @@ class WiFi(_Basic_class):
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country={}
-network=\{\{
+network={
 	ssid="{}"
 	psk="{}"
 	key_mgmt=WPA-PSK 
-\}\}"""
+}"""
  
 	def write(self, country, ssid, psk):                                   # 传入wifi名称、密码和国家
 		print("connecting to \"{}\" ...".format(ssid))
