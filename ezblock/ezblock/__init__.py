@@ -13,6 +13,7 @@ from ezblock.ble import Remote
 from ezblock.iot import IOT
 from ezblock.tts import TTS
 from ezblock.irq import IRQ
+from ezblock.wifi import WiFi
 from time import sleep
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
