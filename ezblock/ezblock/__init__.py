@@ -10,12 +10,12 @@ from ezblock.i2c import I2C
 from ezblock.adc import ADC
 from ezblock.ble import BLE
 from ezblock.ble import Remote
+from ezblock.music import Music
 from ezblock.iot import IOT
 from ezblock.tts import TTS
 from ezblock.irq import IRQ
 from ezblock.wifi import WiFi
 from ezblock.utils import __PRINT__, print, delay, mapping
-from time import sleep
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
 from ezblock.send_email import SendMail

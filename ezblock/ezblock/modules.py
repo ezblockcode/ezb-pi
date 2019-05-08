@@ -72,11 +72,14 @@ class DS18X20():
         return temps
 
 class ADXL345():
-    REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
-    REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
-    REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
-    REG_POWER_CTL    = 0x2D # Power-saving features control
-    AXISES = [REG_DATA_X, REG_DATA_Y, REG_DATA_Z]
+    X = 0
+    Y = 1
+    Z = 2
+    _REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
+    _REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
+    _REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
+    _REG_POWER_CTL    = 0x2D # Power-saving features control
+    _AXISES = [_REG_DATA_X, _REG_DATA_Y, _REG_DATA_Z]
 
     def __init__(self, address=0x53):  
         self.i2c = I2C()
@@ -84,16 +87,16 @@ class ADXL345():
 
     def read(self, axis):
         result = self.i2c._i2c_read_byte(self.address)
-        send = (0x08<< 8) + self.REG_POWER_CTL
+        send = (0x08<< 8) + self._REG_POWER_CTL
         if result:
             self.i2c.send(send, self.address)
         self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
         self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
-        raw = self.i2c.mem_read(2, self.address, self.AXISES[axis])
+        raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
         # 第一次读的值总是为0，所以多读取一次
         self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
         self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
-        raw = self.i2c.mem_read(2, self.address, self.AXISES[axis])
+        raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
         if raw[1]>>7 == 1:
             raw[1] = -((((raw[1]^128)^127)+1))
         g = raw[1]<< 8 | raw[0]
