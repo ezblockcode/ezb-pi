@@ -104,15 +104,11 @@ class ADXL345():
         return value
 
 class RGB_LED():
-    period = 255
     def __init__(self, Rpin, Gpin, Bpin, common=1):
         self.Rpin = Rpin
         self.Gpin = Gpin
         self.Bpin = Bpin
         self.common = common
-        # self.Rpin.period(self.period-1)
-        # self.Gpin.period(self.period-1)
-        # self.Bpin.period(self.period-1)
     
     def write(self, color):
         if isinstance(color, str):
