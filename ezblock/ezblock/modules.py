@@ -110,9 +110,9 @@ class RGB_LED():
         self.Gpin = Gpin
         self.Bpin = Bpin
         self.common = common
-        self.Rpin.period(self.period-1)
-        self.Gpin.period(self.period-1)
-        self.Bpin.period(self.period-1)
+        # self.Rpin.period(self.period-1)
+        # self.Gpin.period(self.period-1)
+        # self.Bpin.period(self.period-1)
     
     def write(self, color):
         if isinstance(color, str):
@@ -123,13 +123,17 @@ class RGB_LED():
         B_val = (color & 0x0000ff) >> 0
 
         if self.common == 1: # common anode 
-            R_val = self.period-R_val
-            G_val = self.period-G_val
-            B_val = self.period-B_val
+            R_val = 255-R_val
+            G_val = 255-G_val
+            B_val = 255-B_val
         
-        self.Rpin.pulse_width(R_val)
-        self.Gpin.pulse_width(G_val)
-        self.Bpin.pulse_width(B_val)
+        R_val = R_val / 255.0 * 100.0
+        G_val = G_val / 255.0 * 100.0
+        B_val = B_val / 255.0 * 100.0
+
+        self.Rpin.pulse_width_percent(R_val)
+        self.Gpin.pulse_width_percent(G_val)
+        self.Bpin.pulse_width_percent(B_val)
 
 class Buzzer():
     def __init__(self, pwm):
