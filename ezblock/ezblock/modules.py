@@ -129,25 +129,35 @@ class RGB_LED():
         self.Bpin.pulse_width(B_val)
 
 class Buzzer():
-    def __init__(self, pin):
-        self.pin = pin
+    def __init__(self, pwm):
+        self.pwm = pwm
     
     def on(self):
-        self.pin.pulse_width_percent(50)
+        self.pwm.pulse_width_percent(50)
     
     def off(self):
-        self.pin.pulse_width_percent(0)
+        self.pwm.pulse_width_percent(0)
     
     def note(self, note):
-        self.pin.freq(note)
+        self.pwm.freq(note)
     
-    def play(self, note, beat):
-        beat = int(beat)
-        from ezblock import delay
+    def play(self, *args):
+        try:
+            note = args[0]
+        except:
+            raise ValueError("Buzzer must have note argument")
         self.note(note)
         self.on()
+        try:
+            beat = args[1]
+        except:
+            return note
+        beat = int(beat)
+        from ezblock import delay
         delay(beat)
         self.off()
+        delay(beat)
+        return note
 
 class Sound():
     def __init__(self, pin):
