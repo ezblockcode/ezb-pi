@@ -182,6 +182,7 @@ class Joystick():
     THRESHOLD = 2047 / math.sqrt(2)
     def __init__(self, Xpin, Ypin, Btpin):
         self.pins = [Xpin, Ypin, Btpin]
+        self.pins[2].init(self.pins[2].IN, pull=self.pins[2].PULL_UP,)
 
     def read(self, axis):
         pin = self.pins[axis]
