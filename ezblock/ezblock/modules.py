@@ -141,26 +141,26 @@ class Buzzer():
     def off(self):
         self.pwm.pulse_width_percent(0)
     
-    def note(self, note):
-        self.pwm.freq(note)
+    def freq(self, freq):
+        self.pwm.freq(freq)
     
     def play(self, *args):
         try:
-            note = args[0]
+            freq = args[0]
         except:
-            raise ValueError("Buzzer must have note argument")
-        self.note(note)
+            raise ValueError("Buzzer must have freq argument")
+        self.freq(freq)
         self.on()
         try:
-            beat = args[1]
+            ms = args[1]
         except:
-            return note
-        beat = int(beat)
+            return freq
+        ms = int(ms)
         from ezblock import delay
-        delay(beat)
+        delay(ms)
         self.off()
-        delay(beat)
-        return note
+        delay(ms)
+        return freq
 
 class Sound():
     def __init__(self, pin):
