@@ -80,11 +80,14 @@ class DS18X20():
         return temps
 
 class ADXL345():
-    REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
-    REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
-    REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
-    REG_POWER_CTL    = 0x2D # Power-saving features control
-    AXISES = [REG_DATA_X, REG_DATA_Y, REG_DATA_Z]
+    X = 0
+    Y = 1
+    Z = 2
+    _REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
+    _REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
+    _REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
+    _REG_POWER_CTL    = 0x2D # Power-saving features control
+    _AXISES = [_REG_DATA_X, _REG_DATA_Y, _REG_DATA_Z]
 
     def __init__(self, address=0x53):  
         self.i2c = I2C()
@@ -92,16 +95,16 @@ class ADXL345():
 
     def read(self, axis):
         result = self.i2c._i2c_read_byte(self.address)
-        send = (0x08<< 8) + self.REG_POWER_CTL
+        send = (0x08<< 8) + self._REG_POWER_CTL
         if result:
             self.i2c.send(send, self.address)
         self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
         self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
-        raw = self.i2c.mem_read(2, self.address, self.AXISES[axis])
+        raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
         # 第一次读的值总是为0，所以多读取一次
         self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
         self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
-        raw = self.i2c.mem_read(2, self.address, self.AXISES[axis])
+        raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
         if raw[1]>>7 == 1:
             raw[1] = -((((raw[1]^128)^127)+1))
         g = raw[1]<< 8 | raw[0]
@@ -109,15 +112,11 @@ class ADXL345():
         return value
 
 class RGB_LED():
-    period = 255
     def __init__(self, Rpin, Gpin, Bpin, common=1):
         self.Rpin = Rpin
         self.Gpin = Gpin
         self.Bpin = Bpin
         self.common = common
-        self.Rpin.period(self.period-1)
-        self.Gpin.period(self.period-1)
-        self.Bpin.period(self.period-1)
     
     def write(self, color):
         if isinstance(color, str):
@@ -128,34 +127,48 @@ class RGB_LED():
         B_val = (color & 0x0000ff) >> 0
 
         if self.common == 1: # common anode 
-            R_val = self.period-R_val
-            G_val = self.period-G_val
-            B_val = self.period-B_val
+            R_val = 255-R_val
+            G_val = 255-G_val
+            B_val = 255-B_val
         
-        self.Rpin.pulse_width(R_val)
-        self.Gpin.pulse_width(G_val)
-        self.Bpin.pulse_width(B_val)
+        R_val = R_val / 255.0 * 100.0
+        G_val = G_val / 255.0 * 100.0
+        B_val = B_val / 255.0 * 100.0
+
+        self.Rpin.pulse_width_percent(R_val)
+        self.Gpin.pulse_width_percent(G_val)
+        self.Bpin.pulse_width_percent(B_val)
 
 class Buzzer():
-    def __init__(self, pin):
-        self.pin = pin
+    def __init__(self, pwm):
+        self.pwm = pwm
     
     def on(self):
-        self.pin.pulse_width_percent(50)
+        self.pwm.pulse_width_percent(50)
     
     def off(self):
-        self.pin.pulse_width_percent(0)
+        self.pwm.pulse_width_percent(0)
     
-    def note(self, note):
-        self.pin.freq(note)
+    def freq(self, freq):
+        self.pwm.freq(freq)
     
-    def play(self, note, beat):
-        beat = int(beat)
-        from ezblock import delay
-        self.note(note)
+    def play(self, *args):
+        try:
+            freq = args[0]
+        except:
+            raise ValueError("Buzzer must have freq argument")
+        self.freq(freq)
         self.on()
-        delay(beat)
+        try:
+            ms = args[1]
+        except:
+            return freq
+        ms = int(ms)
+        from ezblock import delay
+        delay(ms)
         self.off()
+        delay(ms)
+        return freq
 
 class Sound():
     def __init__(self, pin):
@@ -177,6 +190,7 @@ class Joystick():
     THRESHOLD = 2047 / math.sqrt(2)
     def __init__(self, Xpin, Ypin, Btpin):
         self.pins = [Xpin, Ypin, Btpin]
+        self.pins[2].init(self.pins[2].IN, pull=self.pins[2].PULL_UP,)
 
     def read(self, axis):
         pin = self.pins[axis]

@@ -18,7 +18,7 @@ class IOT(object):
         response = urlopen(req)                             # 访问网站内容
         result = response.read().decode()                   # 将网站内容解码
         result = json.loads(result)                         # 读取网站数据
-        if result["status"]:
+        if result["status"] == "true":
             return result["value"]
         else:
             print(result["errorMsg"])
