@@ -7,7 +7,7 @@ class Ultrasonic():
         self.echo = echo
         self.timeout = timeout
 
-    def read(self):
+    def _read(self):
         self.trig.low()
         time.sleep(0.01)
         self.trig.high()
@@ -27,6 +27,14 @@ class Ultrasonic():
         during = pulse_end - pulse_start
         cm = round(during * 340 / 2 * 100, 2)
         return cm
+
+    def read(self, times=10):
+        for i in range(times):
+            a = self._read()
+            if a != -1:
+                return a
+        return -1
+                
 
 class DS18X20():
     def __init__(self, *args, **kargs):
