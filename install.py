@@ -107,8 +107,8 @@ def do(msg="", cmd=""):
 def install():
     print("EzBlock service install process starts")
     print("Install dependency")
-    do(msg="install clang",
-        cmd='run_command("sudo apt-get install clang -y")')
+    # do(msg="install clang",
+    #     cmd='run_command("sudo apt-get install clang -y")')
 
     do(msg="install libttspico-utils",
         cmd='run_command("sudo apt-get install libttspico-utils -y")')
