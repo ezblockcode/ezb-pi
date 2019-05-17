@@ -72,7 +72,7 @@ class Camera(_Basic_class):
         self.server = HTTPServer((self.ip, self.port), self.mjpgServer)
         self.server.socket = ssl.wrap_socket(self.server.socket,
                                              server_side=True,
-                                             certfile='ca.pem',
+                                             certfile='/opt/ezblock/ssl/ca.pem',
                                              ssl_version=ssl.PROTOCOL_TLSv1)
         self.server.serve_forever()
 
