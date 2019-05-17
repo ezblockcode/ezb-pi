@@ -14,6 +14,9 @@
 # sudo apt-get install libjasper-dev
 # sudo apt-get install libqtgui4
 
+# sudo pip3 install opencv-python
+# sudo apt-get install libatlas-base-dev
+# sudo apt-get install libjasper-dev
 # sudo apt-get install libqt4-test
 
 from ezblock.basic import _Basic_class
