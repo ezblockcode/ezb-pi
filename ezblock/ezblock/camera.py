@@ -41,8 +41,6 @@ class Camera(_Basic_class):
         width = self.RES[res][0]
         height = self.RES[res][1]
         self.setUpCameraCV(width, height)
-        self.ip = getIP()
-        self.hostname = Socket.gethostname()
 
     def getCamera(self):
         devices = []
@@ -68,6 +66,7 @@ class Camera(_Basic_class):
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
     def start(self):
+        self.ip = getIP()
         print("server starts at %s:%s" % (self.ip, self.port))
         self.mjpgServer.camera = self.camera
         self.server = HTTPServer((self.ip, self.port), self.mjpgServer)
