@@ -41,7 +41,7 @@ class Camera(_Basic_class):
         width = self.RES[res][0]
         height = self.RES[res][1]
         self.setUpCameraCV(width, height)
-        self.ip = getIP('wlan0')
+        self.ip = getIP()
         self.hostname = Socket.gethostname()
 
     def getCamera(self):

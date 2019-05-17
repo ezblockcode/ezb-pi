@@ -16,7 +16,7 @@ from ezblock.iot import IOT
 from ezblock.tts import TTS
 from ezblock.irq import IRQ
 from ezblock.wifi import WiFi
-from ezblock.utils import __PRINT__, print, delay, mapping
+from ezblock.utils import __PRINT__, print, delay, mapping, getIP
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
 from ezblock.send_email import SendMail
