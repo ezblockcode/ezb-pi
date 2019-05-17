@@ -115,7 +115,7 @@ def install():
         cmd='run_command("sudo apt-get install libttspico-utils -y")')
 
     do(msg="install opencv-python",
-        cmd='run_command("sudo pip3 install opencv-python -y")')
+        cmd='run_command("sudo pip3 install opencv-python")')
     do(msg="install libatlas-base-dev",
         cmd='run_command("sudo apt-get install libatlas-base-dev -y")')
     do(msg="install libjasper-dev",
