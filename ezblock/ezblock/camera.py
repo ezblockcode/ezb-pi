@@ -120,7 +120,7 @@ class Camera(_Basic_class):
 
 if __name__ == '__main__':
     try:
-        print(Camera(0).getIP('wlan0')[0])
+        print(getIP()[0])
         Camera(0).start()
     except KeyboardInterrupt:
         print('KeyboardInterrupt')
