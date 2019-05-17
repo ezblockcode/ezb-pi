@@ -111,19 +111,17 @@ def install():
         cmd='run_command("sudo apt-get update")')
     do(msg="install pip",
         cmd='run_command("sudo apt-get install python3-pip -y")')
-    do(msg="install serial",
-        cmd='run_command("sudo apt-get install python3-serial -y")')
     do(msg="install libttspico-utils",
         cmd='run_command("sudo apt-get install libttspico-utils -y")')
 
     do(msg="install opencv-python",
-        cmd='run_command("sudo pip3 install opencv-python")')
+        cmd='run_command("sudo pip3 install opencv-python -y")')
     do(msg="install libatlas-base-dev",
-        cmd='run_command("sudo apt-get install libatlas-base-dev")')
+        cmd='run_command("sudo apt-get install libatlas-base-dev -y")')
     do(msg="install libjasper-dev",
-        cmd='run_command("sudo apt-get install libjasper-dev")')
+        cmd='run_command("sudo apt-get install libjasper-dev -y")')
     do(msg="install libqt4-test",
-        cmd='run_command("sudo apt-get install libqt4-test")')
+        cmd='run_command("sudo apt-get install libqt4-test -y")')
     # do(msg="install opencv-python",
     #     cmd='run_command("sudo pip3 install opencv-python")')
     # do(msg="unpackaging swift",
