@@ -190,8 +190,10 @@ def install():
         cmd='run_command("sudo chmod +x /usr/bin/ezblock-reset-service")')
 
     print("Create workspace")
+    do(msg="create dir",
+        cmd='run_command("mkdir /opt/ezblock")')
     do(msg="copy workspace",
-        cmd='run_command("sudo cp -r ./workspace /opt/ezblock")')
+        cmd='run_command("sudo cp -r ./workspace/* /opt/ezblock/")')
     do(msg="touch .info file",
         cmd='run_command("sudo touch /opt/ezblock/.info")')
     do(msg="add write permission to log file",
