@@ -122,6 +122,24 @@ def install():
         cmd='run_command("sudo apt-get install libjasper-dev -y")')
     do(msg="install libqt4-test",
         cmd='run_command("sudo apt-get install libqt4-test -y")')
+    do(msg="install libwebp6",
+        cmd='run_command("sudo apt-get install libwebp6 -y")')
+    do(msg="install libtiff5",
+        cmd='run_command("sudo apt-get install libtiff5 -y")')
+    do(msg="install libopenexr22",
+        cmd='run_command("sudo apt-get install libopenexr22 -y")')
+    do(msg="install libgstreamer1.0-0",
+        cmd='run_command("sudo apt-get install libgstreamer1.0-0 -y")')
+    do(msg="install libavcodec-dev",
+        cmd='run_command("sudo apt-get install libavcodec-dev -y")')
+    do(msg="install libavformat-dev",
+        cmd='run_command("sudo apt-get install libavformat-dev -y")')
+    do(msg="install libswscale-dev",
+        cmd='run_command("sudo apt-get install libswscale-dev -y")')
+    do(msg="install libqtgui4",
+        cmd='run_command("sudo apt-get install libqtgui4 -y")')
+        
+        
     # do(msg="install opencv-python",
     #     cmd='run_command("sudo pip3 install opencv-python")')
     # do(msg="unpackaging swift",

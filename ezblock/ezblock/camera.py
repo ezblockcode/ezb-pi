@@ -8,16 +8,11 @@
 # 2. Uses cv2.VideoCapture(0)
 # 3. remove argparse
 
-# install dependency:
-# sudo pip3 install opencv-python
-# sudo apt-get install libatlas-base-dev
-# sudo apt-get install libjasper-dev
-# sudo apt-get install libqtgui4
-
 # sudo pip3 install opencv-python
 # sudo apt-get install libatlas-base-dev
 # sudo apt-get install libjasper-dev
 # sudo apt-get install libqt4-test
+# sudo apt-get install libqtgui4
 
 from ezblock.basic import _Basic_class
 import cv2
@@ -25,8 +20,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import ssl
 import time
 import socket as Socket
+from ezblock.utils import getIP
 import os
-import re
 
 # I use to do 0.0.0.0 to bind to all interfaces, but that seemed to be really
 # slow. feeding it the correct ip address seems to greatly speed things up.
@@ -46,8 +41,7 @@ class Camera(_Basic_class):
         width = self.RES[res][0]
         height = self.RES[res][1]
         self.setUpCameraCV(width, height)
-        ipv4, ipv6 = self.getIP('wlan0')
-        self.ip = ipv4
+        self.ip = getIP('wlan0')
         self.hostname = Socket.gethostname()
 
     def getCamera(self):
@@ -68,14 +62,6 @@ class Camera(_Basic_class):
         if not camera_works:
             raise IOError("Camera not found, please the connection of your camera")
 
-    def getIP(self, iface='wlan0'):
-        search_str = 'ip addr show wlan0'.format(iface)
-        ipv4 = re.search(re.compile(r'(?<=inet )(.*)(?=\/)', re.M),
-                        os.popen(search_str).read()).groups()[0]
-        ipv6 = re.search(re.compile(r'(?<=inet6 )(.*)(?=\/)', re.M),
-                        os.popen(search_str).read()).groups()[0]
-        ip = [ipv4, ipv6]
-        return ip
 
     def setUpCameraCV(self, width, height):
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)

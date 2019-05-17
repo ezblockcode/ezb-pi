@@ -11,6 +11,7 @@ from ezblock.adc import ADC
 from ezblock.ble import BLE
 from ezblock.ble import Remote
 from ezblock.music import Music
+from ezblock.camera import Camera
 from ezblock.iot import IOT
 from ezblock.tts import TTS
 from ezblock.irq import IRQ

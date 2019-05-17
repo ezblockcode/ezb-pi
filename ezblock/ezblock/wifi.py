@@ -1,5 +1,5 @@
 from ezblock.basic import _Basic_class
-from ezblock.utils import print
+from ezblock.utils import print, getIP
 import time
 # re-正则表达式
 class WiFi(_Basic_class):
@@ -26,10 +26,12 @@ network={{
 			time.sleep(1)
 			time_start = time.time()
 			while True:																# 最多循环5秒，在此期间检测到WiFi连接成功就返回“success”，否则5秒后返回“failed”
-				_, output = self.run_command("hostname -I")							# 返回IP地址
-				output = output.strip().strip()
-				if output != "":
-					print("IP: %s" %output)
+				# _, output = self.run_command("hostname -I")							# 返回IP地址
+				# ip = output.strip().strip()
+				# if ip != "":
+				ip = getIP('wlan0')
+				if ip:
+					print("IP: %s" % ip)
 					print('WiFi connect success')
 					return True
 
