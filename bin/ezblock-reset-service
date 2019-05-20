@@ -8,6 +8,7 @@ import subprocess
 reset_switch = Pin("RST")
 ble_reset = Pin("BLERST")
 status_led = Pin("LED")
+resize_script = "/usr/bin/resize_once"
 
 reset_switch.pull(Pin.PULL_UP)
 
@@ -35,6 +36,15 @@ def reset_callback_handler(ev):
         is_reset = False
         status_led.value(0)
 
+log("Check resize script")
+output = run_command("ls {}".format(resize_script))
+if output != "":
+    log("Resizing...")
+    run_command("{}".format(resize_script))
+    run_command("rm {}".format(resize_script))
+    log("Done.")
+else:
+    log("Skip")
 log('Start')
 log('Setup irq')
 reset_switch.irq(reset_callback_handler, Pin.IRQ_RISING_FALLING)

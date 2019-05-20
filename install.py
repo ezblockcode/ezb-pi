@@ -188,6 +188,10 @@ def install():
         cmd='run_command("sudo cp ./bin/ezblock-reset-service /usr/bin")')
     do(msg="add excutable mode for ezblock-reset-service",
         cmd='run_command("sudo chmod +x /usr/bin/ezblock-reset-service")')
+    do(msg="copy resize_once file",
+        cmd='run_command("sudo cp ./bin/resize_once /usr/bin")')
+    do(msg="add excutable mode for resize_one",
+        cmd='run_command("sudo chmod +x /usr/bin/resize_once")')
 
     print("Create workspace")
     do(msg="create dir",
