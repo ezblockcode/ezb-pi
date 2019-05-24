@@ -11,12 +11,13 @@ from ezblock.adc import ADC
 from ezblock.ble import BLE
 from ezblock.ble import Remote
 from ezblock.music import Music
+from ezblock.color import Color
 from ezblock.camera import Camera
 from ezblock.iot import IOT
 from ezblock.tts import TTS
 from ezblock.irq import IRQ
 from ezblock.wifi import WiFi
-from ezblock.utils import __PRINT__, print, delay, mapping, getIP
+from ezblock.utils import *
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
 from ezblock.send_email import SendMail
