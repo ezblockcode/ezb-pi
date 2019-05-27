@@ -72,19 +72,31 @@ class Remote(BLE):
         super().__init__()
         self._value = {}
 
+    # def read(self):
+    #     _ = super().read(50)
+    #     if _:
+    #         _ = _.decode('utf-8')
+    #         _data_type, _, _status = self.verify(_)
+    #         if _status and _data_type == 'REMOTE':
+    #             _ = _.split("#")
+    #             if len(_) == 4:
+    #                 _device = _[0]
+    #                 _id = _[1]
+    #                 _name = _[2]
+    #                 _value = _[3]
+    #                 self._value[_device] = {_id: {_name: _value}}
+
     def read(self):
         _ = super().read(50)
         if _:
             _ = _.decode('utf-8')
-            _data_type, _, _status = self.verify(_)
-            if _status and _data_type == 'REMOTE':
-                _ = _.split("#")
-                if len(_) == 4:
-                    _device = _[0]
-                    _id = _[1]
-                    _name = _[2]
-                    _value = _[3]
-                    self._value[_device] = {_id: {_name: _value}}
+            _ = _.split("#")
+            if len(_) == 4:
+                _device = _[0]
+                _id = _[1]
+                _name = _[2]
+                _value = _[3]
+                self._value[_device] = {_id: {_name: _value}}
 
     def get_value(self, ctrl, id, name):
         _result = self._value.get(ctrl, {}).get(id, {}).get(name, 0)
