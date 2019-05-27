@@ -1,1 +1,20 @@
 # class Sound - sound sensor
+
+Usage:
+```python
+from ezblock import *
+
+sound = Sound("A0")                     # create an Sound object from a pin
+val = sound.read_raw()                    # read an analog value
+
+average_val = sound.read_raw(time = 100)                    # read an average analog value
+```
+## Constructors
+```class ezblock.Sound(pin)```
+Create an Sound object associated with the given pin. This allows you to then read analog values on that pin.
+
+## Methods
+- read - Read the value on the analog pin and return it. The returned value will be between 0 and 4095.
+```python
+Sound.read_raw()
+```

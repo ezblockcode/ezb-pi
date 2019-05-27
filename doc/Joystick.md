@@ -1,1 +1,23 @@
-# class Joystick - 3-axis joystick 
+# class Joystick - 3-axis joystick
+
+Usage:
+```python
+from ezblock import *
+
+joystick = Joystick('A0','A1','D1')         # create an Joystick object from a pin
+val = joystick.read(0)                      # read an axis value
+status = joystick.read_status()             # read the status of joystick
+```
+## Constructors
+```class ezblock.Joystick(pin)```
+Create an Joystick object associated with the given pin. This allows you to then read values on that pin.
+
+## Methods
+- read - Read the value on the given pin and return it. 
+```python
+Joystick.read(Xpin, Ypin, Btpin)
+```
+- read_status - Read the value on the given pin and return it. 
+```python
+Joystick.read_status()
+```
