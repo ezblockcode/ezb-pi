@@ -96,8 +96,10 @@ def install():
         cmd='run_command("sudo chmod +x /usr/bin/resize_once")')
 
     print("Create workspace")
-    do(msg="create dir",
-        cmd='run_command("mkdir /opt/ezblock")')
+    _, result = run_command("ls /opt")
+    if "ezblock" not in result:
+        do(msg="create dir",
+            cmd='run_command("mkdir /opt/ezblock")')
     do(msg="copy workspace",
         cmd='run_command("sudo cp -r ./workspace/* /opt/ezblock/")')
     do(msg="touch .info file",
