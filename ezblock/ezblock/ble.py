@@ -7,10 +7,9 @@ class BLE(_Basic_class):
     SEND_DELAY = 100
     # Length of every package bluetooth sent
     DATA_LENGTH = 19
-    def __init__(self, debug=False):
+    def __init__(self, port='/dev/serial0', baudrate=115200, debug=False):
         super().__init__()
-        self.uart = UART()
-        self.uart.init(115200)
+        self.uart = UART(port, baudrate)
         #self.uart = UART(1)
         #self.uart.init(9600)
 
