@@ -9,17 +9,19 @@ Usage:
 
 Options:
     --no-dep    Do not download dependencies
+    -h          Show this help text and exit
 '''
 def install():
     print("EzBlock service install process starts")
     print("Install dependency")
     if len(sys.argv) == 1:
-        option = ""
-    elif len(sys.argv) == 2:
-        option = sys.argv[1]
-    else:
+        options = []
+    elif len(sys.argv) > 2:
+        options = sys.argv[1:]
+    if "-h" in options:
         print(usage)
-    if option != "--no-dep":
+        quit()
+    if "--no-dep" not in options:
         do(msg="update apt-get",
             cmd='run_command("sudo apt-get update")')
         do(msg="install pip",
