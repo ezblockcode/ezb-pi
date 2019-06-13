@@ -13,9 +13,8 @@ Options:
 '''
 def install():
     options = []
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 1:
         options = sys.argv[1:]
-    print(options)
     if "-h" in options:
         print(usage)
         quit()
