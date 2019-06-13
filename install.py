@@ -12,14 +12,15 @@ Options:
     -h          Show this help text and exit
 '''
 def install():
-    print("EzBlock service install process starts")
-    print("Install dependency")
     options = []
     if len(sys.argv) > 2:
         options = sys.argv[1:]
+    print(options)
     if "-h" in options:
         print(usage)
         quit()
+    print("EzBlock service install process starts")
+    print("Install dependency")
     if "--no-dep" not in options:
         do(msg="update apt-get",
             cmd='run_command("sudo apt-get update")')
