@@ -14,9 +14,8 @@ Options:
 def install():
     print("EzBlock service install process starts")
     print("Install dependency")
-    if len(sys.argv) == 1:
-        options = []
-    elif len(sys.argv) > 2:
+    options = []
+    if len(sys.argv) > 2:
         options = sys.argv[1:]
     if "-h" in options:
         print(usage)
