@@ -7,6 +7,7 @@ import tempfile
 import subprocess
 reset_switch = Pin("RST")
 ble_reset = Pin("BLERST")
+mcu_reset = Pin("MCURST")
 status_led = Pin("LED")
 resize_script = "/usr/bin/resize_once"
 
@@ -62,11 +63,14 @@ def main():
         elif is_reset == False:
             if count > 6:
                 log("hard reset")
-                ble_reset.value(0)
+                ble_reset.off()
                 time.sleep(0.5)
-                ble_reset.value(1)
+                ble_reset.on()
             else:
                 log("soft reset")
+                mcu_reset.off()
+                time.sleep(0.001)
+                mcu_reset.on()
             run_command("sudo service ezblock restart")
             count = 0
             is_reset = None
