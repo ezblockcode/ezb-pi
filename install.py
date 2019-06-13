@@ -1,44 +1,58 @@
 #!/usr/bin/env python3
-import os
+import os, sys
 
 errors = []
 
+usage = '''
+Usage:
+    sudo python3 install.py [option]
+
+Options:
+    -no-dep    Do not download dependencies
+'''
 def install():
     print("EzBlock service install process starts")
     print("Install dependency")
-    do(msg="update apt-get",
-        cmd='run_command("sudo apt-get update")')
-    do(msg="install pip",
-        cmd='run_command("sudo apt-get install python3-pip -y")')
-    do(msg="install i2c-tools",
-        cmd='run_command("sudo apt-get install i2c-tools -y")')
-    do(msg="install libttspico-utils",
-        cmd='run_command("sudo apt-get install libttspico-utils -y")')
+    if len(sys.argv) == 1:
+        option = ""
+    elif len(sys.argv) == 2:
+        option = sys.argv[1]
+    else:
+        print(usage)
+    if option != "-no-dep":
+        do(msg="update apt-get",
+            cmd='run_command("sudo apt-get update")')
+        do(msg="install pip",
+            cmd='run_command("sudo apt-get install python3-pip -y")')
+        do(msg="install i2c-tools",
+            cmd='run_command("sudo apt-get install i2c-tools -y")')
+        do(msg="install libttspico-utils",
+            cmd='run_command("sudo apt-get install libttspico-utils -y")')
 
-    do(msg="install opencv-python",
-        cmd='run_command("sudo pip3 install opencv-python")')
-    do(msg="install libatlas-base-dev",
-        cmd='run_command("sudo apt-get install libatlas-base-dev -y")')
-    do(msg="install libjasper-dev",
-        cmd='run_command("sudo apt-get install libjasper-dev -y")')
-    do(msg="install libqt4-test",
-        cmd='run_command("sudo apt-get install libqt4-test -y")')
-    do(msg="install libwebp6",
-        cmd='run_command("sudo apt-get install libwebp6 -y")')
-    do(msg="install libtiff5",
-        cmd='run_command("sudo apt-get install libtiff5 -y")')
-    do(msg="install libopenexr22",
-        cmd='run_command("sudo apt-get install libopenexr22 -y")')
-    do(msg="install libgstreamer1.0-0",
-        cmd='run_command("sudo apt-get install libgstreamer1.0-0 -y")')
-    do(msg="install libavcodec-dev",
-        cmd='run_command("sudo apt-get install libavcodec-dev -y")')
-    do(msg="install libavformat-dev",
-        cmd='run_command("sudo apt-get install libavformat-dev -y")')
-    do(msg="install libswscale-dev",
-        cmd='run_command("sudo apt-get install libswscale-dev -y")')
-    do(msg="install libqtgui4",
-        cmd='run_command("sudo apt-get install libqtgui4 -y")')
+        do(msg="install opencv-python",
+            cmd='run_command("sudo pip3 install opencv-python")')
+        do(msg="install libatlas-base-dev",
+            cmd='run_command("sudo apt-get install libatlas-base-dev -y")')
+        do(msg="install libjasper-dev",
+            cmd='run_command("sudo apt-get install libjasper-dev -y")')
+        do(msg="install libqt4-test",
+            cmd='run_command("sudo apt-get install libqt4-test -y")')
+        do(msg="install libwebp6",
+            cmd='run_command("sudo apt-get install libwebp6 -y")')
+        do(msg="install libtiff5",
+            cmd='run_command("sudo apt-get install libtiff5 -y")')
+        do(msg="install libopenexr22",
+            cmd='run_command("sudo apt-get install libopenexr22 -y")')
+        do(msg="install libgstreamer1.0-0",
+            cmd='run_command("sudo apt-get install libgstreamer1.0-0 -y")')
+        do(msg="install libavcodec-dev",
+            cmd='run_command("sudo apt-get install libavcodec-dev -y")')
+        do(msg="install libavformat-dev",
+            cmd='run_command("sudo apt-get install libavformat-dev -y")')
+        do(msg="install libswscale-dev",
+            cmd='run_command("sudo apt-get install libswscale-dev -y")')
+        do(msg="install libqtgui4",
+            cmd='run_command("sudo apt-get install libqtgui4 -y")')
 
     # do(msg="unpackaging swift",
     #     cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
