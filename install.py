@@ -8,7 +8,7 @@ Usage:
     sudo python3 install.py [option]
 
 Options:
-    -no-dep    Do not download dependencies
+    --no-dep    Do not download dependencies
 '''
 def install():
     print("EzBlock service install process starts")
@@ -19,7 +19,7 @@ def install():
         option = sys.argv[1]
     else:
         print(usage)
-    if option != "-no-dep":
+    if option != "--no-dep":
         do(msg="update apt-get",
             cmd='run_command("sudo apt-get update")')
         do(msg="install pip",
