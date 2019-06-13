@@ -7,10 +7,9 @@ class BLE(_Basic_class):
     SEND_DELAY = 100
     # Length of every package bluetooth sent
     DATA_LENGTH = 19
-    def __init__(self, debug=False):
+    def __init__(self, port='/dev/serial0', baudrate=115200, debug=False):
         super().__init__()
-        self.uart = UART()
-        self.uart.init(115200)
+        self.uart = UART(port, baudrate)
         #self.uart = UART(1)
         #self.uart.init(9600)
 
@@ -87,15 +86,13 @@ class Remote(BLE):
     #                 self._value[_device] = {_id: {_name: _value}}
 
     def read(self):
-        _ = super().read(50)
+        _ = super().read(20)
         if _:
             _ = _.decode('utf-8')
+            _ = _.strip()
             _ = _.split("#")
             if len(_) == 4:
-                _device = _[0]
-                _id = _[1]
-                _name = _[2]
-                _value = _[3]
+                _device, _id, _name, _value = _
                 self._value[_device] = {_id: {_name: _value}}
 
     def get_value(self, ctrl, id, name):

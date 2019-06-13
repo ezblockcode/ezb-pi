@@ -1,10 +1,8 @@
 from serial import Serial
 
 class UART(object):
-    def __init__(self):
-        self._port = '/dev/serial0'
-
-    def init(self, baudrate):
+    def __init__(self, port, baudrate):
+        self._port = port
         self._baudrate = baudrate
         self.ser = Serial(self._port, self._baudrate, timeout=1)
 
