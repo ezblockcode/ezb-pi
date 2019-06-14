@@ -30,6 +30,7 @@ def __reset_mcu__():
 
 def __main__():
     import sys
+    from utils import __PRINT__
 
     usage = '''
 Usage:
