@@ -6,13 +6,13 @@ import math
 
 ble = BLE()
 
-ble.write('NAME+ezb-RPi')
+# ble.write('NAME+ezb-RPi')
 # ble.write('ADVP+') # 0~F
 
 __PRINT__ = print
 
 def print(msg, end='\n', tag='[DEBUG]'):
-    _msg = "EZblock [{}] [DEBUG] {}".format(time.asctime(), msg)
+    _msg = "Ezblock [{}] [DEBUG] {}".format(time.asctime(), msg)
     os.system("echo {} >> /opt/ezblock/log".format(_msg))
     msg = '%s %s %s' % (tag, msg, tag)
     __PRINT__(msg, end=end)

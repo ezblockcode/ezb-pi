@@ -16,7 +16,7 @@ reset_switch.pull(Pin.PULL_UP)
 is_reset = None
 
 def log(msg):
-    msg = "EZblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
+    msg = "Ezblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
     run_command("echo {} >> /opt/ezblock/log".format(msg))
     print(msg)
 

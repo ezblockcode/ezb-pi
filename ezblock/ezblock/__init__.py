@@ -21,3 +21,33 @@ from ezblock.utils import *
 from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
 from ezblock.send_email import SendMail
+
+def __reset_mcu__():
+    mcurst = Pin("MCURST")
+    mcurst.on()
+    delay(1)
+    mcurst.off()
+
+def __main__():
+    import sys
+
+    usage = '''
+Usage:
+    sudo python3 install.py [option]
+
+Options:
+    reset-mcu   Reset MCU on Ezblock
+    -h          Show this help text and exit
+'''
+    option = ""
+    if len(sys.argv) > 1:
+        option = sys.argv[1]
+    if "-h" == option:
+        print(usage)
+        quit()
+    elif option == "reset-mcu":
+        __reset_mcu__()
+    else:
+        print(usage)
+        quit()
+    
