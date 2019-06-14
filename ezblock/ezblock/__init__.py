@@ -33,21 +33,25 @@ def __main__():
 
     usage = '''
 Usage:
-    sudo python3 install.py [option]
+    ezblock [option]
 
 Options:
     reset-mcu   Reset MCU on Ezblock
     -h          Show this help text and exit
 '''
     option = ""
-    if len(sys.argv) > 1:
+    if len(sys.argv) <= 1:
+        __PRINT__(usage)
+        quit()
+    elif len(sys.argv) > 1:
         option = sys.argv[1]
+
     if "-h" == option:
-        print(usage)
+        __PRINT__(usage)
         quit()
     elif option == "reset-mcu":
         __reset_mcu__()
     else:
-        print(usage)
+        __PRINT__(usage)
         quit()
     
