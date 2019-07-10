@@ -19,7 +19,7 @@ def install():
         options = sys.argv[1:]
         for o in options:
             if o not in avaiable_options:
-                print("Option {} is not found.".format(o)
+                print("Option {} is not found.".format(o))
                 print(usage)
                 quit()
     if "-h" in options or "--help" in options:
