@@ -126,8 +126,9 @@ def install():
         cmd='run_command("sudo cp -r ./workspace/* /opt/ezblock/")')
     _, result = run_command("ls /opt/ezblock")
     if ".info" not in result:
-        do(msg="create .info file",
-            cmd='run_command("sudo echo \'name: ezb-RPi\n\' > /opt/ezblock/.info")')
+        do(msg="copy .info file",
+            cmd='run_command("sudo cp -r ./workspace/.info /opt/ezblock/")')
+    #       cmd='run_command("sudo echo \'name: ezb-RPi\n\' > /opt/ezblock/.info")')
     do(msg="add write permission to log file",
         cmd='run_command("sudo chmod 666 /opt/ezblock/log")')
 
