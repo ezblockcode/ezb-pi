@@ -17,8 +17,8 @@ class Info():
 
     def _check_info_file(self):
         import os
-        all_files = os.listdir('.')
-        if 'info' in all_files:
+        all_files = os.listdir(self.file_dir)
+        if '.info' in all_files:
             self.debug("info file exist, skip")
             return True
         else:
