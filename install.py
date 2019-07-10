@@ -8,14 +8,14 @@ Usage:
     sudo python3 install.py [option]
 
 Options:
-    --no-dep    Do not download dependencies
-    -h          Show this help text and exit
+               --no-dep    Do not download dependencies
+    -h         --help      Show this help text and exit
 '''
 def install():
     options = []
     if len(sys.argv) > 1:
         options = sys.argv[1:]
-    if "-h" in options:
+    if "-h" in options or "--help" in options:
         print(usage)
         quit()
     print("EzBlock service install process starts")
