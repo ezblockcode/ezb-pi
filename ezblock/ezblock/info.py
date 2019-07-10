@@ -1,4 +1,4 @@
-from utils import getIP
+from ezblock.utils import getIP
 class Info():
     file_dir = "/opt/ezblock"
     info = {
