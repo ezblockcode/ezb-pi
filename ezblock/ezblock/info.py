@@ -60,7 +60,8 @@ class Info():
     def get(self):
         self._check_info_file()
         ip = getIP([])
-        self.set("ip", ip)
+        if ip:
+            self.set("ip", ip)
         self.debug("get info")
         with open('%s/.info'%self.file_dir, 'r') as f:
             lines = f.readlines()
