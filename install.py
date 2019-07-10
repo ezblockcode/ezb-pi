@@ -124,8 +124,8 @@ def install():
             cmd='run_command("mkdir /opt/ezblock")')
     do(msg="copy workspace",
         cmd='run_command("sudo cp -r ./workspace/* /opt/ezblock/")')
-    _, result = run_command("ls /opt/ezblock")
-    if ".info" not in result:
+    _, result = run_command("ls /opt/ezblock/.info")
+    if result == "":
         do(msg="copy .info file",
             cmd='run_command("sudo cp -r ./workspace/.info /opt/ezblock/")')
     #       cmd='run_command("sudo echo \'name: ezb-RPi\n\' > /opt/ezblock/.info")')
