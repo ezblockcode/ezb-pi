@@ -51,6 +51,7 @@ Options:
         __PRINT__(usage)
         quit()
     elif option == "reset-mcu":
+        __PRINT__("MCU Reset.")
         __reset_mcu__()
     else:
         __PRINT__(usage)
