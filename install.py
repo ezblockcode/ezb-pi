@@ -3,19 +3,26 @@ import os, sys
 
 errors = []
 
+avaiable_options = ['-h', '--help', '--no-dep']
+
 usage = '''
 Usage:
     sudo python3 install.py [option]
 
 Options:
-    --no-dep    Do not download dependencies
-    -h          Show this help text and exit
+               --no-dep    Do not download dependencies
+    -h         --help      Show this help text and exit
 '''
 def install():
     options = []
     if len(sys.argv) > 1:
         options = sys.argv[1:]
-    if "-h" in options:
+        for o in options:
+            if o not in avaiable_options:
+                print("Option {} is not found.".format(o))
+                print(usage)
+                quit()
+    if "-h" in options or "--help" in options:
         print(usage)
         quit()
     print("EzBlock service install process starts")
@@ -117,8 +124,11 @@ def install():
             cmd='run_command("mkdir /opt/ezblock")')
     do(msg="copy workspace",
         cmd='run_command("sudo cp -r ./workspace/* /opt/ezblock/")')
-    do(msg="touch .info file",
-        cmd='run_command("sudo touch /opt/ezblock/.info")')
+    _, result = run_command("ls /opt/ezblock/.info")
+    if result == "":
+        do(msg="copy .info file",
+            cmd='run_command("sudo cp -r ./workspace/.info /opt/ezblock/")')
+    #       cmd='run_command("sudo echo \'name: ezb-RPi\n\' > /opt/ezblock/.info")')
     do(msg="add write permission to log file",
         cmd='run_command("sudo chmod 666 /opt/ezblock/log")')
 
