@@ -41,7 +41,10 @@ class IOT(object):
         }
         print(data)
         value = self._upload("iots/iotget", data)
-        value = int(value)
+        try:
+            value = int(value)
+        except:
+            pass
         return value
 
 
