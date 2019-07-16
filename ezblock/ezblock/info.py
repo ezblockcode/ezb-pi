@@ -59,7 +59,7 @@ class Info():
 
     def get(self):
         self._check_info_file()
-        ip = getIP([])
+        ip = getIP()
         if ip:
             self.set("ip", ip)
         self.debug("get info")
