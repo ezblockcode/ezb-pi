@@ -53,6 +53,8 @@ def is_negative(n):
     return n < 0
 
 def is_divisible_by(a, b):
+    if not b or b == 0:
+        return False
     return a % b == 0
 
 def is_prime(n):
