@@ -28,3 +28,6 @@ class UART(object):
     def writechar(self, buf):
         # buf = buf.encode('utf-8')
         self.ser.write(buf)
+
+    def inWaiting(self):
+        return self.ser.inWaiting()
