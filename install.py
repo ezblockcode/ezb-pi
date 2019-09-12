@@ -34,8 +34,8 @@ def install():
             cmd='run_command("sudo apt-get install python3-pip -y")')
         do(msg="install i2c-tools",
             cmd='run_command("sudo apt-get install i2c-tools -y")')
-        do(msg="install libttspico-utils",
-            cmd='run_command("sudo apt-get install libttspico-utils -y")')
+        # do(msg="install libttspico-utils",
+        #     cmd='run_command("sudo apt-get install libttspico-utils -y")')
         
         do(msg="install espeak",
             cmd='run_command("sudo apt-get install espeak -y")')
