@@ -21,10 +21,8 @@ case "$1" in
         ;;
     stop)
         echo "Stopping ezblock"
-        sudo kill $(ps aux | grep -m 1 'ezblock-service' | awk '{ print $2 }')
-        sudo kill $(ps aux | grep -m 1 'ezblock-service' | awk '{ print $2 }')
-        sudo kill $(ps aux | grep -m 1 '/opt/ezblock/main' | awk '{ print $2 }')
-        sudo kill $(ps aux | grep -m 1 '/opt/ezblock/main' | awk '{ print $2 }')
+        sudo kill $(ps aux | grep 'ezblock-service' | awk '{ print $2 }')
+        sudo kill $(ps aux | grep '/opt/ezblock/main' | awk '{ print $2 }')
         ;;
     *)
         echo "Usage: sudo service ezblock start|stop|restart"

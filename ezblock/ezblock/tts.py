@@ -1,4 +1,5 @@
 from ezblock.basic import _Basic_class
+from ezblock.utils import mapping
 from distutils.spawn import find_executable
 
 class TTS(_Basic_class):
@@ -12,9 +13,21 @@ class TTS(_Basic_class):
         'it-IT', # 意大利语(意大利)Italia-lingua italiana
     ]
 
-    def __init__(self, engine='pico'):
+    def __init__(self, engine='espeak'):
         super().__init__()
         self._lang = "en-US"            # 默认输入的语言为英语
+        self._amp   = 100 
+        self._speed = 175
+        self._gap   = 5
+        self._pitch = 50
+    
+    # def engine(self, value= 'espeak'):
+    #     self._engine = value
+    #     if self._engine == 'espeak':
+    #         self._amp   = 100 
+    #         self._speed = 175
+    #         self._gap   = 5
+    #         self._pitch = 50
 
     def _check_executable(self, executable):
         executable_path = find_executable(executable)
@@ -26,12 +39,19 @@ class TTS(_Basic_class):
 
     def write(self, words):
         self._debug('Say:\n [%s]' % (words))
-        if self._check_executable('pico2wave') and self._check_executable('aplay'):
-            cmd = 'pico2wave -l %s -w /tmp/pico.wav "%s" && aplay /tmp/pico.wav' % (self._lang, words)  # 传入语言，和需要转换成语言的文字
-            self.run_command(cmd)
-            self._debug('command: %s' %cmd)
+        # if self._check_executable('pico2wave') and self._check_executable('aplay'):
+        #     cmd = 'pico2wave -l %s -w /tmp/pico.wav "%s" && aplay /tmp/pico.wav' % (self._lang, words)  # 传入语言，和需要转换成语言的文字
+        #     self.run_command(cmd)
+        #     self._debug('command: %s' %cmd)
+        # else:
+        #     self._debug('pico is busy. Pass')
+
+        if self._check_executable('espeak'):
+                cmd = 'espeak -a%d -s%d -g%d -p%d \"%s\" --stdout | aplay 2>/dev/null & ' % (self._amp, self._speed, self._gap, self._pitch, words)
+                self.run_command(cmd)
+                self._debug('command: %s' %cmd)
         else:
-            self._debug('pico is busy. Pass')
+            self._debug('espeak is busy. Pass')
 
     def lang(self, *value):     # 切换语言，可识别5种语言
         if len(value) == 0:
@@ -46,10 +66,50 @@ class TTS(_Basic_class):
     def supported_lang(self):           # 返回支持的语言类型
         return self.SUPPORTED_LANGUAUE
 
+    def espeak_params(self, amp=None, speed=None, gap=None, pitch=None):
+        if amp == None: 
+            amp=self._amp
+        if speed == None:
+            speed=self._speed
+        if gap == None:
+            gap=self._gap
+        if pitch == None:
+            pitch=self._pitch
+
+        if amp not in range(0, 200):
+            raise ValueError('Amp should be in 0 to 200, not "{0}"'.format(amp))
+        if speed not in range(80, 260):
+            raise ValueError('speed should be in 80 to 260, not "{0}"'.format(speed))
+        if pitch not in range(0, 99):
+            raise ValueError('pitch should be in 0 to 99, not "{0}"'.format(pitch)) 
+        self._amp   = amp
+        self._speed = speed
+        self._gap   = gap
+        self._pitch = pitch
+
+    def speaker_volume(self, value):
+        if value > 100:
+            value = 100
+            self._warning('Value is over 100, set to 100')
+        if value < 0:
+            value = 0
+            self._warning('Value is less than 0, set to 0')
+        # gain(dB) = 10 * log10(volume)
+        #self._debug('speaker percentage = %s' % value)
+        # self._speaker_volume = self._map(value, 0, 100, 0, 75)
+        self._debug('speaker percentage = %s' % value)
+        #self._speaker_volume = self._map(value, 0, 100, ((10.0**(-102.39/10))-1), ((10.0**(4.0/10))-1))
+        #self._speaker_volume = int(math.log10(self._speaker_volume) * 100) * 10
+        #self._debug('speaker dB = %s' % self._speaker_volume)
+        cmd = "sudo amixer -M sset 'PCM' %d%%" % value
+        self.run_command(cmd)
+
 def test():
     tts = TTS()
-    tts.lang("de-DE")
-    tts.say("Wer bin ich")
+    # tts.lang("de-DE")
+    tts.speaker_volume(100)
+    tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)
+    tts.say("You are bitch")
 
 
 if __name__ == "__main__":

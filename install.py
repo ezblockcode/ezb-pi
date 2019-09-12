@@ -49,8 +49,8 @@ def install():
             cmd='run_command("sudo apt-get install libwebp6 -y")')
         do(msg="install libtiff5",
             cmd='run_command("sudo apt-get install libtiff5 -y")')
-        do(msg="install libopenexr22",
-            cmd='run_command("sudo apt-get install libopenexr22 -y")')
+        do(msg="install libopenexr23",
+            cmd='run_command("sudo apt-get install libopenexr23 -y")')
         do(msg="install libgstreamer1.0-0",
             cmd='run_command("sudo apt-get install libgstreamer1.0-0 -y")')
         do(msg="install libavcodec-dev",
@@ -99,7 +99,7 @@ def install():
     do(msg="add excutable mode for ezblock-service",
         cmd='run_command("sudo chmod +x /usr/bin/ezblock-service")')
     do(msg="copy libezblock file",
-        cmd='run_command("sudo cp ./lib/libezblock.so /usr/local/lib/python3.5/dist-packages")')
+        cmd='run_command("sudo cp ./lib/libezblock.so /usr/local/lib/python3.7/dist-packages")')
 
     print("Setup ezblock-reset service")
     do(msg="copy ezblock-reset file",
@@ -112,6 +112,7 @@ def install():
         cmd='run_command("sudo cp ./bin/ezblock-reset-service /usr/bin")')
     do(msg="add excutable mode for ezblock-reset-service",
         cmd='run_command("sudo chmod +x /usr/bin/ezblock-reset-service")')
+
     do(msg="copy resize_once file",
         cmd='run_command("sudo cp ./bin/resize_once /usr/bin")')
     do(msg="add excutable mode for resize_one",

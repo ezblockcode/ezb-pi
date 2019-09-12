@@ -19,8 +19,7 @@ case "$1" in
         ;;
     stop)
         echo "Stopping ezblock-reset"
-        sudo kill $(ps aux | grep -m 1 'ezblock-reset-service' | awk '{ print $2 }')
-        sudo kill $(ps aux | grep -m 1 'ezblock-reset-service' | awk '{ print $2 }')
+        sudo kill $(ps aux | grep 'ezblock-reset-service' | awk '{ print $2 }')
         ;;
     *)
         echo "Usage: sudo service ezblock-reset start|stop|restart"
