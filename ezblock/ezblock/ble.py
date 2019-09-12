@@ -71,32 +71,25 @@ class Remote(BLE):
         super().__init__()
         self._value = {}
 
-    # def read(self):
-    #     _ = super().read(50)
-    #     if _:
-    #         _ = _.decode('utf-8')
-    #         _data_type, _, _status = self.verify(_)
-    #         if _status and _data_type == 'REMOTE':
-    #             _ = _.split("#")
-    #             if len(_) == 4:
-    #                 _device = _[0]
-    #                 _id = _[1]
-    #                 _name = _[2]
-    #                 _value = _[3]
-    #                 self._value[_device] = {_id: {_name: _value}}
-
     def read(self):
-        _ = super().read(20)
-        if _:
-            _ = _.decode('utf-8')
-            _ = _.strip()
-            _ = _.split("#")
-            if len(_) == 4:
-                _device, _id, _name, _value = _
-                self._value[_device] = {_id: {_name: _value}}
+        buf = bytearray()
+        while self.uart.inWaiting():
+            buf = buf + super().read(self.uart.inWaiting())
+
+        buf = buf.decode()
+        for i in range(0, len(buf), 20):
+            _ = buf[i: i+20]
+            if _:
+                _ = _.strip()
+                _ = _.split("#")
+                if len(_) == 4:
+                    _device, _id, _name, _value = _
+                    _device_id = "{}_{}".format(_device, _id)
+                    self._value[_device_id] = {_name: _value}
 
     def get_value(self, ctrl, id, name):
-        _result = self._value.get(ctrl, {}).get(id, {}).get(name, 0)
+        _device_id = "{}_{}".format(ctrl, id)
+        _result = self._value.get(_device_id, {}).get(name, 0)
         return _result
 
     def get_joystick_value(self, id, coord):

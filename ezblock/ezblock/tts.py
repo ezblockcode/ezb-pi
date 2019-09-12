@@ -87,23 +87,6 @@ class TTS(_Basic_class):
         self._gap   = gap
         self._pitch = pitch
 
-    def speaker_volume(self, value):
-        if value > 100:
-            value = 100
-            self._warning('Value is over 100, set to 100')
-        if value < 0:
-            value = 0
-            self._warning('Value is less than 0, set to 0')
-        # gain(dB) = 10 * log10(volume)
-        #self._debug('speaker percentage = %s' % value)
-        # self._speaker_volume = self._map(value, 0, 100, 0, 75)
-        self._debug('speaker percentage = %s' % value)
-        #self._speaker_volume = self._map(value, 0, 100, ((10.0**(-102.39/10))-1), ((10.0**(4.0/10))-1))
-        #self._speaker_volume = int(math.log10(self._speaker_volume) * 100) * 10
-        #self._debug('speaker dB = %s' % self._speaker_volume)
-        cmd = "sudo amixer -M sset 'PCM' %d%%" % value
-        self.run_command(cmd)
-
 def test():
     tts = TTS()
     # tts.lang("de-DE")
