@@ -1,4 +1,4 @@
-#!/bin/bash
+s#!/bin/bash
 # /etc/init.d/ezblock-reset
 
 ### BEGIN INIT INFO
