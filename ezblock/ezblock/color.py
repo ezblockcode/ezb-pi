@@ -50,9 +50,9 @@ class Color():
         return '#{:06X}'.format(random.randint(0, 2**24 - 1))
     
     def rgb(self, r,g,b):
-        r = constrain(r, 0, 255)
-        g = constrain(g, 0, 255)
-        b = constrain(b, 0, 255)
+        r = int(constrain(r, 0, 255))
+        g = int(constrain(g, 0, 255))
+        b = int(constrain(b, 0, 255))
         return '#{:02X}{:02X}{:02X}'.format(r, g, b)
 
     def blend(self, colour1, colour2, ratio):
