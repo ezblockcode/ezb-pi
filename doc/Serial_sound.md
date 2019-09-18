@@ -1,11 +1,11 @@
 # class Serial_Sound - serial sound player
 
 Usage:
-```python
+```python 
 from ezblock import *
 
 ss = Serial_Sound(*)                     # create an sound player object from serial port and defaults to "/dev/ttyS0"
-ss.set_route(ROUTE_SD)                  #set route SD card
+ss.set_route(ss.ROUTE_SD)                  #set route SD card
 ss.play(0X00, 0X01)                    # play 01 file
 ```
 
