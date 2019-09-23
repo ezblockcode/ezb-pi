@@ -4,7 +4,7 @@ Usage:
 ```python 
 from ezblock import *
 
-ss = Serial_Sound(*)                     # create an sound player object from serial port and defaults to "/dev/ttyS0"
+ss = Serial_Sound(port="/dev/ttyS0")                     # create an sound player object from serial port and defaults to "/dev/ttyS0"
 ss.set_route(ss.ROUTE_SD)                  #set route SD card
 ss.play(0X00, 0X01)                    # play 01 file
 ```
@@ -16,7 +16,7 @@ Create an sound player object with the serial port.This allows you to play file.
 ## Methods
 - init - init the uart.
 ```python
-Serial_Sound.init(*)  #defaults to "/dev/ttyS0"
+Serial_Sound.init(port="/dev/ttyS0")  #defaults to "/dev/ttyS0"
 ```
 - write - send data to module.
 ```python
@@ -52,7 +52,7 @@ Serial_Sound.set_volume(num)
 ```
 - play_route - appoint disc and route play
 ```python
-Serial_Sound.play_route(num,str) # (0X01,/广告*/小米*???)
+Serial_Sound.play_route(num, str) # (0X01,/广告*/小米*???)
 ```
 
 ## Const
