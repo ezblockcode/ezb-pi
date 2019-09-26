@@ -1,23 +1,30 @@
-## SunFounder Sensor Kit V2.0 for RPi 2
-SunFounder Sensor Kit V2.0 for **RaspberryPi 2B**, compatible for **Rev.1 Module B/B+**, **Rev 3 Module B**
+## Ezblock for Raspberry Pi
+Ezblock for **RaspberryPi 3B+**, compatible for **Rev 4 Module B**
 
 Quick Links:
 
- * [About SunFounder Sensor Kit V2.0](#about_this_kit)
+ * [About Ezblock](#about_this_kit)
+ * [Doc](#doc)
  * [Update](#update)
  * [About SunFounder](#about_sunfounder)
  * [License](#license)
  * [Contact us](#contact_us)
 
 <a id="about_this_kit"></a>
-### About SunFounder Sensor Kit V2.0:
-This is a kit with whole bunch of sensors and activaters, provided by SunFounder. The code here contains C and Python and are both for Raspberry Pi. If any error or BUGs, wellcom to post issus in Github, or [Email](#contact_us) us.
+### About Ezblock:
+This is a img with whole bunch of sensors and activaters, provided by SunFounder. If any error or BUGs, wellcom to post issus in Github, or [Email](#contact_us) us.
+
+
+<a id="doc"></a>
+### Doc:
+https://github.com/sunfounder-ezblock/ezb-pi/tree/master/doc
+
 
 <a id="update"></a>
 ### Update:
-2018-06-07:
- - Add BMP280 both C and Python
-     + Add BMP280 for the Newest kit.
+2019-09-16:
+ - compatible for RaspberryPi 4B
+    
 
 ----------------------------------------------
 <a id="about_sunfounder"></a>
