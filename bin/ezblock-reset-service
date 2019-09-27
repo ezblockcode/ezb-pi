@@ -63,8 +63,8 @@ def main():
                 log("Led On")
                 status_led.value(1)
         elif is_reset == False:
-            log("turn off ezblock service")
-            run_command("sudo service ezblock stop")
+            # log("turn off ezblock service")
+            # run_command("sudo service ezblock stop")
             if count > 6:
                 log("hard reset")
                 ble_reset.off()
@@ -75,8 +75,8 @@ def main():
                 mcu_reset.off()
                 time.sleep(0.001)
                 mcu_reset.on()
-            log("start up ezblock service")
-            run_command("sudo service ezblock start")
+            log("restart ezblock service")
+            run_command("sudo service ezblock restart")
             count = 0
             is_reset = None
         delay(500)
