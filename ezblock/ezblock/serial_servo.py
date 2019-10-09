@@ -222,7 +222,7 @@ class Serial_Servo():
         self.sync_write(0XFE,cmd,data)
         
 
-class Servo():
+class Servo1():
     MOTOR = 0
     SERVO = 1
     def __init__(self, id, angle=0, time=500, mode=1, speed=50, dir=0):
@@ -303,9 +303,9 @@ class Servo():
 
 def test_sync():
     import time
-    servo1 = Servo(1)
-    servo2 = Servo(2)
-    ss = Serial_Servo()
+    servo1 = Servo1(1)
+    servo2 = Servo1(2)
+    ss = Serial_Servo1()
     ss.write_all_angle(servo1,servo2)
     time.sleep(1)
     servo1.angle(90)
@@ -314,14 +314,14 @@ def test_sync():
 
 
 def test1():
-    ss = Serial_Servo()
+    ss = Serial_Servo1()
     ss.set_mode(0XFE,ss.MOTOR)
     ss.set_motor_dir(0XFE,0)
     ss.set_motor_speed(0XFE,50)
 
 def test2():
     import time
-    ss = Serial_Servo()
+    ss = Serial_Servo1()
     #ss.write_id(0x02)
     #time.sleep(1)
     #ss.ping(0x02)
@@ -347,10 +347,10 @@ def test2():
 
 def main():
     import time
-    #ss = Serial_Servo()
-    #servo1 = Servo(1)
+    #ss = Serial_Servo1()
+    #servo1 = Servo1(1)
     #ss.run(servo1)
-    #servo2 = Servo(2)
+    #servo2 = Servo1(2)
     # ss.run(servo1,servo2)
     #time.sleep(1)
     #servo1.angle(90)
@@ -363,8 +363,8 @@ def main():
     #servo2.angle(180)
     #ss.run(servo1,servo2)
     ss = Serial_Servo()     #create an servo object from serial port and defaults to "/dev/ttyS0"
-    servo1 = Servo(1)       #create an parameter object and ID is 1
-    servo2 = Servo(2)       #create an parameter object and ID is 2
+    servo1 = Servo1(1)       #create an parameter object and ID is 1
+    servo2 = Servo1(2)       #create an parameter object and ID is 2
     servo1.mode(ss.MOTOR)   #set servo1 model to motor
     servo2.mode(ss.MOTOR)   #set servo2 model to motor
     servo1.speed(50)        #set servo1 speed to 50 max is 100 and dir is Clockwise
