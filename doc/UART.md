@@ -2,15 +2,15 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import UART
 
-uart = UART()                     # create an UART object 
+uart = UART()                      # create an UART object 
 uart.init(9600)                    # uart init
-uart.read(5)                    # read up 5 bytes
+uart.read(5)                       # read up 5 bytes
 
 buf = [1,3,5]
 uart.write(buf)                    # send a buf
-uart.writechar('a')                    # send a char
+uart.writechar('a')                # send a char
 ```
 ## Constructors
 ```class ezblock.UART(pin)```

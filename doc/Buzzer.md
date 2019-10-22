@@ -1,7 +1,7 @@
 # class Buzzer - passive buzzer
 Usage:
 ```python
-from ezblock import *
+from ezblock import PWM, Buzzer, Music
 
 pwm = PWM("A0")                 # create pwm object
 buzzer = Buzzer(pwm)            # create an Buzzer object with PWM object

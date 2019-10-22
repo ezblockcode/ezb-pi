@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import ADC
 
 adc = ADC("A0")                     # create an analog object from a pin
 val = adc.read()                    # read an analog value

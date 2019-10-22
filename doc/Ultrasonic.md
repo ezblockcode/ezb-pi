@@ -2,10 +2,13 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Ultrasonic, Pin
 
-ultrasonic = Ultrasonic("D0","D1")                     # create an  Ultrasonic object from  pin
-val = ultrasonic.read()                    # read an analog value
+trig = Pin("D0")
+echo = Pin("D1")
+
+ultrasonic = Ultrasonic(trig, echo)             # create an  Ultrasonic object from  pin
+val = ultrasonic.read()                         # read an analog value
 ```
 ## Constructors
 ```class ezblock.Ultrasonic(trig, echo)```

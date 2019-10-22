@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import LED
 
 led = LED()                     # create an led object
 led.on()

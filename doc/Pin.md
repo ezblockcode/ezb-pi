@@ -2,9 +2,9 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Pin
 
-pin = Pin("D0")                     # create an Pin object from a pin
+pin = Pin("D0")                      # create an Pin object from a pin
 val = pin.value()                    # read an analog value
 ```
 ## Constructors

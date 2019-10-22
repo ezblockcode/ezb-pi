@@ -1,7 +1,7 @@
 # class ADXL345 - accelemeter
 Usage:
 ```python
-from ezblock import *
+from ezblock import ADXL345
 
 accel = ADXL345()                     # create an ADXL345 object
 x_val = accel.read(accel.X)           # read an X(0) value

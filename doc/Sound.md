@@ -2,12 +2,13 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Sound, ADC
 
-sound = Sound("A0")                     # create an Sound object from a pin
-val = sound.read_raw()                    # read an analog value
+pin = ADC("A0")
+sound = Sound(pin)                         # create an Sound object from a pin
+val = sound.read_raw()                     # read an analog value
 
-average_val = sound.read_raw(time = 100)                    # read an average analog value
+average_val = sound.read_raw(time = 100)   # read an average analog value
 ```
 ## Constructors
 ```class ezblock.Sound(pin)```

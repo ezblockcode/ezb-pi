@@ -2,14 +2,18 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import PWM, RGB_LED
 
-rgb = RGB_LED("P0","P1","P2")                     # create an RGB_LED object from a pin
+r = PWM("P0")
+g = PWM("P1")
+b = PWM("P2")
+
+rgb = RGB_LED(r, g, b)                       # create an RGB_LED object from a pin
 val = rgb.write('#FFFFFF')                   # write value of value
 ```
 ## Constructors
 ```class ezblock.RGB_LED(Rpin, Gpin, Bpin)```
-Create an RGB_LED object associated with the given pin. This allows you set the color of RGB_LED.
+Create an RGB_LED object associated with the given pin. This allows you set the color of an RGB LED module. Input `Rpin`, `Gpin`, `Bpin` must be `PWM` object from `ezblock.PWM`.
 
 ## Methods
 - write - Read the value on the analog pin and return it. The returned value will be between 0 and 4095.
