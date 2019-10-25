@@ -2,11 +2,15 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Joystick, ADC, Pin
 
-joystick = Joystick('A0','A1','D1')         # create an Joystick object from a pin
-val = joystick.read(0)                      # read an axis value
-status = joystick.read_status()             # read the status of joystick
+x_pin = ADC("A0")
+y_pin = ADC("A1")
+btn_pin = Pin("D1")
+
+joystick = Joystick(x_pin, y_pin, btn_pin)         # create an Joystick object from a pin
+val = joystick.read(0)                             # read an axis value
+status = joystick.read_status()                    # read the status of joystick
 ```
 ## Constructors
 ```class ezblock.Joystick(pin)```

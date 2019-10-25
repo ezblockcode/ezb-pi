@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import WiFi
 
 wifi = WiFi()                     # create an WiFi object 
 wifi.write('CN','sunfounder','sunfounder')

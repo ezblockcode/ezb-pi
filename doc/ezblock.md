@@ -1,5 +1,5 @@
 # ezblock
-import everything is recommended
+import everything
 ```python
 from ezblock import *
 ```

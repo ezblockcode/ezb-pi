@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import I2C
 
 i2c = I2C(1)                         # create on bus 1
 i2c = I2C(1, I2C.MASTER)             # create and init as a master

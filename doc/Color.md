@@ -2,15 +2,15 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Color
 
-c = Color() # create an color object
-white = c.color("#ffffff") # hex color
-white_led = c.led_color("#ffffff") # hex color for led
-color_red = c.get_from("red", "#ffffff") # get red from a rgb color
-random_color = c.random() # get random color
-color = c.rgb(200, 20, 40) # get color from RGB value
-blended = c.blend("#ff0000", "#00ff00", 0.5) # blend 2 color with specific ratio 
+c = Color()                                      # create an color object
+white = c.color("#ffffff")                       # hex color
+white_led = c.led_color("#ffffff")               # hex color for led
+color_red = c.get_from("red", "#ffffff")         # get red from a rgb color
+random_color = c.random()                        # get random color
+color = c.rgb(200, 20, 40)                       # get color from RGB value
+blended = c.blend("#ff0000", "#00ff00", 0.5)     # blend 2 color with specific ratio 
 ```
 ## Constructors
 ```class ezblock.Color()```

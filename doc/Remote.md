@@ -2,12 +2,12 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Remote
 
-remote = Remote()                     # create an Remote object from
-val = remote.read()                    # read an analog value
+remote = Remote()                       # create an Remote object from
+val = remote.read()                     # read an analog value
 
-slider_val = remote.get_slider_value() # get slider value
+slider_val = remote.get_slider_value()  # get slider value
 ```
 ## Constructors
 ```class ezblock.Remote()```

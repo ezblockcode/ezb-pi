@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import IRQ
 
 def callback(line):
     print("line =", line)

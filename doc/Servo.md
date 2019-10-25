@@ -2,9 +2,10 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Servo, PWM
 
-ser = Servo("P0")                     # create an Servo object from a pin
+pin = PWM("P0")
+ser = Servo(pin)                      # create an Servo object from a pin
 val = ser.angle(60)                   # set the servo angle
 ```
 ## Constructors

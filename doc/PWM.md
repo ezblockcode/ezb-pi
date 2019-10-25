@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import PWM
 
 pwm = PWM('P0')                    # create an pwm object from a pin
 pwm.freq(50)                       # set freq 50Hz

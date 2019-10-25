@@ -2,7 +2,7 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import IOT
 
 iot = IOT()
 ```

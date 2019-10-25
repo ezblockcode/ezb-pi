@@ -2,9 +2,9 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Switch
 
-switch = Switch("D0")                     # create an Switch object from a pin
+switch = Switch("D0")                   # create an Switch object from a pin
 val = switch.value()                    # read an digital value
 
 def test:

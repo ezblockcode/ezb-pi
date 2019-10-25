@@ -2,11 +2,11 @@
 
 Usage:
 ```python
-from ezblock import *
+from ezblock import Music, Buzzer
 
-m = Music() # create an music object
+m = Music()               # create an music object
 buzzer = Buzzer("P0")
-m.tempo(120) # set current tempo to 120 beat per minute
+m.tempo(120)              # set current tempo to 120 beat per minute
 
 # play middle C, D, E, F ,G, A, B every 1 beat.
 buzzer.play(m.note("Middle C"), m.beat(1))
