@@ -1,122 +1,98 @@
-#!/usr/bin/env python3
-
-# MIT License
-# (c) 2017 Kevin J. Walchko
-
-# Update 2018-12-04 Cavon
-# 1. Python 2 to Python 3
-# 2. Uses cv2.VideoCapture(0)
-# 3. remove argparse
-
-# sudo pip3 install opencv-python
-# sudo apt-get install libatlas-base-dev
-# sudo apt-get install libjasper-dev
-# sudo apt-get install libqt4-test
-# sudo apt-get install libqtgui4
-
 from ezblock.basic import _Basic_class
-import cv2
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import ssl
-import time
-import socket as Socket
+import io
+import picamera
+import socketserver
+from threading import Condition, Thread
 from ezblock.utils import getIP
-import os
 
-# I use to do 0.0.0.0 to bind to all interfaces, but that seemed to be really
-# slow. feeding it the correct ip address seems to greatly speed things up.
+class StreamingOutput(object):
+    def __init__(self):
+        self.frame = None
+        self.buffer = io.BytesIO()
+        self.condition = Condition()
+
+    def write(self, buf):
+        if buf.startswith(b'\xff\xd8'):
+            # New frame, copy the existing buffer's content and notify all
+            # clients it's available
+            self.buffer.truncate()
+            with self.condition:
+                self.frame = self.buffer.getvalue()
+                self.condition.notify_all()
+            self.buffer.seek(0)
+        return self.buffer.write(buf)
+
+class StreamingHandler(BaseHTTPRequestHandler):
+    def __init__(self, output, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.output = output
+
+    def do_GET(self):
+        if self.path == '/':
+            self.send_response(301)
+            self.send_header('Location', '/mjpg')
+            self.end_headers()
+        elif self.path == '/mjpg':
+            self.send_response(200)
+            self.send_header('Age', 0)
+            self.send_header('Cache-Control', 'no-cache, private')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
+            self.end_headers()
+            try:
+                while True:
+                    with self.output.condition:
+                        self.output.condition.wait()
+                        frame = self.output.frame
+                    self.wfile.write(b'--FRAME\r\n')
+                    self.send_header('Content-Type', 'image/jpeg')
+                    self.send_header('Content-Length', len(frame))
+                    self.end_headers()
+                    self.wfile.write(frame)
+                    self.wfile.write(b'\r\n')
+            except Exception as e:
+                print('Removed streaming client %s: %s' % (self.client_address, str(e)))
+        else:
+            self.send_error(404)
+            self.end_headers()
+
+class StreamingServer(socketserver.ThreadingMixIn, HTTPServer):
+    allow_reuse_address = True
+    daemon_threads = True
 
 class Camera(_Basic_class):
 
     port = 9000
     RES = [
-        [320, 240],
-        [640, 480],
-        [1024, 576],
-        [1280, 800],
+        "320x240",
+        "640x480",
+        "1024x576",
+        "1280x800",
     ]
 
-    def __init__(self, res=0):
-        self.getCamera()
-        width = self.RES[res][0]
-        height = self.RES[res][1]
-        self.setUpCameraCV(width, height)
+    def __init__(self, res=1, fps=12, port=9000, rotation=0):
+        self.fps = fps
+        self.port = port
+        self.res = self.RES[res]
 
-    def getCamera(self):
-        devices = []
-        devs = os.listdir('/dev')
-        for dev in devs:
-            if 'video' in dev:
-                dev = dev.replace('video', '')
-                devices.append(dev)
-        camera_works = False
-        for dev in devices:
-            try:
-                self.camera = cv2.VideoCapture(0)
-                camera_works = True
-                break
-            except:
-                camera_works = False
-        if not camera_works:
-            raise IOError("Camera not found, please the connection of your camera")
-
-
-    def setUpCameraCV(self, width, height):
-        self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        self.output = StreamingOutput()
+        self.camera = picamera.PiCamera(resolution=self.res, framerate=fps)
+        self.camera.rotation = rotation
+        self.camera.start_recording(self.output, format='mjpeg')
 
     def start(self):
         self.ip = getIP()
         print("server starts at %s:%s" % (self.ip, self.port))
-        self.mjpgServer.camera = self.camera
-        self.server = HTTPServer((self.ip, self.port), self.mjpgServer)
-        self.server.socket = ssl.wrap_socket(self.server.socket,
-                                             server_side=True,
-                                             certfile='/opt/ezblock/ssl/ca.pem',
-                                             ssl_version=ssl.PROTOCOL_TLSv1)
-        self.server.serve_forever()
+        self.address = (self.ip, self.port)
+        streaming_handler = StreamingHandler(self.output)
+        self.server = StreamingServer(self.address, streaming_handler)
+        self.t = Thread(target=self.server.serve_forever)
+        self.t.start()
 
     def stop(self):
         self.server.socket.close()
-
-    class mjpgServer(BaseHTTPRequestHandler):
-        camera = None
-        def do_GET(self, freq=50):
-            print("do_get successed")
-            if self.path == '/mjpg':
-                self.send_response(200)
-                self.send_header(
-                    'Content-type',
-                    'multipart/x-mixed-replace; boundary=--jpgboundary'
-                )
-                self.end_headers()
-
-                while True:
-                    if self.camera:
-                        ret, img = self.camera.read()
-                    else:
-                        raise Exception('Error, camera not setup')
-                    if not ret:
-                        print('no image from camera')
-                        time.sleep(1)
-                        continue
-
-                    ret, jpg = cv2.imencode('.jpg', img)
-                    self.wfile.write("--jpgboundary".encode())
-                    self.send_header('Content-type', 'image/jpeg')
-                    self.send_header('Content-length', str(jpg.size))
-                    self.end_headers()
-                    self.wfile.write(jpg.tostring())
-                    time.sleep(1.0/freq)
-            else:
-                print('error', self.path)
-                self.send_response(404)
-                self.send_header('Content-type', 'text/html'.encode())
-                self.end_headers()
-                self.wfile.write('<html><head></head><body>'.encode())
-                self.wfile.write(
-                    '<h1>{0!s} not found</h1>'.format(self.path).encode())
-                self.wfile.write('</body></html>'.encode())
+        self.t.join()
 
 if __name__ == '__main__':
     try:
