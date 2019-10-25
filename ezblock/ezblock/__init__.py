@@ -22,6 +22,7 @@ from ezblock.taskmgr import Taskmgr
 from ezblock.modules import *
 from ezblock.send_email import SendMail
 from ezblock.info import Info
+from ezblock.rgb_matrix import RGB_Matrix
 
 def __reset_mcu__():
     mcurst = Pin("MCURST")
