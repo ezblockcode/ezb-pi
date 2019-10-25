@@ -17,7 +17,8 @@
 from ezblock.basic import _Basic_class
 import cv2
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import ssl
+# import ssl
+import threading
 import time
 import socket as Socket
 from ezblock.utils import getIP
@@ -41,6 +42,7 @@ class Camera(_Basic_class):
         width = self.RES[res][0]
         height = self.RES[res][1]
         self.setUpCameraCV(width, height)
+        self.t = threading.Thread(target=self._start)
 
     def getCamera(self):
         devices = []
@@ -65,18 +67,18 @@ class Camera(_Basic_class):
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-    def start(self):
+    def _start(self): 
         self.ip = getIP()
         print("server starts at %s:%s" % (self.ip, self.port))
         self.mjpgServer.camera = self.camera
         self.server = HTTPServer((self.ip, self.port), self.mjpgServer)
-        self.server.socket = ssl.wrap_socket(self.server.socket,
-                                             server_side=True,
-                                             certfile='/opt/ezblock/ssl/ca.pem',
-                                             ssl_version=ssl.PROTOCOL_TLSv1)
         self.server.serve_forever()
 
+    def start(self):
+        self.t.start()
+
     def stop(self):
+        self.t.join()
         self.server.socket.close()
 
     class mjpgServer(BaseHTTPRequestHandler):
