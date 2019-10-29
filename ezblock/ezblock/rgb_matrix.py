@@ -1,7 +1,7 @@
 import time
-from ezblock import I2C
-from ezblock import Color
-from map import Alphabet, Icons
+from ezblock.i2c import I2C
+from ezblock.i2c import Color
+from ezblock.map import Alphabet, Icons
 
 class RGB_Matrix():
 
