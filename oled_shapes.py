@@ -21,7 +21,7 @@
 import time
 
 # import Adafruit_GPIO.SPI as SPI
-from oled import SSD1306_128_64
+from ezblock import SSD1306
 
 from PIL import Image
 from PIL import ImageDraw

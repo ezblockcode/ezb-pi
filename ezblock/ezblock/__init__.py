@@ -23,6 +23,10 @@ from ezblock.modules import *
 from ezblock.send_email import SendMail
 from ezblock.info import Info
 from ezblock.rgb_matrix import RGB_Matrix
+from ezblock.oled import SSD1306_128_64 as SSD1306
+from ezblock.lcd1602_i2c import LCD
+from ezblock.serial_sound import Serial_Sound
+from ezblock.nrf24 import NRF24
 
 def __reset_mcu__():
     mcurst = Pin("MCURST")
