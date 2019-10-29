@@ -102,7 +102,7 @@ def main():
     # lcd.write(7, 1, 'world!')
     lcd.message(" hello\n  world!")
 
-main()
+# main()
 
 
  
