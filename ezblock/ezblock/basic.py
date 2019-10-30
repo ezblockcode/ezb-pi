@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import time
-import tempfile
-import subprocess
 
 class _Basic_class(object):
     _class_name = '_Basic_class'
