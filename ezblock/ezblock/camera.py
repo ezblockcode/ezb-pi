@@ -81,16 +81,13 @@ class Camera(_Basic_class):
         self.camera.rotation = rotation
         self.camera.start_recording(self.output, format='mjpeg')
 
-    def _start(self): 
+    def start(self): 
         self.ip = getIP()
         print("server starts at %s:%s" % (self.ip, self.port))
         self.address = (self.ip, self.port)
         streaming_handler = StreamingHandler(self.output)
         self.server = StreamingServer(self.address, streaming_handler)
         self.t = Thread(target=self.server.serve_forever)
-        self.t.start()
-
-    def start(self):
         self.t.start()
 
     def stop(self):
