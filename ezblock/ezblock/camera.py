@@ -23,39 +23,39 @@ class StreamingOutput(object):
             self.buffer.seek(0)
         return self.buffer.write(buf)
 
-class StreamingHandler(BaseHTTPRequestHandler):
-    def __init__(self, output, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.output = output
+def create_handler(output):
+    class StreamingHandler(BaseHTTPRequestHandler):
+        # output = output
 
-    def do_GET(self):
-        if self.path == '/':
-            self.send_response(301)
-            self.send_header('Location', '/mjpg')
-            self.end_headers()
-        elif self.path == '/mjpg':
-            self.send_response(200)
-            self.send_header('Age', 0)
-            self.send_header('Cache-Control', 'no-cache, private')
-            self.send_header('Pragma', 'no-cache')
-            self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
-            self.end_headers()
-            try:
-                while True:
-                    with self.output.condition:
-                        self.output.condition.wait()
-                        frame = self.output.frame
-                    self.wfile.write(b'--FRAME\r\n')
-                    self.send_header('Content-Type', 'image/jpeg')
-                    self.send_header('Content-Length', len(frame))
-                    self.end_headers()
-                    self.wfile.write(frame)
-                    self.wfile.write(b'\r\n')
-            except Exception as e:
-                print('Removed streaming client %s: %s' % (self.client_address, str(e)))
-        else:
-            self.send_error(404)
-            self.end_headers()
+        def do_GET(self):
+            if self.path == '/':
+                self.send_response(301)
+                self.send_header('Location', '/mjpg')
+                self.end_headers()
+            elif self.path == '/mjpg':
+                self.send_response(200)
+                self.send_header('Age', 0)
+                self.send_header('Cache-Control', 'no-cache, private')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
+                self.end_headers()
+                try:
+                    while True:
+                        with output.condition:
+                            output.condition.wait()
+                            frame = output.frame
+                        self.wfile.write(b'--FRAME\r\n')
+                        self.send_header('Content-Type', 'image/jpeg')
+                        self.send_header('Content-Length', len(frame))
+                        self.end_headers()
+                        self.wfile.write(frame)
+                        self.wfile.write(b'\r\n')
+                except Exception as e:
+                    print('Removed streaming client %s: %s' % (self.client_address, str(e)))
+            else:
+                self.send_error(404)
+                self.end_headers()
+    return StreamingHandler
 
 class StreamingServer(socketserver.ThreadingMixIn, HTTPServer):
     allow_reuse_address = True
@@ -85,7 +85,7 @@ class Camera(_Basic_class):
         self.ip = getIP()
         print("server starts at %s:%s" % (self.ip, self.port))
         self.address = (self.ip, self.port)
-        streaming_handler = StreamingHandler(self.output)
+        streaming_handler = create_handler(self.output)
         self.server = StreamingServer(self.address, streaming_handler)
         self.t = Thread(target=self.server.serve_forever)
         self.t.start()
