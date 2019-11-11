@@ -1,7 +1,8 @@
 # class NRF24 - NRF24L01 communication module
 
 Usage:
-```python 
+
+```python
 from ezblock import NRF24
 #write mode
 pipes = [[0xe7, 0xe7, 0xe7, 0xe7, 0xe7], [0xc2, 0xc2, 0xc2, 0xc2, 0xc2]]
@@ -15,7 +16,7 @@ radio.setPALevel(NRF24.PA_MAX)  #set PA Levels
 radio.setAutoAck(1)  #open auto ack
 radio.openWritingPipe(pipes[1])  #open write pipe
 radio.openReadingPipe(1, pipes[0])  #open read pipe
-radio.startListening() 
+radio.startListening()
 radio.stopListening()
 radio.printDetails()  #print details
 radio.write([6,6,6])  #send data
@@ -44,98 +45,134 @@ while True：
 ```
 
 ## Constructors
+
 ```class ezblock.NRF24()```
 Create an nrf24l01 object,this s a single chip radio transceiver for the world wide 2.4 - 2.5 GHz ISMband.Output power, frequency channels, and protocol setup are easily programmable through a SPI interface.
 
 ## Methods
+
 - begin - Initialize SPI bus and set CE and IRQ pins
+
 ```python
 NRF24.begin(major, minor, ce_pin, irq_pin)
 ```
+
 - setRetries - set max retries
+
 ```python
 NRF24.setRetries(delay, count)
 ```
+
 - setPayloadSize - set send byte size max is 32
+
 ```python
 NRF24.setPayloadSize(size)
 ```
+
 - setChannel
+
 ```python
 NRF24.setChannel(channel)
 ```
+
 - setDataRate
+
 ```python
 NRF24.setDataRate(speed)
 ```
+
 - setPALevel
+
 ```python
 NRF24.setPALevel(level)
 ```
+
 - setAutoAck
+
 ```python
 NRF24.setAutoAck(enable)
 ```
+
 - openWritingPipe
+
 ```python
 NRF24.openWritingPipe(value)
 ```
+
 - openReadingPipe
+
 ```python
 NRF24.openReadingPipe(pipe, address)
 ```
+
 - startListening
+
 ```python
 NRF24.startListening()
 ```
+
 - stopListening
+
 ```python
 NRF24.stopListening()
 ```
+
 - printDetails - print details
+
 ```python
 NRF24.printDetails()
 ```
+
 - irqWait - Block program until falling edge is detected
+
 ```python
 NRF24.irqWait(timeout=30000)
 ```
+
 - available - Check whether data is received
+
 ```python
 NRF24.available(pipe_num=None, irq_wait=False, irq_timeout=30000)
 ```
+
 - read_register
+
 ```python
 NRF24.read_register(reg, length=1)
 ```
+
 - write_register - Write register value
+
 ```python
 NRF24.write_register(reg, value)
 ```
+
 - write_payload - Writes data to the payload register, automatically padding it to match the required length
-```python 
+
+```python
 NRF24.write_payload(buf)
 ```
+
 - read_payload - Reads data from the payload register and sets the DR bit of the STATUS register
+
 ```python
 NRF24.read_payload(buf, buf_len=-1)  #if len Less than zero,len equal to the size of the sent data
 ```
+
 - write - send data
+
 ```python
 NRF24.write(buf)
 ```
+
 - read - receive data
+
 ```python
 NRF24.read(buf, buf_len=-1)  #if len Less than zero,len equal to the size of the sent data
 ```
+
 - reset
+
 ```python
 NRF24.reset()
 ```
-
-
-
-
-
-
-
