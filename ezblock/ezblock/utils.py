@@ -154,3 +154,18 @@ def rindex(seq, item, start=None, stop=None):
 def pop_random(seq):
     from random import randrange
     return seq.pop(randrange(len(seq)))
+
+def lists_sort(my_list, type, reverse):
+    def try_float(s):
+      try:
+        return float(s)
+      except:
+        return 0
+    key_funcs = {
+      "NUMERIC": try_float,
+      "TEXT": str,
+      "IGNORE_CASE": lambda s: str(s).lower()
+    }
+    key_func = key_funcs[type]
+    list_cpy = list(my_list) # Clone the list.
+    return sorted(list_cpy, key=key_func, reverse=reverse)
