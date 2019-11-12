@@ -29,8 +29,8 @@ def create_handler(output):
 
         def do_GET(self):
             if self.path == '/':
-                self.send_response(301)
-                self.send_header('Location', '/mjpg')
+                self.send_response(200)
+                self.send_header('Location', 'mjpg')
                 self.end_headers()
             elif self.path == '/mjpg':
                 self.send_response(200)

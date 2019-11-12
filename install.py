@@ -88,6 +88,10 @@ def install():
         cmd='Config().set("dtoverlay=lirc-rpi:gpio_in_pin", "26")')
     do(msg="turn on Uart",
         cmd='Config().set("enable_uart", "1")')
+    do(msg="set gpu memory to 128",
+        cmd='Config().set("gpu_mem", "128")')
+    do(msg="enable camera",
+        cmd='Config().set("start_x", "1")')
     do(msg="turn off serial terminal",
         cmd='Cmdline().remove("console=serial0")')
 
