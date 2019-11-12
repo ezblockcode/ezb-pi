@@ -1,5 +1,5 @@
 from ezblock.basic import _Basic_class
-from ezblock.utils import print, getIP
+from ezblock.utils import getIP
 import time
 # re-正则表达式
 class WiFi(_Basic_class):
@@ -18,8 +18,10 @@ network={{
 
     def connect(self, ssid, psk):
         ip = getIP('wlan0')
-        if ip:
-            print('WiFi is already connected, skip')
+        _, result = self.run_command("iwgetid")
+        result = result.split(":")[1].strip().strip('"')
+        if result == ssid:
+            print('Wi-Fi is already connected to %s, skip'%(ssid))
             print("IP: %s" % ip)
             return True
         print("Connecting to \"{}\"...".format(ssid))
@@ -52,7 +54,10 @@ network={{
         self.connect(ssid, psk)
 
 def test():
-    WiFi().write("MakerStarsHall", "sunfounder", "CN")
+    # WiFi().write("MakerStarsHall", "sunfounder", "CN")
+    status, result = WiFi().run_command("iwgetid")
+    result = result.split(":")[1].strip().strip('"')
+    print(result)
 if __name__ == "__main__":
     test()
 
