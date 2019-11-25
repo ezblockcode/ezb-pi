@@ -18,8 +18,7 @@ network={{
 
     def connect(self, ssid, psk):
         ip = getIP('wlan0')
-        _, result = self.run_command("iwgetid")
-        result = result.split(":")[1].strip().strip('"')
+        result = self.get_current_ssid()
         if result == ssid:
             print('Wi-Fi is already connected to %s, skip'%(ssid))
             print("IP: %s" % ip)
@@ -48,6 +47,12 @@ network={{
                     break 
                 time.sleep(0.1)
         return False
+
+    def get_current_ssid(self):
+        _, result = self.run_command("iwgetid")
+        if result != "":
+            result = result.split(":")[1].strip().strip('"')
+        return result
 
     def write(self, country, ssid, psk):
         self.country = country
