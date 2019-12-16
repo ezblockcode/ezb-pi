@@ -49,7 +49,7 @@ class Music(_Basic_class):
             raise ValueError("{} is not a note".format(n))
     
     def beat(self, b):
-        b = int(b)
+        b = float(b)
         b = b * self.MUSIC_BEAT
         return b
     

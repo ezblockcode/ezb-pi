@@ -138,3 +138,34 @@ def standard_deviation_of(numbers):
 
 def constrain(x, low, high):
     return min(max(x, low), high)
+
+def rindex(seq, item, start=None, stop=None):
+    """L.rindex(item, [start, [stop]]) -> integer -- return last index of item.
+    Raises itemError if the item is not present."""
+    start, stop, _ = slice(start, stop).indices(len(seq))
+    if stop == 0:
+        # start = 0
+        raise ValueError('{!r} is not in list'.format(item))
+    else:
+        stop -= 1
+        start = None if start == 0 else start - 1
+    return stop - seq[stop:start:-1].index(item)
+
+def pop_random(seq):
+    from random import randrange
+    return seq.pop(randrange(len(seq)))
+
+def lists_sort(my_list, type, reverse):
+    def try_float(s):
+      try:
+        return float(s)
+      except:
+        return 0
+    key_funcs = {
+      "NUMERIC": try_float,
+      "TEXT": str,
+      "IGNORE_CASE": lambda s: str(s).lower()
+    }
+    key_func = key_funcs[type]
+    list_cpy = list(my_list) # Clone the list.
+    return sorted(list_cpy, key=key_func, reverse=reverse)
