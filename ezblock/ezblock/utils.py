@@ -22,18 +22,9 @@ def delay(ms):
     time.sleep(ms/1000)
 
 def set_volume(value):
-    if value > 100:
-        value = 100
-    if value < 0:
-        value = 0
-    # gain(dB) = 10 * log10(volume)
-    #self._debug('speaker percentage = %s' % value)
-    # self._speaker_volume = self._map(value, 0, 100, 0, 75)
-    #self._speaker_volume = self._map(value, 0, 100, ((10.0**(-102.39/10))-1), ((10.0**(4.0/10))-1))
-    #self._speaker_volume = int(math.log10(self._speaker_volume) * 100) * 10
-    #self._debug('speaker dB = %s' % self._speaker_volume)
+    value = constrain(value, 0, 100)
     cmd = "sudo amixer -M sset 'PCM' %d%%" % value
-    run_command(cmd)
+    os.system(cmd)
 
 def set_audio_device(value):
     if value > 100:
@@ -41,7 +32,47 @@ def set_audio_device(value):
     if value < 0:
         value = 0
     cmd = "amixer cset numid=3 %d%%" % value
-    run_command(cmd)
+    os.system(cmd)
+
+def run_command(cmd):
+    import subprocess
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = p.stdout.read().decode('utf-8')
+    status = p.poll()
+    return status, result
+
+def is_installed(cmd):
+    status, _ = run_command("%s -v"%cmd)
+    # 0 only tested under "espeak -v"
+    if status in [0,]:
+        return True
+    else:
+        return False
+
+def ezblock_update():
+    files = os.listdir("/home/pi/")
+    if "ezb-pi" in files:
+        os.chdir("/home/pi/ezb-pi")
+        status, error = run_command("git pull origin master")
+        if status == 0:
+            return True
+        else:
+            return error
+    else:
+        os.chdir("/home/pi")
+        status, error = run_command("git clone https://github.com/ezblockcode/ezb-pi.git")
+        if status == 0:
+            return True
+        else:
+            return error
+        os.chdir("/home/pi/ezb-pi")
+    status, error = run_command("sudo python3 install.py")
+    if status == 0:
+        return True
+    else:
+        return error
+    
 
 def mapping(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
@@ -169,3 +200,6 @@ def lists_sort(my_list, type, reverse):
     key_func = key_funcs[type]
     list_cpy = list(my_list) # Clone the list.
     return sorted(list_cpy, key=key_func, reverse=reverse)
+
+# if __name__ == "__main__":
+#     is_installed("espeak")
