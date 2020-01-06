@@ -10,7 +10,12 @@ class Pin(_Basic_class):
     PULL_UP = GPIO.PUD_UP
     PULL_DOWN = GPIO.PUD_DOWN
     PULL_NONE = None
+
     _dict = {
+        "BOARD_TYPE": 12,
+    }
+
+    _dict_1 = {
         "D0":  17,
         "D1":  18,
         "D2":  27,
@@ -30,17 +35,47 @@ class Pin(_Basic_class):
         "D16": 21,
         "SW":  19,
         "LED": 26,
-        "PWR": 12,
+        "BOARD_TYPE": 12,
         "RST": 16,
         "BLEINT": 13,
         "BLERST": 20,
         "MCURST": 21,
     }
 
+    _dict_2 = {
+        "D0":  17,
+        "D1":   4, # Changed
+        "D2":  27,
+        "D3":  22,
+        "D4":  23,
+        "D5":  24,
+        "D6":  25, # Removed
+        "D7":   4, # Removed
+        "D8":   5, # Removed
+        "D9":   6,
+        "D10": 12,
+        "D11": 13,
+        "D12": 19,
+        "D13": 16,
+        "D14": 26,
+        "D15": 20,
+        "D16": 21,
+        "SW":  19,
+        "LED": 25, # Changed
+        "BOARD_TYPE": 12,
+        "RST": 16,
+        "BLEINT": 13,
+        "BLERST": 20,
+        "MCURST":  5, # Changed
+    }
+
     def __init__(self, *value):
         super().__init__()
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
+
+        self.check_board_type()
+
         if len(value) > 0:
             pin = value[0]
         if len(value) > 1:
@@ -57,15 +92,23 @@ class Pin(_Basic_class):
                 self._pin = self.dict()[pin]
             except Exception as e:
                 print(e)
-                self._error('Pin should be in %s, not %s' % (self._dict, pin))
+                self._error('Pin should be in %s, not %s' % (self._dict.keys(), pin))
         elif isinstance(pin, int):
             self._pin = pin
         else:
-            self._error('Pin should be in %s, not %s' % (self._dict, pin))
+            self._error('Pin should be in %s, not %s' % (self._dict.keys(), pin))
         self._value = 0
         self.init(mode, pull=setup)
         self._info("Pin init finished.")
         
+    def check_board_type(self):
+        type_pin = self.dict()["BOARD_TYPE"]
+        GPIO.setup(type_pin, GPIO.IN)
+        if GPIO.input(type_pin) == 0:
+            self._dict = self._dict_1
+        else:
+            self._dict = self._dict_2
+
     def init(self, mode, pull=PULL_NONE):
         self._pull = pull
         self._mode = mode
