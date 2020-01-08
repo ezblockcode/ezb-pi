@@ -22,26 +22,17 @@ def delay(ms):
     time.sleep(ms/1000)
 
 def set_volume(value):
-    if value > 100:
-        value = 100
-    if value < 0:
-        value = 0
-    # gain(dB) = 10 * log10(volume)
-    #self._debug('speaker percentage = %s' % value)
-    # self._speaker_volume = self._map(value, 0, 100, 0, 75)
-    #self._speaker_volume = self._map(value, 0, 100, ((10.0**(-102.39/10))-1), ((10.0**(4.0/10))-1))
-    #self._speaker_volume = int(math.log10(self._speaker_volume) * 100) * 10
-    #self._debug('speaker dB = %s' % self._speaker_volume)
+    value = min(100, max(0, value))
     cmd = "sudo amixer -M sset 'PCM' %d%%" % value
-    run_command(cmd)
+    os.system(cmd)
 
-def set_audio_device(value):
-    if value > 100:
-        value = 100
-    if value < 0:
-        value = 0
-    cmd = "amixer cset numid=3 %d%%" % value
-    run_command(cmd)
+# def set_audio_device(value):
+#     if value > 100:
+#         value = 100
+#     if value < 0:
+#         value = 0
+#     cmd = "amixer cset numid=3 %d%%" % value
+#     os.system(cmd)
 
 def mapping(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
