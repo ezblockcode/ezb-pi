@@ -142,6 +142,6 @@ class I2C(_Basic_class):
     def writeto_mem(self, addr, memaddr, data):
         self.mem_write(data, addr, memaddr)
 
-i2c = I2C()
+# i2c = I2C()
 # i2c.scan()
-i2c.mem_write(0xff53773, 20, 20)
+# i2c.mem_write(0xff53773, 20, 20)
