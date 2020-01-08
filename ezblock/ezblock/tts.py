@@ -1,5 +1,5 @@
 from ezblock.basic import _Basic_class
-from ezblock.utils import mapping
+from ezblock.utils import mapping, is_installed
 from distutils.spawn import find_executable
 
 class TTS(_Basic_class):
@@ -20,6 +20,8 @@ class TTS(_Basic_class):
         self._speed = 175
         self._gap   = 5
         self._pitch = 50
+        if not is_installed("espeak"):
+            raise Exception("TTS engine: espeak in not installed.")
     
     # def engine(self, value= 'espeak'):
     #     self._engine = value

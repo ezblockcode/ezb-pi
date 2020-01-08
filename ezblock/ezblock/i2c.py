@@ -112,15 +112,16 @@ class I2C(_Basic_class):
             data_all = data
         elif isinstance(data, int):
             data_all = []
-            for i in range(0, 100):
-                d = data >> (8*i) & 0xFF
-                if d == 0:
-                    break
-                else:
-                    data_all.append(d)
-            data_all.reverse()
+            data = "%x"%data
+            if len(data) % 2 == 1:
+                data = "0" + data
+            # print(data)
+            for i in range(0, len(data), 2):
+                # print(data[i:i+2])
+                data_all.append(int(data[i:i+2], 16))
         else:
-            print(data)
+            raise ValueError("memery write require arguement of bytearray, list, int less than 0xFF")
+        # print(data_all)
         self._i2c_write_i2c_block_data(addr, memaddr, data_all)
     
     def mem_read(self, data, addr, memaddr, timeout=5000, addr_size=8):     # 读取数据
@@ -141,5 +142,6 @@ class I2C(_Basic_class):
     def writeto_mem(self, addr, memaddr, data):
         self.mem_write(data, addr, memaddr)
 
-# i2c = I2C()
+i2c = I2C()
 # i2c.scan()
+i2c.mem_write(0xff53773, 20, 20)

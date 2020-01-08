@@ -17,9 +17,9 @@ network={{
         self.country = ""
 
     def connect(self, ssid, psk):
-        ip = getIP('wlan0')
         result = self.get_current_ssid()
-        if result == ssid:
+        ip = getIP('wlan0')
+        if result == ssid and ip != False:
             print('Wi-Fi is already connected to %s, skip'%(ssid))
             print("IP: %s" % ip)
             return True

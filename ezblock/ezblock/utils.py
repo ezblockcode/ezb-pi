@@ -160,3 +160,6 @@ def lists_sort(my_list, type, reverse):
     key_func = key_funcs[type]
     list_cpy = list(my_list) # Clone the list.
     return sorted(list_cpy, key=key_func, reverse=reverse)
+
+# if __name__ == "__main__":
+#     is_installed("espeak")
