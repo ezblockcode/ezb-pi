@@ -45,15 +45,18 @@ class I2C(_Basic_class):
     def scan(self):                             # 查看有哪些i2c设备
         cmd = "i2cdetect -y %s" % self._bus
         _, output = self.run_command(cmd)          # 调用basic中的方法，在linux中运行cmd指令，并返回运行后的内容
+        
         outputs = output.split('\n')[1:]        # 以回车符为分隔符，分割第二行之后的所有行
         self._debug("outputs")
         addresses = []
         for tmp_addresses in outputs:
+            if tmp_addresses == "":
+                continue
             tmp_addresses = tmp_addresses.split(':')[1]
             tmp_addresses = tmp_addresses.strip().split(' ')    # strip函数是删除字符串两端的字符，split函数是分隔符
             for address in tmp_addresses:
                 if address != '--':
-                    addresses.append(address)
+                    addresses.append(int(address, 16))
         self._debug("Conneceted i2c device: %s"%addresses)                   # append以列表的方式添加address到addresses中
         return addresses
 
@@ -108,10 +111,17 @@ class I2C(_Basic_class):
         elif isinstance(data, list):
             data_all = data
         elif isinstance(data, int):
-            data = data & 0xFF
-            data_all = [data]
+            data_all = []
+            data = "%x"%data
+            if len(data) % 2 == 1:
+                data = "0" + data
+            # print(data)
+            for i in range(0, len(data), 2):
+                # print(data[i:i+2])
+                data_all.append(int(data[i:i+2], 16))
         else:
             raise ValueError("memery write require arguement of bytearray, list, int less than 0xFF")
+        # print(data_all)
         self._i2c_write_i2c_block_data(addr, memaddr, data_all)
     
     def mem_read(self, data, addr, memaddr, timeout=5000, addr_size=8):     # 读取数据
@@ -124,3 +134,14 @@ class I2C(_Basic_class):
         result = bytearray(num)
         result = self._i2c_read_i2c_block_data(addr, memaddr, num)
         return result
+    
+    def readfrom_mem_into(self, addr, memaddr, buf):
+        buf = self.mem_read(len(buf), addr, memaddr)
+        return buf
+    
+    def writeto_mem(self, addr, memaddr, data):
+        self.mem_write(data, addr, memaddr)
+
+# i2c = I2C()
+# i2c.scan()
+# i2c.mem_write(0xff53773, 20, 20)

@@ -94,7 +94,6 @@ def test():
     # tts.lang("de-DE")
     tts.speaker_volume(100)
     tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)
-    tts.say("You are bitch")
 
 
 if __name__ == "__main__":

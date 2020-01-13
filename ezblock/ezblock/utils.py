@@ -22,57 +22,17 @@ def delay(ms):
     time.sleep(ms/1000)
 
 def set_volume(value):
-    value = constrain(value, 0, 100)
+    value = min(100, max(0, value))
     cmd = "sudo amixer -M sset 'PCM' %d%%" % value
     os.system(cmd)
 
-def set_audio_device(value):
-    if value > 100:
-        value = 100
-    if value < 0:
-        value = 0
-    cmd = "amixer cset numid=3 %d%%" % value
-    os.system(cmd)
-
-def run_command(cmd):
-    import subprocess
-    p = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    result = p.stdout.read().decode('utf-8')
-    status = p.poll()
-    return status, result
-
-def is_installed(cmd):
-    status, _ = run_command("%s -v"%cmd)
-    # 0 only tested under "espeak -v"
-    if status in [0,]:
-        return True
-    else:
-        return False
-
-def ezblock_update():
-    files = os.listdir("/home/pi/")
-    if "ezb-pi" in files:
-        os.chdir("/home/pi/ezb-pi")
-        status, error = run_command("git pull origin master")
-        if status == 0:
-            return True
-        else:
-            return error
-    else:
-        os.chdir("/home/pi")
-        status, error = run_command("git clone https://github.com/ezblockcode/ezb-pi.git")
-        if status == 0:
-            return True
-        else:
-            return error
-        os.chdir("/home/pi/ezb-pi")
-    status, error = run_command("sudo python3 install.py")
-    if status == 0:
-        return True
-    else:
-        return error
-    
+# def set_audio_device(value):
+#     if value > 100:
+#         value = 100
+#     if value < 0:
+#         value = 0
+#     cmd = "amixer cset numid=3 %d%%" % value
+#     os.system(cmd)
 
 def mapping(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
