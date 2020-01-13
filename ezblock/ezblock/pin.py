@@ -60,8 +60,8 @@ class Pin(_Basic_class):
         "D14": 26,
         "D15": 20,
         "D16": 21,
-        "SW":  19,
-        "LED": 25, # Changed
+        "SW":  25, # Changed
+        "LED": 26,
         "BOARD_TYPE": 12,
         "RST": 16,
         "BLEINT": 13,
