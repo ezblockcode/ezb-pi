@@ -28,7 +28,6 @@ from ezblock.lcd1602_i2c import LCD
 from ezblock.serial_sound import Serial_Sound
 from ezblock.nrf24 import NRF24
 from ezblock.filedb import fileDB
-from ezblock.ultrasonic import Ultrasonic
 
 def __reset_mcu__():
     mcurst = Pin("MCURST")
