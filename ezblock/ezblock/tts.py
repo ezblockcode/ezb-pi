@@ -13,23 +13,25 @@ class TTS(_Basic_class):
         'it-IT', # 意大利语(意大利)Italia-lingua italiana
     ]
 
-    def __init__(self, engine='espeak'):
+    def __init__(self, engine='gtts'):
         super().__init__()
         self._lang = "en-US"            # 默认输入的语言为英语
-        self._amp   = 100 
-        self._speed = 175
-        self._gap   = 5
-        self._pitch = 50
-        if not is_installed("espeak"):
-            raise Exception("TTS engine: espeak in not installed.")
-    
-    # def engine(self, value= 'espeak'):
-    #     self._engine = value
-    #     if self._engine == 'espeak':
-    #         self._amp   = 100 
-    #         self._speed = 175
-    #         self._gap   = 5
-    #         self._pitch = 50
+        self.engine = engine
+        if (engine == espeak):
+            if not is_installed("espeak"):
+                raise Exception("TTS engine: espeak in not installed.")
+            self._amp   = 100 
+            self._speed = 175
+            self._gap   = 5
+            self._pitch = 50
+        if engine == gtts:
+            import urllib.request as request
+            import base64
+            import ast, json
+            self.request = request
+            self.base64 = base64
+            self.ast = ast
+            self.json = json
 
     def _check_executable(self, executable):
         executable_path = find_executable(executable)
@@ -37,23 +39,41 @@ class TTS(_Basic_class):
         return found
 
     def say(self, words):           # 输入的文字
-        self.write(words)
+        if self.engine == espeak:
+            self.espeak(words)
+        elif self.engine == gtts:
 
-    def write(self, words):
-        self._debug('Say:\n [%s]' % (words))
-        # if self._check_executable('pico2wave') and self._check_executable('aplay'):
-        #     cmd = 'pico2wave -l %s -w /tmp/pico.wav "%s" && aplay /tmp/pico.wav' % (self._lang, words)  # 传入语言，和需要转换成语言的文字
-        #     self.run_command(cmd)
-        #     self._debug('command: %s' %cmd)
-        # else:
-        #     self._debug('pico is busy. Pass')
-
-        if self._check_executable('espeak'):
-                cmd = 'espeak -a%d -s%d -g%d -p%d \"%s\" --stdout | aplay 2>/dev/null & ' % (self._amp, self._speed, self._gap, self._pitch, words)
-                self.run_command(cmd)
-                self._debug('command: %s' %cmd)
-        else:
+    def espeak(self, words):
+        self._debug('espeak:\n [%s]' % (words))
+        if not self._check_executable('espeak'):
             self._debug('espeak is busy. Pass')
+
+        cmd = 'espeak -a%d -s%d -g%d -p%d \"%s\" --stdout | aplay 2>/dev/null & ' % (self._amp, self._speed, self._gap, self._pitch, words)
+        self.run_command(cmd)
+        self._debug('command: %s' %cmd)
+
+    def gtts(self, words):
+        data = {
+            "text": words,
+            "language": self.lang,
+        }
+        header = {
+            "Content-Type": "application/json",
+        }
+
+        data = self.json.dumps(data)
+        data = bytes(data, 'utf8')
+        url = 'http://192.168.6.224:11000/api/web/v2/ezblock/google/tts'
+        req = request.Request(url, data=data, headers=header, method='POST')
+        r = request.urlopen(req)
+        result = r.read()
+        result = result.decode("utf-8")
+        result = self.ast.literal_eval(result)
+        data = result["data"]
+        data = self.base64.b64decode(data)
+        print(data)
+        with open("output.mp3", "wb") as f:
+            f.write(data)
 
     def lang(self, *value):     # 切换语言，可识别5种语言
         if len(value) == 0:
