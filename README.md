@@ -24,7 +24,10 @@ https://github.com/sunfounder-ezblock/ezb-pi/tree/master/doc
 ### Update:
 2019-09-16:
  - compatible for RaspberryPi 4B
-    
+
+### Usage
+sudo update-rc.d ezblock-reset defaults
+sudo update-rc.d ezblock-reset remove
 
 ----------------------------------------------
 <a id="about_sunfounder"></a>

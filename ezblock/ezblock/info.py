@@ -1,15 +1,10 @@
 from ezblock.utils import getIP
 class Info():
     file_dir = "/opt/ezblock"
-    info = {
-        "name": "",
-        "libs": [],
-        "ip": "",
-    }
     DEBUG = False # Set to True to see debug infomation
 
     def __init__(self):
-        pass
+        self.reset()
 
     def debug(self, msg, end='\n'):
         if self.DEBUG:
@@ -58,6 +53,7 @@ class Info():
         self.set("libs", "%s==%s"%(name,ver))
 
     def get(self):
+        self.reset()
         self._check_info_file()
         ip = getIP()
         if ip:
@@ -77,3 +73,10 @@ class Info():
                         self.info[arg] = val
         self.debug(self.info)
         return self.info
+
+    def reset(self):
+        self.info = {
+            "name": "",
+            "libs": [],
+            "ip": "",
+        }
