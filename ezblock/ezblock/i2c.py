@@ -131,8 +131,7 @@ class I2C(_Basic_class):
             num = len(data)
         else:
             return False
-        result = bytearray(num)
-        result = self._i2c_read_i2c_block_data(addr, memaddr, num)
+        result = bytearray(self._i2c_read_i2c_block_data(addr, memaddr, num))
         return result
     
     def readfrom_mem_into(self, addr, memaddr, buf):

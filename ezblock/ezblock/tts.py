@@ -91,9 +91,16 @@ class TTS(_Basic_class):
 
 def test():
     tts = TTS()
-    # tts.lang("de-DE")
-    tts.speaker_volume(100)
+    tts.lang("es-ES")
+    # tts.lang("en-US")
+
+    # tts.speaker_volume(100)
     tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)
+    # tts.say('Ich liebe dich')
+    # tts.say('Hallo')
+    tts.say('hello nice to meet you')
+
+
 
 
 if __name__ == "__main__":
