@@ -20,7 +20,7 @@ class Robot():
         self.pin_num = len(pin_list)
         self.origin_positions = self.new_list(0)
         self.db = fileDB(db=db)
-        temp = self.db.get('spider_servo_offset_list', default_value=str(self.new_list(0)))
+        temp = self.db.get('servo_offset_list', default_value=str(self.new_list(0)))
         temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
         self.offset = temp
         self.servo_positions = self.new_list(0)
@@ -81,8 +81,9 @@ class Robot():
                 self.servo_move(motion, speed)
 
     def set_offset(self,offset_list):
+        offset_list = [ min(max(offset, -20), 20) for offset in offset_list]
         temp = str(offset_list)
-        self.db.set('spider_servo_offset_list',temp)
+        self.db.set('servo_offset_list',temp)
         self.offset = offset_list
         # self.calibration()
         # self.reset()

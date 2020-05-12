@@ -9,6 +9,9 @@ class Spider(Robot):
     def __init__(self, pin_list):
         super().__init__(pin_list, group=3)
         self.move_list = self.MoveList()
+        self.move_list_add = {
+            'my action': None
+        }
         self.stand_position = 0
         self.direction = [
             1,1,-1,
@@ -17,7 +20,7 @@ class Spider(Robot):
             1,1,1,
         ]
         # self.soft_reset()
-        self.current_coord = [[62, 0, -30], [62, 0, -30], [62, 0, -30], [62, 0, -30]]
+        self.current_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
         
     def coord2polar(self, coord):
         x,y,z = coord
@@ -27,7 +30,6 @@ class Spider(Robot):
         u = math.sqrt(math.pow(z,2) + math.pow(v,2))
         u = max(30, min(91.58, u))
         cos_angle1 = (self.B**2 + self.A**2 - u**2) / (2 * self.B * self.A)
-        # print("cos_angle1: %s"%cos_angle1)
         beta = math.acos(cos_angle1)
 
         angle1 = math.atan2(z, v)
@@ -43,114 +45,88 @@ class Spider(Robot):
         return alpha, beta, gamma
         
     def do_action(self, motion_name, step=1, speed=50):
-        print("do action: %s"%motion_name)
-        for _ in range(step): # times
-            self.move_list.stand_position = self.stand_position
-            if motion_name in ["forward", "backward", "turn left", "turn right", "turn left angle", "turn right angle"]:
-                self.stand_position = self.stand_position + 1 & 1
-            action = self.move_list[motion_name]
-            # for _step in action: # spyder motion
-            for _step in action: # spyder motion
-                self.do_step(_step, speed=speed)
+        try:
+            for _ in range(step): # times
+                self.move_list.stand_position = self.stand_position
+                if motion_name in ["forward", "backward", "turn left", "turn right", "turn left angle", "turn right angle"]:
+                    self.stand_position = self.stand_position + 1 & 1
+                action = self.move_list[motion_name]
+                # for _step in action: # spyder motion
+                for _step in action: # spyder motion
+                    self.do_step(_step, speed=speed)
+        except AttributeError:
+            try:
+                for _ in range(step):
+                    action_add = self.move_list_add[motion_name]
+                    for _step in action_add:
+                        self.do_step(_step, speed=speed) 
+            except KeyError:
+                print("No such action")
 
     def do_step(self, _step, speed=50):
         translate_list = []
         for coord in _step: # each servo motion
             alpha, beta, gamma = self.coord2polar(coord)
             translate_list += [beta, alpha, gamma]
-        # motion_list = translate_list
-        # for i in range(12):
-        #     if (i == 3 or i == 9) and (i % 3 == 0):
-        #         translate_list[i] = translate_list[i] * (-1)
-        #         translate_list[i+1] = translate_list[i+1] * (-1)
-        #         translate_list[i+2] = translate_list[i+2] * (-1)
-        # print(translate_list)
+       
         self.servo_move(translate_list, speed=speed)
         return translate_list
     
 
     def add_action(self,action_name, action_list):
-        if action_name not in self.move_list.keys():
-            self.move_list[action_name] = action_list
-            self.do_action(action_name)
+        self.move_list_add[action_name] = action_list
     
     def cali_helper(self, leg, up, down, left, right, hight, low, enter):
-        step=0.01
+        step = 0.01
         cali_position = []
-        cali_coord = [[62, 0, -30], [62, 0, -30], [62, 0, -30], [62, 0, -30]]
+        cali_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
         for coord in cali_coord: # each servo motion
             alpha, beta, gamma = self.coord2polar(coord)
             cali_position += [beta, alpha, gamma]
-        # motion_list = cali_position
-        # for i in range(12):
-        #     if (i == 3 or i == 9) and (i % 3 == 0):
-        #         cali_position[i] = cali_position[i] * (-1)
-        #         cali_position[i+1] = cali_position[i+1] * (-1)
-        #         cali_position[i+2] = cali_position[i+2] * (-1)
+        
+        positive_list = [
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, 1, -1, 1, -1],
+            [-1, 1, 1, -1, 1, -1],
+            [-1, 1, -1, 1, 1, -1],
+        ]
+        
         offset = list(self.offset)
         leg = leg - 1
-        if leg == 0:
-            if up == 1:
-                self.current_coord[leg][1] += step
-            elif down == 1:
-                self.current_coord[leg][1] -= step
-            elif left == 1:
-                self.current_coord[leg][0] -= step
-            elif right == 1:
-                self.current_coord[leg][0] += step
-            elif hight == 1:
-                self.current_coord[leg][2] += step
-            elif low == 1:
-                self.current_coord[leg][2] -= step
-        elif leg == 1:
-            if up == 1:
-                self.current_coord[leg][1] += step
-            elif down == 1:
-                self.current_coord[leg][1] -= step
-            elif left == 1:
-                self.current_coord[leg][0] += step
-            elif right == 1:
-                self.current_coord[leg][0] -= step
-            elif hight == 1:
-                self.current_coord[leg][2] += step
-            elif low == 1:
-                self.current_coord[leg][2] -= step
-        elif leg == 2:
-            if up == 1:
-                self.current_coord[leg][1] -= step
-            elif down == 1:
-                self.current_coord[leg][1] += step
-            elif left == 1:
-                self.current_coord[leg][0] += step
-            elif right == 1:
-                self.current_coord[leg][0] -= step
-            elif hight == 1:
-                self.current_coord[leg][2] += step
-            elif low == 1:
-                self.current_coord[leg][2] -= step
-        elif leg == 3:
-            if up == 1:
-                self.current_coord[leg][1] -= step
-            elif down == 1:
-                self.current_coord[leg][1] += step
-            elif left == 1:
-                self.current_coord[leg][0] -= step
-            elif right == 1:
-                self.current_coord[leg][0] += step
-            elif hight == 1:
-                self.current_coord[leg][2] += step
-            elif low == 1:
-                self.current_coord[leg][2] -= step
+        if up == 1:
+            self.current_coord[leg][1] += step * positive_list[leg][0]
+        elif down == 1:
+            self.current_coord[leg][1] += step * positive_list[leg][1]
+        elif left == 1:
+            self.current_coord[leg][0] += step * positive_list[leg][2]
+        elif right == 1:
+            self.current_coord[leg][0] += step * positive_list[leg][3]
+        elif hight == 1:
+            self.current_coord[leg][2] += step * positive_list[leg][4]
+        elif low == 1:
+            self.current_coord[leg][2] += step * positive_list[leg][5]
+        
+        for coord in self.current_coord:
+            coord[0] = max(40, min(80, coord[0]))
+            coord[1] = max(-20, min(20, coord[1]))
+            coord[2] = max(-50, min(-10, coord[2]))
+        # print("coord%s" %self.current_coord)
         current_position = self.do_step(self.current_coord, speed=100)
+        # print(current_position)
         if enter == 1:
             tmp = [current_position[i] - cali_position[i] + offset[i] for i in range(len(current_position))]
             offset[leg*3:(leg + 1)*3] = tmp[leg*3:(leg + 1)*3]
-            self.current_coord[leg] = [62, 0, -30]
+            self.current_coord[leg] = [60, 0, -30]
             self.set_offset(offset)
+            self.do_step(self.current_coord, speed=100)
             
         
-
-        
+    # def cali_reset(self, leg):
+    #     offset = list(self.offset)
+    #     leg = leg - 1
+    #     offset[leg*3:(leg + 1)*3] = [0, 0, 0]
+    #     self.set_offset(offset)
+    
 
     class MoveList(dict):
         
@@ -163,7 +139,7 @@ class Spider(Robot):
         Y_WAVE =120
         Y_START = 0 
         Z_DEFAULT = -50
-        Z_UP = -20
+        Z_UP = -30
         Z_WAVE = 60
         Z_TURN = -40
         Z_PUSH = -90
@@ -551,7 +527,7 @@ class Spider(Robot):
 
 
 # def test():
-#     sp = Spider([1,2,3,4,5,6,7,8,9,10,11,12])
+#     sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
 #     sp.do_step([[62, 0, -30], [62, 0, -30], [62, 0, -30], [62, 0, -30]], 100)
 #     leg = 1
 #     while True:
@@ -583,7 +559,25 @@ class Spider(Robot):
 #             break
 #         time.sleep(0.05)
 
+# test()
+
 
 if __name__ == "__main__":
     sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
-    sp.do_action("forward", step= 3, speed=100)
+    sp.do_step([[50, 50, -20],[50, 50, -20],[50, 50, -20],[130, 0, 70]])
+    # sp.cali_reset(4)
+#     sp.add_action("action", [
+#             # [[0,150,-40],[0,150,-40],[0,150,-40],[0,150,-40],],
+#             [[0,150,-40],[150,0,-40],[0,150,-40],[0,130,30],],
+#             [[105,105,-40],[100,0,8],[0,130,30],[0,150,-40],],
+#             [[150,0,-40],[50,0,55],[0,150,-40],[0,130,30],],
+#             [[100,0,8],[0,50,55],[0,130,30],[0,150,-40],],
+#             [[50,0,55],[0,150,-40],[0,150,-40],[0,130,30],],
+#             [[0,50,55],[105,105,-40],[0,130,30],[0,150,-40],],                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+#             # [[0,150,-40],[150,0,-40],[0,130,30],[0,150,-40],],
+#             # [[150,0,-40],[50,0,55],[0,120,30],[0,150,-40],],
+            
+#         ])
+# #     sp.do_action("forward", speed=100)
+#     sp.do_action("action", step= 2, speed=100)
+#     # sp.do_action("forward", speed=100)
