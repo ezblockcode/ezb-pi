@@ -1,10 +1,12 @@
 from ezblock.basic import _Basic_class
 from ezblock.utils import mapping, is_installed
+from ezblock.music import Music
 from distutils.spawn import find_executable
 
 class TTS(_Basic_class):
     _class_name = 'TTS'
     SUPPORTED_LANGUAUE = [
+        'zh-CN', #英语(美国)English-United States
         'en-US', #英语(美国)English-United States
         'en-GB', # 英语(英国)English-United Kingdom
         'de-DE', # 德语(德国)Germany-Deutsch
@@ -13,18 +15,18 @@ class TTS(_Basic_class):
         'it-IT', # 意大利语(意大利)Italia-lingua italiana
     ]
 
-    def __init__(self, engine='gtts'):
+    def __init__(self, engine='espeak'):
         super().__init__()
         self._lang = "en-US"            # 默认输入的语言为英语
         self.engine = engine
-        if (engine == espeak):
+        if (engine == "espeak"):
             if not is_installed("espeak"):
-                raise Exception("TTS engine: espeak in not installed.")
+                raise Exception("TTS engine: espeak is not installed.")
             self._amp   = 100 
             self._speed = 175
             self._gap   = 5
             self._pitch = 50
-        if engine == gtts:
+        elif engine == "gtts" or engine == "polly":
             import urllib.request as request
             import base64
             import ast, json
@@ -39,9 +41,7 @@ class TTS(_Basic_class):
         return found
 
     def say(self, words):           # 输入的文字
-        if self.engine == espeak:
-            self.espeak(words)
-        elif self.engine == gtts:
+        eval(f"self.{self.engine}(words)")
 
     def espeak(self, words):
         self._debug('espeak:\n [%s]' % (words))
@@ -53,9 +53,10 @@ class TTS(_Basic_class):
         self._debug('command: %s' %cmd)
 
     def gtts(self, words):
+        sound_file = "/opt/ezblock/output.mp3"
         data = {
             "text": words,
-            "language": self.lang,
+            "language": self.lang(),
         }
         header = {
             "Content-Type": "application/json",
@@ -64,16 +65,46 @@ class TTS(_Basic_class):
         data = self.json.dumps(data)
         data = bytes(data, 'utf8')
         url = 'http://192.168.6.224:11000/api/web/v2/ezblock/google/tts'
-        req = request.Request(url, data=data, headers=header, method='POST')
-        r = request.urlopen(req)
+        req = self.request.Request(url, data=data, headers=header, method='POST')
+        r = self.request.urlopen(req)
         result = r.read()
         result = result.decode("utf-8")
         result = self.ast.literal_eval(result)
         data = result["data"]
         data = self.base64.b64decode(data)
-        print(data)
-        with open("output.mp3", "wb") as f:
+        # print(data)
+        with open(sound_file, "wb") as f:
             f.write(data)
+
+        music = Music()
+        music.sound_play(sound_file)
+
+    def polly(self, words):
+        sound_file = "/opt/ezblock/output.mp3"
+        data = {
+            "text": words,
+            "language": self.lang(),
+        }
+        header = {
+            "Content-Type": "application/json",
+        }
+
+        data = self.json.dumps(data)
+        data = bytes(data, 'utf8')
+        url = 'https://test2.ezblock.com.cn:11000/api/web/v2/ezblock/aws/tts'
+        req = self.request.Request(url, data=data, headers=header, method='POST')
+        r = self.request.urlopen(req)
+        result = r.read()
+        result = result.decode("utf-8")
+        result = self.ast.literal_eval(result)
+        data = result["data"]
+        data = self.base64.b64decode(data)
+        # print(data)
+        with open(sound_file, "wb") as f:
+            f.write(data)
+
+        music = Music()
+        music.sound_play(sound_file)
 
     def lang(self, *value):     # 切换语言，可识别5种语言
         if len(value) == 0:
@@ -110,17 +141,18 @@ class TTS(_Basic_class):
         self._pitch = pitch
 
 def test():
-    tts = TTS()
-    tts.lang("es-ES")
+    # tts = TTS(engine="espeak")
     # tts.lang("en-US")
+    # tts.say('Hallo')
+
+    tts = TTS()
+    tts.lang("zh-CN")
+    tts.say('你好, 我是小爱同学')
 
     # tts.speaker_volume(100)
-    tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)
+    # tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)
     # tts.say('Ich liebe dich')
-    # tts.say('Hallo')
-    tts.say('hello nice to meet you')
-
-
+    # tts.say('hello nice to meet you')
 
 
 if __name__ == "__main__":

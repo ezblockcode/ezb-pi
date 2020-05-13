@@ -1,4 +1,7 @@
 from ezblock.basic import _Basic_class
+import pygame
+import time
+import threading
 
 class Music(_Basic_class):
     MUSIC_BEAT = 500
@@ -41,6 +44,10 @@ class Music(_Basic_class):
         "High A#": 1864.66,
         "High B": 1975.53,
     }
+
+    def __init__(self):
+        pygame.mixer.init()
+
     def note(self, n):
         try:
             n = self.NOTES[n]
@@ -63,3 +70,56 @@ class Music(_Basic_class):
                 return tempo
             except:
                 raise ValueError("tempo must be int not {}".format(args[0]))
+
+    def sound_play(self, file_name):
+        self.music_set_volume(80)
+        pygame.mixer.music.load(file_name)
+        pygame.mixer.music.play()
+
+    def sound_effect_play(self, file_name):
+        file_name = '/home/pi/Sound/' + file_name
+        music = pygame.mixer.Sound(str(file_name))
+        time_delay = round(music.get_length(), 2)
+        music.play()
+        time.sleep(time_delay)
+
+    def sound_effect_threading(self, file_name):
+        # file_name = './sound/' + file_name
+        obj = MyThreading(sound_effect_play, file_name=file_name)
+        obj.start()
+
+    def background_music(self, file_name, loops=-1, start=0.0):#-1:continue
+        if loops <= 0:
+            loops = 0
+        volume = round(volume/100.0, 2)
+        file_name = '/home/pi/Music/' + str(file_name)
+        pygame.mixer.music.load(str(file_name))
+        pygame.mixer.music.play(loops-1, start)
+
+    def music_set_volume(self, value=50):
+        value = round(value/100.0, 2)
+        pygame.mixer.music.set_volume(value)
+
+    def music_stop(self):
+        pygame.mixer.music.stop()
+
+    def music_pause(self):
+        pygame.mixer.music.pause()
+
+    def music_unpause(self):
+        pygame.mixer.music.unpause()
+
+    def sound_length(self, file_name):
+        music = pygame.mixer.Sound(str(file_name))
+        return round(music.get_length(),2)
+
+
+class MyThreading(threading.Thread):
+
+    def __init__(self, func, **arg):
+        super(MyThreading,self).__init__()
+        self.func = func
+        self.arg = arg
+
+    def run(self):
+        self.func(**self.arg)
