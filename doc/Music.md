@@ -37,3 +37,8 @@ Music().beat(0.125)
 ```python
 Music().tempo()
 Music().tempo(120)
+```
+- `play_tone_for` - Play tone.Input is note and beat,like `Music.note("Middle D"), Music.beat(0.5)`
+```python
+Music().play_tone_for(Music.note("Middle D"), Music.beat(0.5))
+```
