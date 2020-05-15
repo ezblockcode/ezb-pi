@@ -2,6 +2,8 @@ from ezblock.basic import _Basic_class
 import pygame
 import time
 import threading
+import pyaudio
+import numpy as np
 
 class Music(_Basic_class):
     MUSIC_BEAT = 500
@@ -85,10 +87,10 @@ class Music(_Basic_class):
 
     def sound_effect_threading(self, file_name):
         # file_name = './sound/' + file_name
-        obj = MyThreading(sound_effect_play, file_name=file_name)
+        obj = MyThreading(self.sound_effect_play, file_name=file_name)
         obj.start()
 
-    def background_music(self, file_name, loops=-1, start=0.0):#-1:continue
+    def background_music(self, file_name, loops=-1, start=0.0, volume=50):#-1:continue
         if loops <= 0:
             loops = 0
         volume = round(volume/100.0, 2)
@@ -112,6 +114,28 @@ class Music(_Basic_class):
     def sound_length(self, file_name):
         music = pygame.mixer.Sound(str(file_name))
         return round(music.get_length(),2)
+    
+    def play_tone_for(self, freq, duration):
+        p = pyaudio.PyAudio()
+        volume = 1 # range [0.0, 1.0]
+        fs = 44100 # sampling rate, Hz, must be integer
+        duration /= 2000 # devide 2 for half tone up half rest, divide 1000 for ms to s 
+        _duration = duration * 4
+        # generate samples, note conversion to float32 array
+        samples = (np.sin(2*np.pi*np.arange(fs*_duration)*freq/fs)).astype(np.float32)
+
+        # for paFloat32 sample values must be in range [-1.0, 1.0]
+        stream = p.open(format=pyaudio.paFloat32,
+                        channels=1,
+                        rate=fs,
+                        output=True)
+
+        # play. May repeat with different volume values (if done interactively) 
+        stream.write(volume*samples)
+
+        # stream.stop_stream()
+        # stream.close()
+        time.sleep(duration)
 
 
 class MyThreading(threading.Thread):
