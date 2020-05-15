@@ -40,6 +40,9 @@ def install():
             cmd='run_command("sudo apt-get install espeak -y")')
         do(msg="install picamera",
             cmd='run_command("sudo pip3 install picamera")')
+        do(msg="install PyAudio",
+            cmd='run_command("sudo apt-get install python3-pyaudio")')
+        
 
         # opencv-contrib
         # do(msg="install opencv-python",
