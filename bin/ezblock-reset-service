@@ -27,6 +27,19 @@ def run_command(cmd):
         output = f.read()
         return output.decode()
 
+def reset_ble():
+    from ezblock.pin import Pin
+    tx = Pin(14)
+    rx = Pin(15)
+    tx.off()
+    rx.off()
+    ble_reset.off()
+    time.sleep(0.5)
+    run_command("gpio -1 mode 8 alt5")
+    run_command("gpio -1 mode 10 alt5")
+    ble_reset.on()
+    time.sleep(0.1)
+
 def reset_callback_handler(ev):
     global is_reset
     value = reset_switch.value()
@@ -67,9 +80,7 @@ def main():
             # run_command("sudo service ezblock stop")
             if count > 6:
                 log("hard reset")
-                ble_reset.off()
-                time.sleep(0.5)
-                ble_reset.on()
+                reset_ble()
             else:
                 log("soft reset")
                 mcu_reset.off()
