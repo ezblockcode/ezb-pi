@@ -158,7 +158,7 @@ class Vilib(object):
     detect_obj_parameter['traffic_sign_y'] = 120
     detect_obj_parameter['traffic_sign_w'] = 0
     detect_obj_parameter['traffic_sign_h'] = 0
-    detect_obj_parameter['traffic_sign_t'] = None
+    detect_obj_parameter['traffic_sign_t'] = 'None'
     detect_obj_parameter['traffic_sign_acc'] = 0
 
 #gesture_obj_parameter
@@ -166,7 +166,7 @@ class Vilib(object):
     detect_obj_parameter['gesture_y'] = 120
     detect_obj_parameter['gesture_w'] = 0
     detect_obj_parameter['gesture_h'] = 0
-    detect_obj_parameter['gesture_t'] = None
+    detect_obj_parameter['gesture_t'] = 'None'
     detect_obj_parameter['gesture_acc'] = 0
     # detect_obj_parameter['human_n'] = 0
 
