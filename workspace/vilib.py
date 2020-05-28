@@ -112,15 +112,15 @@ class Vilib(object):
     roi = cv2.imread("/opt/ezblock/cali.jpg")
     roi_hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-    obj_roi = cv2.imread("/opt/ezblock/object.jpg")
-    h,w = obj_roi.shape[:2]
+    # obj_roi = cv2.imread("/opt/ezblock/object.jpg")
+    # h,w = obj_roi.shape[:2]
 
-    obj_hsv = cv2.cvtColor(obj_roi, cv2.COLOR_BGR2HSV)
+    # obj_hsv = cv2.cvtColor(obj_roi, cv2.COLOR_BGR2HSV)
 
-    track_window = (0, 0, w, h)
+    # track_window = (0, 0, w, h)
 
-    roi_hist = cv2.calcHist([obj_hsv],[0,1],None,[180,256],[0,180,0,256]) #计算直方图
-    cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
+    # roi_hist = cv2.calcHist([obj_hsv],[0,1],None,[180,256],[0,180,0,256]) #计算直方图
+    # cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
 
     
     # human_object_counter = 0
