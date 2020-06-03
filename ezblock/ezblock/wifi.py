@@ -10,7 +10,7 @@ country={}
 network={{
     ssid="{}"
     psk="{}"
-    key_mgmt=WPA-PSK 
+    key_mgmt=WPA-PSK
 }}"""
 
     def __init__(self):
@@ -53,16 +53,37 @@ network={{
         if result != "":
             result = result.split(":")[1].strip().strip('"')
         return result
+    
+    def set_country(self, country):
+        print("Setting country")
+        _, result = self.run_command("wpa_cli -i wlan0 set country {}".format(country))
+        result = result.strip()
+        # print(result)
+        # print(result != "OK")
+        if result != "OK":
+            print("Set country failed")
+            return False
+        _, result = self.run_command("wpa_cli -i wlan0 save_config")
+        result = result.strip()
+        if result != "OK":
+            print("Save country config failed")
+            return False
+        self.run_command("sudo iw reg set {}".format(country))
+        self.run_command("hash rfkill")
+        self.run_command("rfkill unblock wifi")
+        self.country = country
+        print("Set country success")
+        
 
     def write(self, country, ssid, psk):
-        self.country = country
+        self.set_country(country)
         self.connect(ssid, psk)
 
 def test():
-    # WiFi().write("MakerStarsHall", "sunfounder", "CN")
-    status, result = WiFi().run_command("iwgetid")
-    result = result.split(":")[1].strip().strip('"')
-    print(result)
+    WiFi().write("CN", "MakerStarsHall", "sunfounder")
+    # status, result = WiFi().run_command("iwgetid")
+    # result = result.split(":")[1].strip().strip('"')
+    # print(result)
 if __name__ == "__main__":
     test()
 
