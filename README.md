@@ -26,8 +26,16 @@ https://github.com/sunfounder-ezblock/ezb-pi/tree/master/doc
  - compatible for RaspberryPi 4B
 
 ### Usage
+Trun on ezblock service:
+sudo update-rc.d ezblock defaults
 sudo update-rc.d ezblock-reset defaults
+Trun off ezblock service:
+sudo update-rc.d ezblock remove
 sudo update-rc.d ezblock-reset remove
+
+### Trouble Shooting
+1. log prompt: `sudo: /usr/bin/ezblock-reset-service: No such file or directory`
+    Maybe the problem of line ending of `ezblock-reset-service`, change it from CRLF to LF, and try again.
 
 ----------------------------------------------
 <a id="about_sunfounder"></a>

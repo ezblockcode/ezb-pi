@@ -1,6 +1,7 @@
 libs: picarmini==v0.1
 libs: robothat==v0.2
-libs: vilib==v0.1
+libs: vilib==v0.2
 libs: Music==v0.1
 libs: spider==v0.1
+libs: sloth==v0.1
 
