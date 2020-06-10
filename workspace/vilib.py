@@ -12,6 +12,7 @@ import time
 # from rgb_matrix import RGB_Matrix
 import tensorflow as tf 
 from pyzbar import pyzbar
+import datetime
 
 
 
@@ -20,8 +21,9 @@ ges_num_list = [i for i in range(3)]
 # ges_list = [chr(i) for i in range(97,101)]
 # ges_list.remove('j')
 
-traffic_list = ['stop','right','left','ahead']
-gesture_list = ["five","two","zero"]
+traffic_list = ['stop','right','left','forward']
+gesture_list = ["paper","scissor","rock"]
+# rock, scissor, paper
 
 traffic_dict = dict(zip(traffic_num_list,traffic_list))
 ges_dict = dict(zip(ges_num_list,gesture_list))
@@ -133,7 +135,7 @@ class Vilib(object):
 #Color_obj_parameter
     detect_obj_parameter['color_default'] = 'red'
 
-    color_dict = {'red':[0,4],'orange':[5,18],'yellow':[22,37],'green':[42,85],'blue':[92,110],'purple':[115,165],'red_2':[166,180]}
+    color_dict = {'red':[0,4],'orange':[5,18],'yellow':[22,37],'green':[42,85],'blue':[92,110],'purple':[115,165],'red_2':[165,180]}
     # lower_color = np.array([min(color_dict[detect_obj_parameter['color_default']]), 60, 60])  
     # upper_color = np.array([max(color_dict[detect_obj_parameter['color_default']]), 255, 255])
 
@@ -194,7 +196,7 @@ class Vilib(object):
 #picture
     detect_obj_parameter['picture_flag'] = False
     detect_obj_parameter['process_picture'] = True
-    detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + time.strftime("%Y-%m-%d-%H-%M-%S")+ '.jpg'
+    detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')+ '.jpg'
     # detect_obj_parameter['color_default'] = 'red'
 
     # color_dict = {'red':[0,4],'orange':[5,18],'yellow':[22,37],'green':[42,85],'blue':[92,110],'purple':[115,165],'red_2':[166,180]}
@@ -262,7 +264,7 @@ class Vilib(object):
             return Vilib.detect_obj_parameter['traffic_sign_t']   #objects_type
         elif obj_parameter == 'accuracy':      
             return Vilib.detect_obj_parameter['traffic_sign_acc']   #objects_type
-        return None
+        return 'none'
 
     @staticmethod
     def gesture_detect_object(obj_parameter):
@@ -280,7 +282,7 @@ class Vilib(object):
             return Vilib.detect_obj_parameter['gesture_t']   #objects_type
         elif obj_parameter == 'accuracy':      
             return Vilib.detect_obj_parameter['gesture_acc']   #objects_type
-        return None
+        return 'none'
 
     @staticmethod
     def qrcode_detect_object():
@@ -601,8 +603,8 @@ class Vilib(object):
         Vilib.detect_obj_parameter['picture_flag'] = True
         Vilib.detect_obj_parameter['process_picture'] = process_picture
         # if Vilib.detect_obj_parameter['picture_flag'] == True:
-        # Vilib.detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + time.strftime("%Y-%m-%d-%H-%M-%S") + '.jpg'
-        Vilib.detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + time.strftime("%Y-%m-%d-%H-%M-%S") + '.jpg'
+        # Vilib.detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '.jpg'
+        Vilib.detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '.jpg'
             # cv2.VideoWriter("./video_file/tt.avi", fourcc, 20.0, (640, 480))
             # cv2.imwrite(pic_path, Vilib.img_array[0])
 
@@ -732,12 +734,12 @@ class Vilib(object):
             # print(Vilib.lower_color)
             
             ### red
-            mask_red_1 = cv2.inRange(hsv,(166,20,10), (180,255,255))
-            mask_red_2 = cv2.inRange(hsv,(0,20,10), (10,255,255))
+            mask_red_1 = cv2.inRange(hsv,(157,20,20), (180,255,255))
+            mask_red_2 = cv2.inRange(hsv,(0,20,20), (10,255,255))
             # mask_red_2 = cv2.inRange(hsv, (175,50,20), (180,255,255))
 
             ### blue
-            mask_blue = cv2.inRange(hsv,(92,50,20), (110,255,255))
+            mask_blue = cv2.inRange(hsv,(92,10,10), (125,255,255))
 
             ### all
             mask_all = cv2.bitwise_or(mask_red_1, mask_blue)
@@ -884,7 +886,7 @@ class Vilib(object):
                     Vilib.detect_obj_parameter['traffic_sign_y'] = 120
                     Vilib.detect_obj_parameter['traffic_sign_w'] = 0
                     Vilib.detect_obj_parameter['traffic_sign_h'] = 0
-                    Vilib.detect_obj_parameter['traffic_sign_t'] = 'None'
+                    Vilib.detect_obj_parameter['traffic_sign_t'] = 'none'
                     Vilib.detect_obj_parameter['traffic_sign_acc'] = 0
                                     # cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
                                         
@@ -912,7 +914,7 @@ class Vilib(object):
             Vilib.detect_obj_parameter['traffic_sign_y'] = 120
             Vilib.detect_obj_parameter['traffic_sign_w'] = 0
             Vilib.detect_obj_parameter['traffic_sign_h'] = 0
-            Vilib.detect_obj_parameter['traffic_sign_t'] = 'None'
+            Vilib.detect_obj_parameter['traffic_sign_t'] = 'none'
             Vilib.detect_obj_parameter['traffic_sign_acc'] = 0
 
         return img
@@ -1016,7 +1018,7 @@ class Vilib(object):
                         Vilib.detect_obj_parameter['gesture_y'] = 120
                         Vilib.detect_obj_parameter['gesture_w'] = 0
                         Vilib.detect_obj_parameter['gesture_h'] = 0
-                        Vilib.detect_obj_parameter['gesture_t'] = 'None'
+                        Vilib.detect_obj_parameter['gesture_t'] = 'none'
                         Vilib.detect_obj_parameter['gesture_acc'] = 0
 
             # else:
@@ -1028,7 +1030,7 @@ class Vilib(object):
                     Vilib.detect_obj_parameter['gesture_y'] = 120
                     Vilib.detect_obj_parameter['gesture_w'] = 0
                     Vilib.detect_obj_parameter['gesture_h'] = 0
-                    Vilib.detect_obj_parameter['gesture_t'] = 'None'
+                    Vilib.detect_obj_parameter['gesture_t'] = 'none'
                     Vilib.detect_obj_parameter['gesture_acc'] = 0
 
             else:
@@ -1036,7 +1038,7 @@ class Vilib(object):
                 Vilib.detect_obj_parameter['gesture_y'] = 120
                 Vilib.detect_obj_parameter['gesture_w'] = 0
                 Vilib.detect_obj_parameter['gesture_h'] = 0
-                Vilib.detect_obj_parameter['gesture_t'] = 'None'
+                Vilib.detect_obj_parameter['gesture_t'] = 'none'
                 Vilib.detect_obj_parameter['gesture_acc'] = 0
 
         return img
