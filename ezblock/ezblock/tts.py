@@ -34,6 +34,7 @@ class TTS(_Basic_class):
             self.base64 = base64
             self.ast = ast
             self.json = json
+            self._lang = "zh-CN"
 
     def _check_executable(self, executable):
         executable_path = find_executable(executable)
