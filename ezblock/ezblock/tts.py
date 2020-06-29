@@ -6,8 +6,8 @@ from distutils.spawn import find_executable
 class TTS(_Basic_class):
     _class_name = 'TTS'
     SUPPORTED_LANGUAUE = [
-        'zh-CN', #英语(美国)English-United States
-        'en-US', #英语(美国)English-United States
+        'zh-CN', # 普通话(中国)
+        'en-US', # 英语(美国)English-United States
         'en-GB', # 英语(英国)English-United Kingdom
         'de-DE', # 德语(德国)Germany-Deutsch
         'es-ES', # 西班牙语(西班牙)España-Español
