@@ -15,10 +15,8 @@ class Servo(_Basic_class):
 
     # angle ranges -90 to 90 degrees
     def angle(self, angle):
-        try:
-            angle = int(angle)
-        except:
-            raise ValueError("Angle value should be int value, not %s"%angle)
+        if not (isinstance(angle, int) or isinstance(angle, float)):
+            raise ValueError("Angle value should be int or float value, not %s"%type(angle))
         if angle < -90:
             angle = -90
         if angle > 90:
@@ -28,7 +26,7 @@ class Servo(_Basic_class):
         pwr =  High_level_time / 20000
         self._debug("pulse width rate: %f" % pwr)
         value = int(pwr*4095)
-        self._debug("pulse width value: %f" % value)
+        self._debug("pulse width value: %d" % value)
         self.pwm.pulse_width(value)
 
 def test():

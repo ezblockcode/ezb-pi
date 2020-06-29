@@ -250,13 +250,13 @@ class RGB_Matrix():
     
 def test():
     rr = RGB_Matrix(0X74)
-    # image = [ [20] * 3 ] * 64
+    image = [ [20] * 3 ] * 8
     # t = time.time()
-    # rr.image(image)
+    rr.image(image)
     # print("finished in %s"%(time.time()-t))
-    for pos in range(40):
-        rr.show_string("helloworld", "#842154", pos=pos)
-        time.sleep(0.5)
+    # for pos in range(40):
+    #     rr.show_string("helloworld", "#842154", pos=pos)
+    #     time.sleep(0.5)
     # TIME_DELAY = 0.2
     # while True:
     #     rr.show_icon("butterfly", "#F0F00F")
