@@ -191,13 +191,44 @@ class Joystick():
     def __init__(self, Xpin, Ypin, Btpin):
         self.pins = [Xpin, Ypin, Btpin]
         self.pins[2].init(self.pins[2].IN, pull=self.pins[2].PULL_UP,)
+        self.is_reversed = [False, False, False]
 
+    @property
+    def is_x_reversed(self):
+        return self.is_reversed[0]
+    @property
+    def is_y_reversed(self):
+        return self.is_reversed[1]
+    @property
+    def is_z_reversed(self):
+        return self.is_reversed[2]
+
+    @is_x_reversed.setter
+    def is_x_reversed(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("reversed value must be bool, not %s(%s)"%(value, type(value)))
+        self.is_reversed[0] = value
+    @is_y_reversed.setter
+    def is_y_reversed(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("reversed value must be bool, not %s(%s)"%(value, type(value)))
+        self.is_reversed[1] = value
+    @is_z_reversed.setter
+    def is_z_reversed(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("reversed value must be bool, not %s(%s)"%(value, type(value)))
+        self.is_reversed[2] = value
+    
     def read(self, axis):
         pin = self.pins[axis]
         if axis == 2:
             value = pin.value()
+            if self.is_reversed[2]:
+                value = value + 1 & 1
         else:
             value = pin.read() - 2047
+            if self.is_reversed[axis]:
+                value = - value
         return value
 
     def read_status(self):

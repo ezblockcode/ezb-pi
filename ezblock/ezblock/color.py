@@ -14,18 +14,16 @@ class Color():
             self.raise_not_color(value)
 
     def iscolor(self, value):
-        if isinstance(value, str):
-            if value.startswith("#"):
-                color = value[1:]
-                if len(color) == 6:
-                    try:
-                        int(color,16)
-                        return True
-                    except:
-                        return False
-                else:
-                    return False
-            else:
+        if not isinstance(value, str):
+            return False
+        if not value.startswith("#"):
+            return False
+        color = value[1:]
+        if len(color) == 6:
+            try:
+                int(color,16)
+                return True
+            except:
                 return False
         else:
             return False
