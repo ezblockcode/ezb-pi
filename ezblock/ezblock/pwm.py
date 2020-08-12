@@ -99,8 +99,9 @@ class PWM(I2C):
         if len(pulse_width_percent) == 0:
             return self._pulse_width_percent
         else:
-            self._pulse_width_percent = pulse_width_percent[0] / 100.0
-            pulse_width = self._pulse_width_percent * self._arr
+            self._pulse_width_percent = pulse_width_percent[0]
+            temp = self._pulse_width_percent / 100.0
+            pulse_width = temp * self._arr
             self.pulse_width(pulse_width)
 
         
