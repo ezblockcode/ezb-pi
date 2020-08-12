@@ -235,13 +235,13 @@ class Joystick():
         state = ['home', 'up', 'down', 'left', 'right', 'pressed']
         i = 0
         if self.read(1) < -self.THRESHOLD: # Y
-            i = 1       #up
-        elif self.read(1) > self.THRESHOLD: # Y
             i = 2       #down
+        elif self.read(1) > self.THRESHOLD: # Y
+            i = 1       #up
         elif self.read(0) < -self.THRESHOLD: # X
-            i = 3       #right
+            i = 3       #left
         elif self.read(0) > self.THRESHOLD: # X
-            i = 4       #left
+            i = 4       #right
         elif self.read(2) == 0: # Bt
             i = 5       # Button pressed
         else:
