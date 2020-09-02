@@ -27,11 +27,15 @@ https://github.com/sunfounder-ezblock/ezb-pi/tree/master/doc
 
 ### Usage
 Trun on ezblock service:
+```bash
 sudo update-rc.d ezblock defaults
 sudo update-rc.d ezblock-reset defaults
+```
 Trun off ezblock service:
+```bash
 sudo update-rc.d ezblock remove
 sudo update-rc.d ezblock-reset remove
+```
 
 ### Trouble Shooting
 1. log prompt: `sudo: /usr/bin/ezblock-reset-service: No such file or directory`
