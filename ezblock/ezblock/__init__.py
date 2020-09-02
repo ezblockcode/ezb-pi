@@ -31,9 +31,9 @@ from ezblock.filedb import fileDB
 
 def __reset_mcu__():
     mcurst = Pin("MCURST")
-    mcurst.on()
-    delay(1)
     mcurst.off()
+    delay(1)
+    mcurst.on()
 
 def __main__():
     import sys
