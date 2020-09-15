@@ -13,6 +13,33 @@ Options:
                --no-dep    Do not download dependencies
     -h         --help      Show this help text and exit
 '''
+
+APT_INSTALL_LIST = [
+    "python3-pip",
+    "i2c-tools",
+    "espeak",
+    "wiringpi",
+    "python3-pyau",
+    "libatlas-base-dev",
+    "libjasper-dev",
+    "libqt4-test",
+    "libwebp6",
+    "libtiff5",
+    "libopenexr23",
+    "libgstreamer1.0-0",
+    "libavcodec-dev",
+    "libavformat-dev",
+    "libswscale-dev",
+    "libqtgui4",
+    "gpiozero",
+    #"libttspico-utils",
+]
+
+PIP_INSTALL_LIST = [
+    "picamera",
+    #"opencv-python",
+]
+
 def install():
     options = []
     if len(sys.argv) > 1:
@@ -30,47 +57,13 @@ def install():
     if "--no-dep" not in options:
         do(msg="update apt-get",
             cmd='run_command("sudo apt-get update")')
-        do(msg="install pip",
-            cmd='run_command("sudo apt-get install python3-pip -y")')
-        do(msg="install i2c-tools",
-            cmd='run_command("sudo apt-get install i2c-tools -y")')
-        # do(msg="install libttspico-utils",
-        #     cmd='run_command("sudo apt-get install libttspico-utils -y")')
-        do(msg="install espeak",
-            cmd='run_command("sudo apt-get install espeak -y")')
-        do(msg="install picamera",
-            cmd='run_command("sudo pip3 install picamera")')
-        do(msg="install wiringpi",
-            cmd='run_command("sudo apt-get install wiringpi -y")')
-        do(msg="install PyAudio",
-            cmd='run_command("sudo apt-get install python3-pyaudio")')
-        
-
-        # opencv-contrib
-        # do(msg="install opencv-python",
-        #     cmd='run_command("sudo pip3 install opencv-python")')
-        do(msg="install libatlas-base-dev",
-            cmd='run_command("sudo apt-get install libatlas-base-dev -y")')
-        do(msg="install libjasper-dev",
-            cmd='run_command("sudo apt-get install libjasper-dev -y")')
-        do(msg="install libqt4-test",
-            cmd='run_command("sudo apt-get install libqt4-test -y")')
-        do(msg="install libwebp6",
-            cmd='run_command("sudo apt-get install libwebp6 -y")')
-        do(msg="install libtiff5",
-            cmd='run_command("sudo apt-get install libtiff5 -y")')
-        do(msg="install libopenexr23",
-            cmd='run_command("sudo apt-get install libopenexr23 -y")')
-        do(msg="install libgstreamer1.0-0",
-            cmd='run_command("sudo apt-get install libgstreamer1.0-0 -y")')
-        do(msg="install libavcodec-dev",
-            cmd='run_command("sudo apt-get install libavcodec-dev -y")')
-        do(msg="install libavformat-dev",
-            cmd='run_command("sudo apt-get install libavformat-dev -y")')
-        do(msg="install libswscale-dev",
-            cmd='run_command("sudo apt-get install libswscale-dev -y")')
-        do(msg="install libqtgui4",
-            cmd='run_command("sudo apt-get install libqtgui4 -y")')
+        for dep in APT_INSTALL_LIST:
+            do(msg="install %s"%dep,
+                cmd='run_command("sudo apt-get install %s -y")'%dep)
+            cmd='run_command("sudo apt-get update")')
+        for dep in PIP_INSTALL_LIST:
+            do(msg="install %s"%dep,
+                cmd='run_command("sudo pip3 install %s")'%dep)
 
     # do(msg="unpackaging swift",
     #     cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
