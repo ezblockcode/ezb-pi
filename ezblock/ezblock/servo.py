@@ -8,7 +8,7 @@ class Servo(_Basic_class):
     def __init__(self, pwm):
         super().__init__()
         self.pwm = pwm
-        self.pwm.period(self.pwm.period())
+        self.pwm.period(4095)
         prescaler = int(float(self.pwm.CLOCK) /self.pwm._freq/self.pwm.period())
         self.pwm.prescaler(prescaler)
         # self.angle(90)

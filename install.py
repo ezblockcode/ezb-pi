@@ -31,12 +31,12 @@ APT_INSTALL_LIST = [
     "libavformat-dev",
     "libswscale-dev",
     "libqtgui4",
-    "gpiozero",
     #"libttspico-utils",
 ]
 
 PIP_INSTALL_LIST = [
     "picamera",
+    "gpiozero",
     #"opencv-python",
 ]
 
