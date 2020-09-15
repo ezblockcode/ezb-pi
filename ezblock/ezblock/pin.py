@@ -166,9 +166,9 @@ class Pin(_Basic_class):
     def pull(self, *value):
         return self._pull
 
-    def irq(self, handler=None, trigger=None):
+    def irq(self, handler=None, trigger=None, bouncetime=200):
         self.mode(self.IN)
-        GPIO.add_event_detect(self._pin, trigger, callback=handler)
+        GPIO.add_event_detect(self._pin, trigger, callback=handler, bouncetime=bouncetime)
 
     def name(self):
         return "GPIO%s"%self._pin

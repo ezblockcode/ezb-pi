@@ -72,6 +72,7 @@ class Remote(BLE):
         self._value = {}
 
     def read(self):
+        sleep(0.001) # to avoid too quick
         buf = bytearray()
         while self.uart.inWaiting():
             buf = buf + super().read(self.uart.inWaiting())

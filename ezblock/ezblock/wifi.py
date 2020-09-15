@@ -1,5 +1,7 @@
 from ezblock.basic import _Basic_class
-from ezblock.utils import getIP, print
+# __print__ = print
+from ezblock.utils import getIP
+from ezblock.utils import print
 import time
 # re-正则表达式
 class WiFi(_Basic_class):
@@ -30,7 +32,7 @@ network={{
         
         for i in range(6):
             if i != 0:
-                print('Timeout, retry ({})...'.format(i))
+                print('Timeout, retry (%s)...'%i)
             self.run_command("wpa_cli -i wlan0 reconfigure")
             time.sleep(1)
             time_start = time.time()
@@ -80,7 +82,7 @@ network={{
         self.connect(ssid, psk)
 
 def test():
-    WiFi().write("CN", "MakerStarsHall", "sunfounder")
+    WiFi().write("CN", "MakerStarsHall_5G", "sunfounder")
     # status, result = WiFi().run_command("iwgetid")
     # result = result.split(":")[1].strip().strip('"')
     # print(result)

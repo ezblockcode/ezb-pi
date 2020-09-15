@@ -29,10 +29,9 @@ class TTS(_Basic_class):
         elif engine == "gtts" or engine == "polly":
             import urllib.request as request
             import base64
-            import ast, json
+            import json
             self.request = request
             self.base64 = base64
-            self.ast = ast
             self.json = json
 
     def _check_executable(self, executable):
@@ -91,12 +90,21 @@ class TTS(_Basic_class):
 
         data = self.json.dumps(data)
         data = bytes(data, 'utf8')
-        url = 'https://test2.ezblock.com.cn:11000/api/web/v2/ezblock/aws/tts'
-        req = self.request.Request(url, data=data, headers=header, method='POST')
-        r = self.request.urlopen(req)
-        result = r.read()
-        result = result.decode("utf-8")
-        result = self.ast.literal_eval(result)
+        for i in range(5):
+            url = 'https://test2.ezblock.com.cn:11000/api/web/v2/ezblock/aws/tts'
+            req = self.request.Request(url, data=data, headers=header, method='POST')
+            r = self.request.urlopen(req)
+            result = r.read()
+            result = result.decode("utf-8")
+            # print('"%s"'%result)
+            if result != "":
+                break
+            else:
+                print("Empty result")
+        else:
+            raise IOError("Network Error")
+        # result = ast.literal_eval(result)
+        result = self.json.loads(result)
         data = result["data"]
         data = self.base64.b64decode(data)
         # print(data)
@@ -140,14 +148,56 @@ class TTS(_Basic_class):
         self._gap   = gap
         self._pitch = pitch
 
+def test_polly():
+    import urllib.request as request
+    import json, ast, base64
+    sound_file = "/opt/ezblock/output.mp3"
+    data = {
+        "text": "hello",
+        "language": "zh-CN",
+    }
+    header = {
+        "Content-Type": "application/json",
+    }
+
+    data = json.dumps(data)
+    data = bytes(data, 'utf8')
+    for i in range(5):
+        url = 'http://192.168.6.223:11000/api/web/v2/ezblock/aws/tts'
+        req = request.Request(url, data=data, headers=header, method='POST')
+        r = request.urlopen(req)
+        print(r.status)
+        result = r.read()
+        result = result.decode("utf-8")
+        # print('"%s"'%result)
+        if result != "":
+            break
+        else:
+            print("Empty result")
+    # result = ast.literal_eval(result)
+    result = self.json.loads(result)
+    data = result["data"]
+    data = base64.b64decode(data)
+    # print(data)
+    with open(sound_file, "wb") as f:
+        f.write(data)
+
+    music = Music()
+    music.sound_play(sound_file)
+
 def test():
     # tts = TTS(engine="espeak")
     # tts.lang("en-US")
     # tts.say('Hallo')
 
-    tts = TTS()
+    tts = TTS(engine="polly")
     tts.lang("zh-CN")
-    tts.say('你好, 我是小爱同学')
+    # tts.say('你好, 我是小爱同学')
+    count = 0
+    while True:
+        tts.say('你好')
+        count +=1
+        print(count)
 
     # tts.speaker_volume(100)
     # tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)

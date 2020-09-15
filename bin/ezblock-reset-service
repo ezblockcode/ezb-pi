@@ -2,16 +2,15 @@
 # -*- coding utf-8 -*-
 
 from ezblock import Pin, delay
+from gpiozero import Button
 import time
 import tempfile
 import subprocess
-reset_switch = Pin("RST")
+reset_switch = Button(16)
 ble_reset = Pin("BLERST")
 mcu_reset = Pin("MCURST")
 status_led = Pin("LED")
 resize_script = "/usr/bin/resize_once"
-
-reset_switch.pull(Pin.PULL_UP)
 
 is_reset = None
 
@@ -40,15 +39,15 @@ def reset_ble():
     ble_reset.on()
     time.sleep(0.1)
 
-def reset_callback_handler(ev):
+def reset_pressed_callback(ev):
     global is_reset
-    value = reset_switch.value()
-    if value == 0:
-        is_reset = True
-        status_led.value(0)
-    else:
-        is_reset = False
-        status_led.value(0)
+    is_reset = True
+    status_led.value(0)
+
+def reset_released_callback(ev):
+    global is_reset
+    is_reset = False
+    status_led.value(0)
 
 log("Check resize script")
 output = run_command("ls {}".format(resize_script))
@@ -61,7 +60,8 @@ else:
     log("Skip")
 log('Start')
 log('Setup irq')
-reset_switch.irq(reset_callback_handler, Pin.IRQ_RISING_FALLING)
+reset_switch.when_pressed = reset_pressed_callback
+reset_switch.when_released = reset_released_callback
 log('Finished')
 ble_reset.value(1)
 

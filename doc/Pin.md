@@ -13,7 +13,7 @@ val = pin.value()                    # read an analog value
 A pin is the basic object to control I/O pins. It has methods to set the mode of the pin (input, output, etc) and methods to get and set the digital logic level.
 
 ## Methods
-- read - Read the value on the analog pin and return it. The returned value will be between 0 and 4095.
+- value - Read the value on the analog pin and return it. The returned value will be between 0 and 4095.
 ```python
 Pin.value()
 ```
