@@ -109,12 +109,12 @@ def set_power(speed):
     set_motor_speed(2, speed) 
 
 def backward(speed):
-    set_motor_speed(1, -1*speed)
-    set_motor_speed(2, -1*speed)
-
-def forward(speed):
     set_motor_speed(1, speed)
     set_motor_speed(2, speed)
+
+def forward(speed):
+    set_motor_speed(1, -1*speed)
+    set_motor_speed(2, -1*speed)
 
 def stop():
     set_motor_speed(1, 0)

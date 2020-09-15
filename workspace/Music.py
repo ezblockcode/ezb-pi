@@ -25,6 +25,7 @@ def sound_effect_play(file_name,volume = 50):
     time.sleep(time_delay)
 
 def sound_effect_threading(file_name,volume = 0.5):
+    file_name = '/home/pi/Sound/' + file_name
     # file_name = './sound/' + file_name
     volume = round(volume / 100.0,2)
     obj = MyThreading(sound_effect_play,file_name = file_name,volume = volume)

@@ -62,6 +62,9 @@ def index():
     """Video streaming home page."""
     return render_template('index.html')
 
+def get_frame():
+    return cv2.imencode('.jpg', Vilib.img_array[0])[1].tobytes()
+
 def gen():
     """Video streaming generator function."""
     while True:  
@@ -71,19 +74,36 @@ def gen():
         # frame = cv2.imencode('.jpg', Vilib.conn2.recv())[1].tobytes() 
         # rt_img = np.ones((320,240),np.uint8)
         # print("2")
-
-        frame = cv2.imencode('.jpg', Vilib.img_array[0])[1].tobytes()
+        frame = get_frame()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
         
 
-@app.route('/mjpg')
+@app.route('/mjpg')   ## video
 def video_feed():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame') 
+
+
+@app.route('/mjpg.jpg')  ##picture
+def video_feed_jpg():
+    # from camera import Camera
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    # path = "/opt/ezblock/cali.jpg"
+    return Response(get_frame(), mimetype="image/jpeg") 
+
+# @app.route('/mjpg.jpg', methods=['post', 'get'])
+# def video_feed_jpg():
+#     path = request.args.get('path')
+#     print(path)
+#     path = "/home/pi/http.jpg/%s" % path
+
+#     resp = Response(open(path, 'rb'), mimetype="image/jpeg")
+#     return resp
+
 
 def web_camera_start():
     app.run(host='0.0.0.0', port=9000,threaded=True)
@@ -1261,3 +1281,8 @@ class Vilib(object):
     #         return img
     #     else:
     #         return img
+
+if __name__ == "__main__":
+    Vilib.camera_start()
+    while True:
+        pass

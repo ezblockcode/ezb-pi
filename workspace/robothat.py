@@ -23,6 +23,7 @@ for pin in motor_speed_pins:
     pin.prescaler(PRESCALER)
 
 def set_motor_speed(motor, speed):
+    global cali_speed_value,cali_dir_value
     motor -= 1
     if speed >= 0:
         direction = 1 * cali_dir_value[motor]
@@ -51,6 +52,7 @@ def motor_speed_calibration(value):
 def motor_direction_calibration(motor, value):
     # 0: positive direction
     # 1:negative direction
+    global cali_dir_value
     motor -= 1
     if value == 1:
         cali_dir_value[motor] = -cali_dir_value[motor]
