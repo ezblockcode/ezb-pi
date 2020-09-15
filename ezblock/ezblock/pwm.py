@@ -1,6 +1,12 @@
 import smbus, math
 from ezblock.i2c import I2C
 
+timer = [
+    {
+        "arr": 0
+    }
+] * 4
+
 class PWM(I2C):
     REG_CHN = 0x20
     REG_FRE = 0x30
@@ -77,13 +83,14 @@ class PWM(I2C):
             self.i2c_write(reg, self._prescaler)
 
     def period(self, *arr):
+        global timer
         if len(arr) == 0:
-            return self._arr
+            return timer[self.timer]["arr"]
         else:
-            self._arr = int(arr[0]) - 1
+            timer[self.timer]["arr"] = int(arr[0]) - 1
             reg = self.REG_ARR + self.timer
-            self._debug("Set arr to: %s"%self._arr)
-            self.i2c_write(reg, self._arr)
+            self._debug("Set arr to: %s"%timer[self.timer]["arr"])
+            self.i2c_write(reg, timer[self.timer]["arr"])
 
     def pulse_width(self, *pulse_width):
         if len(pulse_width) == 0:
@@ -91,17 +98,17 @@ class PWM(I2C):
         else:
             self._pulse_width = int(pulse_width[0])
             reg = self.REG_CHN + self.channel
-            # CCR = int(self._pulse_width/self.PRECISION * self._arr)
-            # print("CCR: %s"%CCR)
             self.i2c_write(reg, self._pulse_width)
 
     def pulse_width_percent(self, *pulse_width_percent):
+        global timer
         if len(pulse_width_percent) == 0:
             return self._pulse_width_percent
         else:
             self._pulse_width_percent = pulse_width_percent[0]
             temp = self._pulse_width_percent / 100.0
-            pulse_width = temp * self._arr
+            print(temp)
+            pulse_width = temp * timer[self.timer]["arr"]
             self.pulse_width(pulse_width)
 
         
@@ -124,5 +131,11 @@ def test():
             time.sleep(1/4095)
         time.sleep(1)
 
+def test2():
+    p = PWM("P0")
+    while True:
+        p.pulse_width_percent(50)
+        
+
 if __name__ == '__main__':
-    test()
+    test2()

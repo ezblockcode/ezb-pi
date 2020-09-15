@@ -9,7 +9,7 @@ class Servo(_Basic_class):
         super().__init__()
         self.pwm = pwm
         self.pwm.period(4095)
-        prescaler = int(float(self.pwm.CLOCK) /self.pwm._freq/self.pwm._arr)
+        prescaler = int(float(self.pwm.CLOCK) /self.pwm._freq/self.pwm.period())
         self.pwm.prescaler(prescaler)
         # self.angle(90)
 
@@ -25,7 +25,7 @@ class Servo(_Basic_class):
         self._debug("High_level_time: %f" % High_level_time)
         pwr =  High_level_time / 20000
         self._debug("pulse width rate: %f" % pwr)
-        value = int(pwr*4095)
+        value = int(pwr*self.pwm.period())
         self._debug("pulse width value: %d" % value)
         self.pwm.pulse_width(value)
 
