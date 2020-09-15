@@ -147,6 +147,9 @@ def install():
     do(msg="add write permission to log file",
         cmd='run_command("sudo chmod 666 /opt/ezblock/log")')
 
+    do(msg="change owner to opt ezblock",
+        cmd='run_command("sudo chown -R pi:pi /opt/ezblock/")')
+
     os.chdir("./ezblock")
     print("Install ezblock python package")
     do(msg="run setup file",
