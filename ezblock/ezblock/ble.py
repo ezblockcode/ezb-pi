@@ -156,19 +156,21 @@ class Remote(BLE):
         self.set_value("MT", id, "V", value)
 
     def set_line_chart_value(self, id, value):
-        if not (isinstance(value, int) or isinstance(value, float)):
-            raise ValueError("line chart value must be number, int or float")
+        if not isinstance(value, list):
+            raise ValueError("line chart value must be list of name value pair, not %s"%type(value))
+        value = json.dumps(value)
         self.set_value("LC", id, "V", value)
 
     def set_pie_chart_value(self, id, value):
         if not isinstance(value, list):
-            raise ValueError("pie chart value must be list of numbers, int or float, not %s"%type(value))
+            raise ValueError("pie chart value must be list of name value pair not %s"%type(value))
         value = json.dumps(value)
         self.set_value("PC", id, "V", value)
 
     def set_bar_chart_value(self, id, value):
         if not isinstance(value, list):
             raise ValueError("bar_chart value must be list of numbers, int or float")
+        value = json.dumps(value)
         self.set_value("BC", id, "V", value)
 
 def test():
