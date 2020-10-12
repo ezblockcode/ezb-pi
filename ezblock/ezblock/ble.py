@@ -1,6 +1,5 @@
 from ezblock.basic import _Basic_class
 from ezblock.uart import UART
-# from .ble_uart import BLE_UART as UART
 from time import sleep
 import json
 
@@ -12,9 +11,6 @@ class BLE(_Basic_class):
     def __init__(self, port='/dev/serial0', baudrate=115200, debug=False):
         super().__init__()
         self.uart = UART(port, baudrate)
-        # self.uart = UART()
-        #self.uart = UART(1)
-        #self.uart.init(9600)
 
     def read(self, num):
         result = self.uart.read(num)
@@ -173,57 +169,3 @@ class Remote(BLE):
             raise ValueError("bar_chart value must be list of numbers, int or float")
         value = json.dumps(value)
         self.set_value("BC", id, "V", value)
-
-def test():
-    from ezblock import delay
-    import random
-
-    r = Remote()
-    count = 0
-    switch = 0
-    # segment_test_package = [1, 99, 1234, 1.2, 33.5, 55.44, "10:25", 0.01, 0.33, "97:34"]
-    segment_test_package = [1, 99, 123224, 1.2, 323.522, 535.434, "10:235", 0.02221, 0.322223, "937:34"]
-
-    def pie_chart_data():
-        a = random.randrange(0, 100)
-        b = random.randrange(a, 100)
-        c = random.randrange(b, 100)
-        d = random.randrange(c, 100)
-        e = random.randrange(d, 100)
-        return [
-            {
-                "name": "Asia",
-                "value": a,
-            },
-            {
-                "name": "Australia",
-                "value": b,
-            },
-            {
-                "name": "Europe",
-                "value": c,
-            },
-            {
-                "name": "North America",
-                "value": d,
-            },
-            {
-                "name": "South America",
-                "value": e,
-            },
-        ]
-
-    while True:
-        # r.set_segment_value("A", segment_test_package[count%len(segment_test_package)])
-        # r.set_light_bolb_value("A", switch)
-        # r.set_meter_value("A", count)
-        # r.set_line_chart_value("A", count)
-        r.set_pie_chart_value("A", pie_chart_data())
-        # r.set_bar_chart_value("A", [random.randint(0, 100) for i in range(4)])
-        count += 1
-        switch = switch + 1 & 1
-        delay(1000)
-        print(count)
-
-if __name__ == "__main__":
-    test()
