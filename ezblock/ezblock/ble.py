@@ -1,6 +1,7 @@
 from .basic import _Basic_class
 from .uart import UART
 from time import sleep
+import json
 
 class BLE(_Basic_class):
     # Delay between every 20 Byte
@@ -10,8 +11,6 @@ class BLE(_Basic_class):
     def __init__(self, port='/dev/serial0', baudrate=115200, debug=False):
         super().__init__()
         self.uart = UART(port, baudrate)
-        #self.uart = UART(1)
-        #self.uart.init(9600)
 
     def read(self, num):
         result = self.uart.read(num)
@@ -93,6 +92,11 @@ class Remote(BLE):
         _result = self._value.get(_device_id, {}).get(name, 0)
         return _result
 
+    def set_value(self, ctrl, id, name, value):
+        _device_id = "{}_{}".format(ctrl, id)
+        _data = f"*#{ctrl}#{id}#{name}#{value}#*"
+        self.write(_data)
+
     def get_joystick_value(self, id, coord):
         try:
             _values = (self.get_value('JS', id, 'V')).split('+')
@@ -104,31 +108,64 @@ class Remote(BLE):
                 return 0
         except:
             return 0
-    
+
     def get_slider_value(self, id):
         try:
             _value = int(self.get_value('SL', id, 'V',))
             return _value
         except:
             return 0
-    
+
     def get_dpad_value(self, id, direction):
         try:
             _value = int(self.get_value('DP', id, direction,))
             return _value
         except:
             return 0
-            
+
     def get_button_value(self, id):
         try:
             _value = int(self.get_value('BT', id, 'V',))
             return _value
         except:
             return 0
-            
+
     def get_switch_value(self, id):
         try:
             _value = int(self.get_value('SW', id, 'V',))
             return _value
         except:
             return 0
+
+    def set_segment_value(self, id, value):
+        if not (isinstance(value, int) or isinstance(value, float) or isinstance(value, str)):
+            raise ValueError("segment value must be number, int or float")
+        self.set_value("SS", id, "V", value)
+
+    def set_light_bolb_value(self, id, value):
+        if not (value in [0, 1] or isinstance(value, boolean)):
+            raise ValueError("segment value must be 0/1 or True/False")
+        self.set_value("LB", id, "V", value)
+
+    def set_meter_value(self, id, value):
+        if not (isinstance(value, int) or isinstance(value, float)):
+            raise ValueError("meter value must be number, int or float")
+        self.set_value("MT", id, "V", value)
+
+    def set_line_chart_value(self, id, value):
+        if not isinstance(value, list):
+            raise ValueError("line chart value must be list of name value pair, not %s"%type(value))
+        value = json.dumps(value)
+        self.set_value("LC", id, "V", value)
+
+    def set_pie_chart_value(self, id, value):
+        if not isinstance(value, list):
+            raise ValueError("pie chart value must be list of name value pair not %s"%type(value))
+        value = json.dumps(value)
+        self.set_value("PC", id, "V", value)
+
+    def set_bar_chart_value(self, id, value):
+        if not isinstance(value, list):
+            raise ValueError("bar_chart value must be list of numbers, int or float")
+        value = json.dumps(value)
+        self.set_value("BC", id, "V", value)
