@@ -1,5 +1,5 @@
-from ezblock.pin import Pin
-from ezblock.pwm import PWM
+from .pin import Pin
+from .pwm import PWM
 
 class LED(Pin):
     def __init__(self):

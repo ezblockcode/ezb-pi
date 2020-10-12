@@ -57,10 +57,9 @@ def install():
     if "--no-dep" not in options:
         do(msg="update apt-get",
             cmd='run_command("sudo apt-get update")')
-                for dep in APT_INSTALL_LIST:
+        for dep in APT_INSTALL_LIST:
             do(msg="install %s"%dep,
                 cmd='run_command("sudo apt-get install %s -y")'%dep)
-            cmd='run_command("sudo apt-get update")')
         for dep in PIP_INSTALL_LIST:
             do(msg="install %s"%dep,
                 cmd='run_command("sudo pip3 install %s")'%dep)

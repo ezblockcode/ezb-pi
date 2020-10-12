@@ -1,33 +1,33 @@
-from ezblock.pin import Pin
-from ezblock.led import LED
-from ezblock.pwm import PWM
-from ezblock.servo import Servo
-from ezblock.signal import Signal
-from ezblock.spi import SPI
-from ezblock.switch import Switch
-from ezblock.uart import UART
-from ezblock.i2c import I2C
-from ezblock.adc import ADC
-from ezblock.ble import BLE
-from ezblock.ble import Remote
-from ezblock.music import Music
-from ezblock.color import Color
-from ezblock.camera import Camera
-from ezblock.iot import IOT
-from ezblock.tts import TTS
-from ezblock.irq import IRQ
-from ezblock.wifi import WiFi
-from ezblock.utils import *
-from ezblock.taskmgr import Taskmgr
-from ezblock.modules import *
-from ezblock.send_email import SendMail
-from ezblock.info import Info
-from ezblock.rgb_matrix import RGB_Matrix
-from ezblock.oled import SSD1306_128_64 as SSD1306
-from ezblock.lcd1602_i2c import LCD
-from ezblock.serial_sound import Serial_Sound
-from ezblock.nrf24 import NRF24
-from ezblock.filedb import fileDB
+from .pin import Pin
+from .led import LED
+from .pwm import PWM
+from .servo import Servo
+from .signal import Signal
+from .spi import SPI
+from .switch import Switch
+from .uart import UART
+from .i2c import I2C
+from .adc import ADC
+from .ble import BLE
+from .ble import Remote
+from .music import Music
+from .color import Color
+from .camera import Camera
+from .iot import IOT
+from .tts import TTS
+from .irq import IRQ
+from .wifi import WiFi
+from .utils import *
+from .taskmgr import Taskmgr
+from .modules import *
+from .send_email import SendMail
+from .info import Info
+from .rgb_matrix import RGB_Matrix
+from .oled import SSD1306_128_64 as SSD1306
+from .lcd1602_i2c import LCD
+from .serial_sound import Serial_Sound
+from .nrf24 import NRF24
+from .filedb import fileDB
 
 def __reset_mcu__():
     mcurst = Pin("MCURST")
@@ -37,7 +37,7 @@ def __reset_mcu__():
 
 def __main__():
     import sys
-    from ezblock.utils import __PRINT__
+    from .utils import __PRINT__
 
     usage = '''
 Usage:

@@ -1,10 +1,10 @@
-from ezblock.basic import _Basic_class
+from .basic import _Basic_class
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import io
 import picamera
 import socketserver
 from threading import Condition, Thread
-from ezblock.utils import getIP
+from .utils import getIP
 
 class StreamingOutput(object):
     def __init__(self):

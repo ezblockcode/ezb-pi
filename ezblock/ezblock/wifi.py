@@ -1,7 +1,7 @@
-from ezblock.basic import _Basic_class
+from .basic import _Basic_class
 # __print__ = print
-from ezblock.utils import getIP
-from ezblock.utils import print
+from .utils import getIP
+from .utils import print
 import time
 # re-正则表达式
 class WiFi(_Basic_class):

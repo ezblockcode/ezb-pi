@@ -1,6 +1,6 @@
-from ezblock.basic import _Basic_class
-from ezblock.utils import mapping, is_installed
-from ezblock.music import Music
+from .basic import _Basic_class
+from .utils import mapping, is_installed
+from .music import Music
 from distutils.spawn import find_executable
 
 class TTS(_Basic_class):

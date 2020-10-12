@@ -1,4 +1,4 @@
-from ezblock.utils import getIP
+from .utils import getIP
 class Info():
     file_dir = "/opt/ezblock"
     DEBUG = False # Set to True to see debug infomation
