@@ -6,6 +6,7 @@ from gpiozero import Button
 import time
 import tempfile
 import subprocess
+
 reset_switch = Button(16)
 ble_reset = Pin("BLERST")
 mcu_reset = Pin("MCURST")
