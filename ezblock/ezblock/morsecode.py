@@ -1,4 +1,4 @@
-from ezblock.utils import delay
+from .utils import delay
 
 class MorseCode():
     PAUSE = 500

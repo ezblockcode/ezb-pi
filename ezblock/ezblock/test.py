@@ -1,4 +1,4 @@
-from ezblock.sensorkit import Sensorkit
+from .sensorkit import Sensorkit
 import time
 while(True):
     print(Sensorkit.dht11_read.result[0,1])

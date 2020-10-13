@@ -1,4 +1,4 @@
-from ezblock.pin import Pin
+from .pin import Pin
 
 class Switch(Pin):
     def __init__(self):

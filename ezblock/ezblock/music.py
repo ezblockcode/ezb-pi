@@ -1,5 +1,4 @@
-from ezblock.basic import _Basic_class
-import pygame
+from .basic import _Basic_class
 import time
 import threading
 import pyaudio
@@ -7,6 +6,8 @@ import numpy as np
 
 class Music(_Basic_class):
     MUSIC_BEAT = 500
+    MUSIC_DIR = '/home/pi/Music/'
+    SOUND_DIR = '/home/pi/Sound/'
 
     NOTES = {
         "Low C": 261.63,
@@ -48,7 +49,20 @@ class Music(_Basic_class):
     }
 
     def __init__(self):
-        pygame.mixer.init()
+        import pygame
+        self.pygame = pygame
+        self.pygame.mixer.init()
+
+    @property
+    def MUSIC_LIST(self):
+        from os import listdir
+        return listdir(self.MUSIC_DIR)
+        
+    @property
+    def SOUND_LIST(self):
+        from os import listdir
+        return listdir(self.SOUND_DIR)
+        
 
     def note(self, n):
         try:
@@ -75,12 +89,12 @@ class Music(_Basic_class):
 
     def sound_play(self, file_name):
         self.music_set_volume(80)
-        pygame.mixer.music.load(file_name)
-        pygame.mixer.music.play()
+        self.pygame.mixer.music.load(file_name)
+        self.pygame.mixer.music.play()
 
     def sound_effect_play(self, file_name):
-        file_name = '/home/pi/Sound/' + file_name
-        music = pygame.mixer.Sound(str(file_name))
+        file_name = self.SOUND_DIR + file_name
+        music = self.pygame.mixer.Sound(str(file_name))
         time_delay = round(music.get_length(), 2)
         music.play()
         time.sleep(time_delay)
@@ -94,25 +108,25 @@ class Music(_Basic_class):
         if loops <= 0:
             loops = 0
         volume = round(volume/100.0, 2)
-        file_name = '/home/pi/Music/' + str(file_name)
-        pygame.mixer.music.load(str(file_name))
-        pygame.mixer.music.play(loops-1, start)
+        file_name = self.MUSIC_DIR + str(file_name)
+        self.pygame.mixer.music.load(str(file_name))
+        self.pygame.mixer.music.play(loops-1, start)
 
     def music_set_volume(self, value=50):
         value = round(value/100.0, 2)
-        pygame.mixer.music.set_volume(value)
+        self.pygame.mixer.music.set_volume(value)
 
     def music_stop(self):
-        pygame.mixer.music.stop()
+        self.pygame.mixer.music.stop()
 
     def music_pause(self):
-        pygame.mixer.music.pause()
+        self.pygame.mixer.music.pause()
 
     def music_unpause(self):
-        pygame.mixer.music.unpause()
+        self.pygame.mixer.music.unpause()
 
     def sound_length(self, file_name):
-        music = pygame.mixer.Sound(str(file_name))
+        music = self.pygame.mixer.Sound(str(file_name))
         return round(music.get_length(),2)
     
     def play_tone_for(self, freq, duration):
