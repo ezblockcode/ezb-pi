@@ -1,5 +1,5 @@
 import smbus, math
-from ezblock.basic import _Basic_class
+from .basic import _Basic_class
 
 class Timer(_Basic_class):
     REG_PSC = 0x28

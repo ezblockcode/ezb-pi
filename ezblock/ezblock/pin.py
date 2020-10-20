@@ -1,4 +1,4 @@
-from ezblock.basic import _Basic_class
+from .basic import _Basic_class
 import RPi.GPIO as GPIO
 
 class Pin(_Basic_class):

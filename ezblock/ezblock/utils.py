@@ -1,4 +1,4 @@
-from ezblock.ble import BLE
+from .ble import BLE
 import time
 import os
 import re

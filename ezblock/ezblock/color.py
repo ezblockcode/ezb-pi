@@ -1,5 +1,5 @@
 import random
-from ezblock.utils import constrain
+from .utils import constrain
 
 class Color():
     def color(self, value):

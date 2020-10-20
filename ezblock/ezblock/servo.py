@@ -1,4 +1,4 @@
-from ezblock.basic import _Basic_class
+from .basic import _Basic_class
 import time
 
 class Servo(_Basic_class):
