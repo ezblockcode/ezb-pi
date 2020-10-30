@@ -4,10 +4,9 @@ import json
 class IOT(object):
     headers = {'Content-Type': 'application/json'}      # Header
 
-    # url = "https://www.ezblock.sunfounder.com/api/web/v1/"  # API Url
-    url =  'https://test2.ezblock.com.cn:11000/api/web/v2/ezblock/'
-    def __init__(self, iot_token):
+    def __init__(self, iot_token, url = 'https://www.ezblock.cc:11000/api/web/v2/'):
         self.iot_token = iot_token
+        self.url = url + "ezblock/"
 
     def _upload(self, url, data):
         url = self.url+url
