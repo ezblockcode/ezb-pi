@@ -2,7 +2,6 @@ import pygame
 import time
 import threading
 
-
 pygame.mixer.init()
 
 class MyThreading(threading.Thread):

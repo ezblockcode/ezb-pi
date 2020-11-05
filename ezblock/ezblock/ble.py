@@ -137,6 +137,13 @@ class Remote(BLE):
         except:
             return 0
 
+    def get_sr_value(self, id):
+        try:
+            _value = self.get_value('SR', id, 'V',)
+            return _value
+        except:
+            return 0
+
     def set_segment_value(self, id, value):
         if not (isinstance(value, (int, float, str)):
             raise ValueError("segment value must be number, int or float")

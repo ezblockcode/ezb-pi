@@ -40,11 +40,7 @@ class IOT(object):
             "iotToken": self.iot_token,
         }
         value = self._upload("iot/get", data)
-        print(value)
-        try:
-            value = int(value)
-        except:
-            pass
+        # (value)
         return value
 
 # def test():
