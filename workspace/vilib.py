@@ -65,6 +65,11 @@ def index():
 def get_frame():
     return cv2.imencode('.jpg', Vilib.img_array[0])[1].tobytes()
 
+
+def get_qrcode_pictrue():
+    return cv2.imencode('.jpg', Vilib.img_array[1])[1].tobytes()
+
+
 def gen():
     """Video streaming generator function."""
     while True:  
@@ -95,6 +100,12 @@ def video_feed_jpg():
     # path = "/opt/ezblock/cali.jpg"
     return Response(get_frame(), mimetype="image/jpeg") 
 
+@app.route('/mjpg.jpg')  ##picture
+def video_feed_jpg():
+    # from camera import Camera
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    # path = "/opt/ezblock/cali.jpg"
+    return Response(get_qrcode_pictrue(), mimetype="image/jpeg") 
 # @app.route('/mjpg.jpg', methods=['post', 'get'])
 # def video_feed_jpg():
 #     path = request.args.get('path')
@@ -203,8 +214,11 @@ class Vilib(object):
     detect_obj_parameter['qr_flag'] = False
 
 #QR_code
-    detect_obj_parameter['qr_data'] = 'None'
-
+    detect_obj_parameter['qr_data'] = "None"
+    detect_obj_parameter['qr_x'] = 160
+    detect_obj_parameter['qr_y'] = 120
+    detect_obj_parameter['qr_w'] = 0
+    detect_obj_parameter['qr_h'] = 0
 #video
     # detect_obj_parameter['vi_fps'] = 20
     # detect_obj_parameter['video_flag'] = False
@@ -229,9 +243,16 @@ class Vilib(object):
 # 使用白色填充图片区域,默认为黑色
     # front_view_img.fill(255)       
     img_array[0] = rt_img
+    img_array[1] = rt_img
     # img_array = rt_img
     vi_img = np.ones((320,240),np.uint8)  
 
+
+    @staticmethod
+    def make_qrcode_picture(data):
+        # data = 'hello'
+        # 生成二维码
+        Vilib.img_array = qrcode.make(data=data)
 
 
     @staticmethod
@@ -305,8 +326,21 @@ class Vilib(object):
         return 'none'
 
     @staticmethod
-    def qrcode_detect_object():
-        return Vilib.detect_obj_parameter['qr_data']
+    def qrcode_detect_object(obj_parameter):
+        if obj_parameter == 'x':
+            # print(Vilib.detect_obj_parameter['x'])          
+            return int(Vilib.detect_obj_parameter['qr_x']/107.0)-1
+        elif obj_parameter == 'y':
+            # print(Vilib.detect_obj_parameter['y']) 
+            return -1*(int(Vilib.detect_obj_parameter['qr_y']/80.1)-1) #max_size_object_coordinate_y
+        elif obj_parameter == 'width':
+            return Vilib.detect_obj_parameter['qr_w']   #objects_max_width
+        elif obj_parameter == 'height':
+            return Vilib.detect_obj_parameter['qr_h']   #objects_max_height
+        elif obj_parameter == 'data':      
+            return Vilib.detect_obj_parameter['qr_data']   #objects_count
+        return 'none'
+        # return Vilib.detect_obj_parameter['qr_data']
 
     @staticmethod
     def detect_color_name(color_name):
@@ -1194,11 +1228,19 @@ class Vilib(object):
                     text = "{}".format(barcodeData)
                     if len(text) > 0:
                         Vilib.detect_obj_parameter['qr_data'] = text
+                        Vilib.detect_obj_parameter['qr_h'] = h
+                        Vilib.detect_obj_parameter['qr_w'] = w
+                        Vilib.detect_obj_parameter['qr_x'] = x 
+                        Vilib.detect_obj_parameter['qr_y'] = y
                     # print("Vilib.qr_date:%s"%Vilib.qr_date)
                     cv2.putText(img, text, (x - 20, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.5, (0, 0, 255), 2)
             else:
                 Vilib.detect_obj_parameter['qr_data'] = "None"
+                Vilib.detect_obj_parameter['qr_x'] = 160
+                Vilib.detect_obj_parameter['qr_y'] = 120
+                Vilib.detect_obj_parameter['qr_w'] = 0
+                Vilib.detect_obj_parameter['qr_h'] = 0
             return img
         else:
             return img
