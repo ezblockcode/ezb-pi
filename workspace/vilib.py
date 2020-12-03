@@ -69,6 +69,8 @@ def get_frame():
 def get_qrcode_pictrue():
     return cv2.imencode('.jpg', Vilib.img_array[1])[1].tobytes()
 
+def get_png_frame():
+    return cv2.imencode('.png', Vilib.img_array[0])[1].tobytes()
 
 def gen():
     """Video streaming generator function."""
@@ -83,22 +85,32 @@ def gen():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-        
-
 @app.route('/mjpg')   ## video
 def video_feed():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
-    return Response(gen(),
+    response = Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame') 
-
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 @app.route('/mjpg.jpg')  ##picture
 def video_feed_jpg():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
     # path = "/opt/ezblock/cali.jpg"
-    return Response(get_frame(), mimetype="image/jpeg") 
+    response = Response(get_frame(), mimetype="image/jpeg")
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+@app.route('/mjpg.png')  ##picture
+def video_feed_png():
+    # from camera import Camera
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    # path = "/opt/ezblock/cali.jpg"
+    response = Response(get_png_frame(), mimetype="image/png")
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 @app.route('/mjpg.jpg')  ##picture
 def video_feed_jpg():
