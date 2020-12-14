@@ -112,12 +112,12 @@ def video_feed_png():
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
-@app.route('/mjpg.jpg')  ##picture
-def video_feed_jpg():
+# @app.route('/mjpg.jpg')  ##picture
+# def video_feed_jpg():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
     # path = "/opt/ezblock/cali.jpg"
-    return Response(get_qrcode_pictrue(), mimetype="image/jpeg") 
+    # return Response(get_qrcode_pictrue(), mimetype="image/jpeg") 
 # @app.route('/mjpg.jpg', methods=['post', 'get'])
 # def video_feed_jpg():
 #     path = request.args.get('path')

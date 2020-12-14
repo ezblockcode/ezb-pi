@@ -20,7 +20,7 @@ dir_cal_value = 0
 cam_cal_value = 0
 motor_direction_pins = [left_rear_dir_pin, right_rear_dir_pin]
 motor_speed_pins = [left_rear_pwm_pin, right_rear_pwm_pin]
-cali_dir_value = [1, -1]
+cali_dir_value = [1, 1]
 cali_speed_value = [0, 0]
 #初始化PWM引脚
 for pin in motor_speed_pins:
@@ -31,9 +31,9 @@ def set_motor_speed(motor, speed):
     global cali_speed_value,cali_dir_value
     motor -= 1
     if speed >= 0:
-        direction = 1 * cali_dir_value[motor]
-    elif speed < 0:
         direction = -1 * cali_dir_value[motor]
+    elif speed < 0:
+        direction = 1 * cali_dir_value[motor]
     speed = abs(speed)
     if speed != 0:
         speed = int(speed /2 ) + 50
@@ -69,7 +69,7 @@ def motor_direction_calibration(motor, value):
 def camera_servo_angle_calibration(value):
     global cam_cal_value
     cam_cal_value = value
-    set_camera_servo1_angle(cam_cal_value)
+    set_camera_servo_angle(cam_cal_value)
     # camera_servo_pin1.angle(cam_cal_value)
 
 
@@ -92,12 +92,12 @@ def set_power(speed):
     set_motor_speed(2, speed) 
 
 def backward(speed):
-    set_motor_speed(1, speed)
-    set_motor_speed(2, speed)
-
-def forward(speed):
     set_motor_speed(1, -1*speed)
     set_motor_speed(2, -1*speed)
+
+def forward(speed):
+    set_motor_speed(1, speed)
+    set_motor_speed(2, speed)
 
 def stop():
     set_motor_speed(1, 0)

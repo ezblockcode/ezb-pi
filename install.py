@@ -37,6 +37,7 @@ APT_INSTALL_LIST = [
 PIP_INSTALL_LIST = [
     "picamera",
     "gpiozero",
+    "websockets"
     #"opencv-python",
 ]
 
