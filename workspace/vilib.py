@@ -134,15 +134,12 @@ def web_camera_start():
 
 
 class Vilib(object): 
-    
 
     video_flag = False
     # video_path = './video_file/tst.avi'
 
-
     # picture_path = './picture_file'
     # video_recorder = cv2.VideoWriter(video_path, fourcc, 20.0, (320, 240))
-
 
     face_cascade = cv2.CascadeClassifier('/opt/ezblock/haarcascade_frontalface_default.xml') 
     kernel_5 = np.ones((5,5),np.uint8)#4x4的卷积核
