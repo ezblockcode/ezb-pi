@@ -12,18 +12,19 @@ left_rear_pwm_pin = PWM("P13")
 right_rear_pwm_pin = PWM("P12")
 left_rear_dir_pin = Pin("D4")
 right_rear_dir_pin = Pin("D5")
+config_flie = fileDB('.config')
 
 S0 = ADC('A0')
 S1 = ADC('A1')
 S2 = ADC('A2')
 
-Servo_dir_flag = 1
-dir_cal_value = 0
-cam_cal_value_1 = 0
-cam_cal_value_2 = 0
+dir_cal_value = int(config_flie.get("picarx_dir_servo"))
+cam_cal_value_1 = int(config_flie.get("picarx_cam1"))
+cam_cal_value_2 = int(config_flie.get("picarx_cam2"))
 motor_direction_pins = [left_rear_dir_pin, right_rear_dir_pin]
 motor_speed_pins = [left_rear_pwm_pin, right_rear_pwm_pin]
-cali_dir_value = [1, -1]
+cali_dir_value = config_flie.get("picarx_dir_motor")
+cali_dir_value = [int(i.strip()) for i in cali_dir_value.strip("[]").split(",")]
 cali_speed_value = [0, 0]
 #初始化PWM引脚
 for pin in motor_speed_pins:
@@ -65,13 +66,14 @@ def motor_direction_calibration(motor, value):
     motor -= 1
     if value == 1:
         cali_dir_value[motor] = -1*cali_dir_value[motor]
+    config_flie.set("picarx_dir_motor", cali_dir_value)
 
 
 def dir_servo_angle_calibration(value):
     global dir_cal_value
     dir_cal_value = value
-    set_dir_servo_angle(dir_cal_value)
-    # dir_servo_pin.angle(dir_cal_value)
+    config_flie.set("picarx_dir_servo", "%s"%value)
+    dir_servo_pin.angle(value)
 
 def set_dir_servo_angle(value):
     global dir_cal_value
@@ -80,14 +82,14 @@ def set_dir_servo_angle(value):
 def camera_servo1_angle_calibration(value):
     global cam_cal_value_1
     cam_cal_value_1 = value
-    set_camera_servo1_angle(cam_cal_value_1)
-    # camera_servo_pin1.angle(cam_cal_value)
+    config_flie.set("picarx_cam1_servo", "%s"%value)
+    camera_servo_pin1.angle(value)
 
 def camera_servo2_angle_calibration(value):
     global cam_cal_value_2
     cam_cal_value_2 = value
-    set_camera_servo2_angle(cam_cal_value_2)
-    # camera_servo_pin2.angle(cam_cal_value)
+    config_flie.set("picarx_cam2", "%s"%value)
+    camera_servo_pin2.angle(value)
 
 def set_camera_servo1_angle(value):
     global cam_cal_value_1
