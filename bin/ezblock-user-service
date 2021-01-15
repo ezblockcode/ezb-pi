@@ -1,0 +1,28 @@
+#!/usr/bin/python3
+# -*- coding utf-8 -*-
+
+import sys
+from ezblock import run_command, Pin
+import time
+
+def service_status():
+    status = sys.argv[1]
+    if status not in ["start","stop"]:
+        print("Usage: sudo service ezblock-user start|stop")
+        return 
+    mcurst = Pin("MCURST")
+    filename = '/opt/ezblock/main.py'
+    if status == "start":
+        mcurst.on()
+        _, data = run_command("ls /opt/ezblock")
+        if "main.py" in data:
+            run_command("sudo kill $(ps aux | grep  '%s' | awk '{ print $2 }')" % (filename))
+            run_command("python3 /opt/ezblock/main.py &")
+    elif status == "stop":
+        run_command("sudo kill $(ps aux | grep '%s' | awk '{ print $2 }')" % (filename))
+        mcurst.off()
+        time.sleep(0.001)
+        
+if __name__ == '__main__':
+    service_status()
+    

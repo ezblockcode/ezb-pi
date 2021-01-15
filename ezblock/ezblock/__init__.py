@@ -9,7 +9,9 @@ from .uart import UART
 from .i2c import I2C
 from .adc import ADC
 from .ble import BLE
-from .ble import Remote
+# from .ble import Remote
+from .websockets import Remote
+from .websockets import ws_print as print
 from .music import Music
 from .color import Color
 from .camera import Camera
@@ -63,4 +65,13 @@ Options:
     else:
         __PRINT__(usage)
         quit()
+
+# def service():
+#     # import threading
+#     # web_thread = threading.Thread(target=start_loop)
+#     # web_thread.start()
+#     from multiprocessing import Process
+#     web_service = Process(name='websocket service',target=start_loop)
+#     web_service.start()
     
+# service()

@@ -1,12 +1,223 @@
 #!/usr/bin/python3
 # -*- coding utf-8 -*-
 
-import libezblock
+import asyncio
+import websockets
+import json
 import time
+from ezblock import getIP, Pin, run_command
+from ezblock import ADC, fileDB, BLE, WiFi
 
-def main():
-    b = libezblock.Boot()
-    b.main()
+__print = print
+
+def print(msg, end='\n'):
+    msg = "Ezblock-Main-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
+    run_command("echo {} >> /opt/ezblock/log".format(msg))
+    __print(msg, end=end)
+
+recv_dict = {
+    'FL':False,  #download status
+    'DA':" ",    #recvice code
+    'NA': None,
+    'TP':None,
+    'RE':"null", #request data
+}
+
+send_dict = {
+    "CD":False,  #finish code
+    'name': None,
+    'type': None,
+    'ip':0,
+    'battery':None,
+    'mac': None,
+    'version': 3.0,
+} 
+config_flie = fileDB('.config')
+ble = BLE()
+wifi = WiFi()
+TAIL = """\
+if __name__ == "__main__":
+  try:
+    while True:
+      forever()
+  except KeyboardInterrupt:
+    from ezblock import print
+    print("Program stops")
+  except Exception as e:
+    from ezblock import print
+    print(e, tag="[ERROR]")
+"""
+# power_pin_adc = ADC("A4")
+
+def verify(raw_data):
+    print("Flash.verify")
+    import re
+    print("raw_data: %s" % raw_data)
+    data_type = None
+    data = None
+    data_head = re.search('[*][$].*[#][H][#]\d+[$][*]', raw_data)
+    if data_head:
+        data_head = data_head.group(0)
+        print("Head: %s"%data_head)
+        temp = raw_data.replace(data_head, "")
+        data_tail = re.search('[*][$].*[#][T][#]\d+[$][*]', temp)
+        if data_tail:
+            data_tail = data_tail.group(0)
+            print("Tail: %s"%data_tail)
+            print("Tansfer finished!")
+            data_head_info = data_head.strip('*').strip('$').split('#')
+            data_head_type = data_head_info[0]
+            data_tail_info = data_tail.strip('*').strip('$').split('#')
+            data_tail_type = data_tail_info[0]
+            if data_head_type == data_tail_type:
+                data_type = data_head_type
+                print("Tranfer type: %s" % data_type)
+                expect_data_length = int(data_head_info[2])
+                data = raw_data.split(data_head)[1].split(data_tail)[0]
+                data_length = len(data)
+                if expect_data_length == data_length:
+                    print("Verified!")
+                    ble.write("Verified success!")
+                    return [data_type, data, True]
+                else:
+                    print("Verified error, expecting %s, received %s" %
+                        (expect_data_length, data_length))
+                    ble.write("Failed!")
+            else:
+                print("Verified error, data head type is %s, while data tail type is %s" % (
+                    data_head_type, data_tail_type))
+        else:
+            print("Verified error, tail not found")
+    else:
+        print("Verified error, head not found")
+    return [None, None, False]
+
+def read():
+    time.sleep(0.001) # to avoid too quick
+    buf = bytearray()
+    while ble.uart.inWaiting():
+        buf = buf + super().read(ble.uart.inWaiting())
+    buf = buf.decode()
+    return buf
+
+def flash(name):
+    global recv_dict
+    file_dir = '/opt/ezblock/'
+    dir = "%s/%s.py"%(file_dir, name)
+    with open(dir, 'w') as f:
+       f.write(recv_dict["DA"] + TAIL) 
+
+
+def reset():
+    mcurst = Pin("MCURST")
+    mcurst.off()
+    time.sleep(0.001)
+    mcurst.on()
+    filename = '/opt/ezblock/main.py'
+    for _ in range(4):
+        run_command("sudo kill $(ps aux | grep -m 1 '%s' | awk '{ print $2 }')" % (filename))
+
+async def recv_server_func(websocket):
+    global recv_dict,send_dict
+    tmp = await websocket.recv()
+    print(tmp)
+    tmp = json.loads(tmp)
+    for key in tmp:
+        recv_dict[key] = tmp[key]
+    # print(recv_dict)
+    await asyncio.sleep(0.01)
+            
+async def send_server_func(websocket): 
+    global send_dict, recv_dict
+    send_dict['name'] = config_flie.get("name")
+    if recv_dict['NA']:
+        config_flie.set('name','%s'%recv_dict['NA'])
+    type_temp = config_flie.get("type")
+    send_dict['type'] = type_temp
+    if recv_dict['TP']:
+        config_flie.set('type','%s'%recv_dict['TP'])
+    if type_temp != "Ezblock pi" and type_temp != "None":
+        # send_dict['battery'] = round(ADC('A4').read() / 4096.0 * 3.3 * 2,2)
+        send_dict['battery'] = 88
+    send_dict['ip'] = getIP() 
+    if not config_flie.get("mac"):
+        addr = run_command("hciconfig hci0")
+        addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
+        config_flie.set('mac','%s'%addr)
+    send_dict['mac'] = config_flie.get('mac')
+    send_dict['version'] = config_flie.get('version')
+    await websocket.send(json.dumps(send_dict))
+    # print(send_dict)
+    send_dict ={}
+    await asyncio.sleep(0.01)
+        
+async def main_loop_frame():
+    global recv_dict, send_dict
+    while 1:
+        if recv_dict['FL']:
+            # reset()
+            run_command("sudo service ezblock-user stop")
+            flash('main')
+            run_command("sudo service ezblock-user start")
+            send_dict["CD"] = True
+            recv_dict['FL'] = False
+        await asyncio.sleep(0.01)
+        
+
+async def main_logic_1(websocket, path):
+    while 1:
+        await send_server_func(websocket)
+        await recv_server_func(websocket)
+        
+def start_loop(): 
+    try:
+        # raw_data = ''
+        # while True:
+        #     value = ble.read()  # read to 60 bytes
+        #     value = value.decode()
+        #     if value == "get":
+        #         ip = getIP()
+        #         if ip:
+        #             ble.write(ip)
+        #             break
+        #         else:
+        #             ble.write("No IP")
+        #     elif value:
+        #         # start = time.time()
+                
+        #         print("value: "+value)
+        #         raw_data += value
+        #         data_type, c_data, status = verify(raw_data)
+        #         if status:
+        #             temp_index = c_data.index("#*#")
+        #             country = c_data[:temp_index]
+        #             temp_data = c_data[(temp_index+3):]
+        #             index = temp_data.index("#*#")
+        #             ssid = temp_data[:index]
+        #             password = temp_data[(index+3):]
+        #             wifi.write(country, ssid, password)
+        #             ip = getIP()
+        #             if ip:
+        #                 ble.write(ip)
+        #                 break
+        #             else:
+        #                 ble.write("Connect Failed!")
+        for _ in range(10):
+            ip = getIP()
+            if ip:
+                print("IP Address: "+ ip + ":8765")
+                # start_http_server()
+                break
+            time.sleep(1)           
+        # print("IP Address: "+ ip + ":8765")      
+        start_server_1 = websockets.serve(main_logic_1, ip, 8765)
+        print('Start ws_code!')
+        tasks = [main_loop_frame(), start_server_1]
+        asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
+        asyncio.get_event_loop().run_forever()
+
+    finally:
+        print("Finished")
 
 if __name__ == '__main__':
-    main()
+    start_loop()

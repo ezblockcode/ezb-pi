@@ -106,6 +106,18 @@ def install():
         cmd='run_command("sudo chmod +x /usr/bin/ezblock-service")')
     do(msg="copy libezblock file",
         cmd='run_command("sudo cp ./lib/libezblock.so /usr/local/lib/python3.7/dist-packages")')
+    
+    print("Setup ezblock user service")
+    do(msg="copy ezblock-user file",
+        cmd='run_command("sudo cp ./bin/ezblock-user /etc/init.d/ezblock-user")')
+    do(msg="add excutable mode for ezblock",
+        cmd='run_command("sudo chmod +x /etc/init.d/ezblock-user")')
+    do(msg="update service settings for ezblock",
+        cmd='run_command("sudo update-rc.d ezblock-user defaults")')
+    do(msg="copy ezblock-user-service file",
+        cmd='run_command("sudo cp ./bin/ezblock-user-service /usr/bin")')
+    do(msg="add excutable mode for ezblock-user-service",
+        cmd='run_command("sudo chmod +x /usr/bin/ezblock-user-service")')
 
     print("Setup ezblock-reset service")
     do(msg="copy ezblock-reset file",

@@ -1,0 +1,32 @@
+#!/bin/bash
+# /etc/init.d/ezblock
+
+### BEGIN INIT INFO
+# Provides:          sunfounder
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ezblock user service
+# Description:       This service is used to startup main.py
+### END INIT INFO
+
+
+case "$1" in
+    start)
+        echo "Starting ezblock-user"
+        sudo ezblock-user-service start &
+        ;;
+    stop)
+        echo "Stopping ezblock"
+        sudo ezblock-user-service stop &
+        # sudo kill $(ps aux | grep 'ezblock-service' | awk '{ print $2 }')
+        # sudo kill $(ps aux | grep '/opt/ezblock/main' | awk '{ print $2 }')
+        ;;
+    *)
+        echo "Usage: sudo service ezblock-user start|stop"
+        exit 1
+        ;;
+esac
+
+exit 0
