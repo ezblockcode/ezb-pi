@@ -156,7 +156,8 @@ class BLE_UART():
     def init(self):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SystemBus()
-        adapter = self.find_adapter(bus)
+        # adapter = self.find_adapter(bus)
+        adapter = "/org/bluez/hci1"
         
         capability = "NoInputNoOutput"
         path = "/test/agent"

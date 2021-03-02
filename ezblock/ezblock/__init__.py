@@ -2,6 +2,7 @@ from .pin import Pin
 from .led import LED
 from .pwm import PWM
 from .servo import Servo
+from .filedb import fileDB
 from .signal import Signal
 from .spi import SPI
 from .switch import Switch
@@ -29,7 +30,7 @@ from .oled import SSD1306_128_64 as SSD1306
 from .lcd1602_i2c import LCD
 from .serial_sound import Serial_Sound
 from .nrf24 import NRF24
-from .filedb import fileDB
+
 
 def __reset_mcu__():
     mcurst = Pin("MCURST")
