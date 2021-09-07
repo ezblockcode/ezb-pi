@@ -20,12 +20,15 @@ class TTS(_Basic_class):
         self._lang = "en-US"            # 默认输入的语言为英语
         self.engine = engine
         if (engine == "espeak"):
-            if not is_installed("espeak"):
-                raise Exception("TTS engine: espeak is not installed.")
+            # if not is_installed("espeak"):
+            # try:
             self._amp   = 100 
             self._speed = 175
             self._gap   = 5
             self._pitch = 50
+            # except:
+            #     raise Exception("TTS engine: espeak is not installed.")
+
         elif engine == "gtts" or engine == "polly":
             import urllib.request as request
             import base64

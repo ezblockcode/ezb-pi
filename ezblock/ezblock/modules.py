@@ -94,7 +94,6 @@ class ADXL345():
         self.address = address
 
     def read(self, axis):
-        raw_2 = 0
         result = self.i2c._i2c_read_byte(self.address)
         send = (0x08<< 8) + self._REG_POWER_CTL
         if result:
@@ -107,12 +106,8 @@ class ADXL345():
         self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
         raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
         if raw[1]>>7 == 1:
-            
-            raw_1 = raw[1]^128 ^ 127
-            raw_2 = (raw_1 + 1) * -1
-        else:
-            raw_2 = raw[1]
-        g = raw_2 << 8 | raw[0]
+            raw[1] = -((((raw[1]^128)^127)+1))
+        g = raw[1]<< 8 | raw[0]
         value = g / 256.0
         return value
 

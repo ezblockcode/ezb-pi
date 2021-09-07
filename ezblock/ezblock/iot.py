@@ -1,56 +1,113 @@
-import requests
+import paho.mqtt.client as mqtt 
 import json
+import time
+import os
+import re
+from .utils import log
 
-class IOT(object):
-    headers = {'Content-Type': 'application/json'}      # Header
+def getIP(ifaces=['wlan0', 'eth0']):
+    if isinstance(ifaces, str):
+        ifaces = [ifaces]
+    for iface in list(ifaces):
+        search_str = 'ip addr show {}'.format(iface)
+        result = os.popen(search_str).read()
+        com = re.compile(r'(?<=inet )(.*)(?=\/)', re.M)
+        ipv4 = re.search(com, result)
+        if ipv4:
+            ipv4 = ipv4.groups()[0]
+            return ipv4
+    return False
 
-    def __init__(self, iot_token, url = 'https://www.ezblock.cc:11000/api/web/v2/'):
+def run_command(cmd):
+    import subprocess
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = p.stdout.read().decode('utf-8')
+    status = p.poll()
+    return status, result
+
+
+class IOT():
+    
+    MQTT_BROKER_HOST = '' 
+    MQTT_BROKER_PORT = 1883
+    MQTT_KEEP_ALIVE_INTERVAL = 60
+    
+    def __init__(self, iot_token, mqtt_host):
+        # try:
+        time_count = 0
+        while getIP() == False and time_count < 15:
+            time_count += 1
+            time.sleep(1)
         self.iot_token = iot_token
-        self.url = url + "ezblock/"
+        self.MQTT_BROKER_HOST = mqtt_host
 
-    def _upload(self, url, data):
-        url = self.url+url
-        headers={'Content-Type': 'application/json'}
-        r = requests.post(url, json=data, headers=headers)
-        result = r.content.decode('utf-8')
-        print(result)
-        result = json.loads(result)
-        if result["code"] == 200:
-            data = result["data"]
-            value = data["value"]
-            print(data)
-            return value
-        else:
-            print("Error[%s]"%result["code"])
-            if result["code"] == 10302:
-                return None
+        log(self.MQTT_BROKER_HOST,'IOT')
 
-    def post(self, sensorname, value):
+        self.client = mqtt.Client("Sunfounder test")
+        self.client.username_pw_set(username="admin",password="gkjsPS2aoQIvR4bt")
+        a_flag = self.client.connect(self.MQTT_BROKER_HOST, self.MQTT_BROKER_PORT, self.MQTT_KEEP_ALIVE_INTERVAL)
+        print("a_flag:",a_flag)
+        self.recv_date = {}
+        
+    def post(self, topic, value):
+        sensorname = topic.split("_")[-1]
         data = {
             "name":sensorname,
             "iotToken":self.iot_token,
             "value":value,
         }
-        return self._upload("iot/upload", data)
-
-    def get(self, sensorname):
-        data = {
-            "name": sensorname,
-            "iotToken": self.iot_token,
-        }
-        value = self._upload("iot/get", data)
-        # (value)
-        return value
-
-# def test():
-#     from ezblock import print
-#     import random
+        log(str(topic))
+        log(data)
+        self.client.subscribe(topic)
+        self.client.publish(topic, json.dumps(data))
     
-#     __IOT_TOKEN__ = "6a31ef81850642d980fceb14a974e087XX1600395165796"
-#     __IOT__ = IOT(__IOT_TOKEN__, "raspberrypi")
-  
-#     print("%s"%(__IOT__.get("actuators#Switch#1")))
-#     __IOT__.post("actuators#Switch#1", (random.randint(1, 100)))
+    def on_message(self, client, userdata, msg):
+        date = msg.payload.decode()
+        print("Message Recieved. ", date)
+        date = json.loads(date)
+        # if date['name'] not in list(self.recv_date.keys()):
+        self.recv_date[str(date['name'])] = date["value"]
 
-# if __name__ == "__main__":
-#     test()
+        
+    def get(self, topic):
+        ip = getIP()
+        log('t %s'%(topic))
+        if ip:
+            self.client.subscribe(topic)
+            self.client.on_message=self.on_message 
+            self.client.loop_start()
+            if topic in list(self.recv_date.keys()):
+                return self.recv_date[topic]
+            return None
+        else:
+            run_command("sudo touch /home/pi/noip")
+
+
+def test():
+    import time
+    __IOT_TOKEN__ = "16227124370004660887403726913706840856139"
+    __IOT__ = IOT(__IOT_TOKEN__)
+
+
+    while True:
+        print("%s"%(__IOT__.get("com/iot/actuators_Button_1_a")))
+        print("%s"%('abc'))
+        time.sleep(1)
+        print("%s"%(__IOT__.get("com/iot/actuators_Slider_1_b")))
+        time.sleep(1)
+
+    # iot = IOT("16128573140003757843323708413916266436285")
+    # iot.post("com/iot/sensorsHumidity1Drr", 6.6)
+    # while True:
+        
+    #     iot.get("com/iot/sensorsHumidity1Drr")
+        
+    #     time.sleep(1)
+    
+if __name__ == "__main__":
+    test()
+
+
+        
+        

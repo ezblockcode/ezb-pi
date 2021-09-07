@@ -1,14 +1,11 @@
 from robot import Robot
 
-
-
 def mapping(x, in_min, in_max, out_min, out_max):
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
-
 class Sloth(Robot):
-  move_list = {
+    move_list = {
     "forward":[
       [0, 40, 0, 15],
       [-30, 40, -30, 15],
@@ -67,6 +64,11 @@ class Sloth(Robot):
       [0, 0, 0, 0]
     ],
 
+    "go up and down": [
+      [0, 50, 0, -50],
+      [0, 0, 0, 0],
+    ],
+
     "shake left": [
       [-40, 70, -40, 30],
       [-40, 30, -40, 30],
@@ -81,26 +83,28 @@ class Sloth(Robot):
     ],
 
     "shake right": [
-      [40, -30, 40, -70],
-      [40, -30, 40, -30],
+      [40, -25, 40, -70],
+      [40, -25, 40, -25],
 
-      [40, -30, 10, -30],
-      [40, -30, 40, -30],
-      [40, -30, 10, -30],
-      [40, -30, 40, -30],
+      [40, -25, 10, -25],
+      [40, -25, 40, -25],
+      [40, -25, 10, -25],
+      [40, -25, 40, -25],
 
-      [40, -30, 40, -70],
+      [40, -25, 40, -70],
       [0, 0, 0, 0],
     ],
 
-    "go up and down": [
+    "hook": [
       [0, 50, 0, -50],
-      [0, 0, 0, 0],
+    ],
+
+    "big swing": [
+      [0, -90, 0, 90],
     ],
 
     "swing": [
       [0, -40, 0, 40],
-      [0, 0, 0, 0],
     ],
 
     "walk boldly": [
@@ -143,36 +147,69 @@ class Sloth(Robot):
       [25, 0, -5, 0],
     ],
 
-    "big swing": [
-      [0, -90, 0, 90],
+
+    "stomp rihgt": [
+      [0, 15, 0, 0],
+      [0, 30, 0, -15],
+      [0, 15, 0, -30],
+      [0, 0, 0, -15],
       [0, 0, 0, 0],
+    ], 
+    "stomp left": [  
+      [0, 0, 0, -15],
+      [0, 15, 0, -30],
+      [0, 30, 0, -15],
+      [0, 15, 0, 0],
+      [0, 0, 0, 0]
     ],
 
-  }
+    "close": [
+      [30, 0, -30, 0],
+      # [0, 0, 0, 0]
+    ],
+    "open": [
+      [-30, 0, 30, 0],
+      # [0, 0, 0, 0]
+    ],
 
+    "tiptoe left":[
+      [-20, 35, -20, 15],
+      [-20, 15, -20, 15],
+    ],
 
+    "tiptoe right":[
+      [20, -15, 20, -35],
+      [20, -15, 20, -15],
+    ],
 
+    "fall left": [
+      [-40, 70, -40, 30],
+      [-40, 30, -40, 30],
+    ],
+    "fall right": [
+      [40, -30, 40, -70],
+      [40, -30, 40, -30],
+    ],
 
-  def do_action(self,motion_name, step=1, speed=50):
-    speed = mapping(speed, 0, 100, 0, 80)
-    for _ in range(step):
-        for motion in self.move_list[motion_name]:
-            self.servo_move(motion, speed)
+    }
 
-  def add_action(self,action_name,action_list):
-    if action_name not in self.move_list.keys():
-      self.move_list[action_name] = action_list
+    def do_action(self,motion_name, step=1, speed=None, bpm=None):
+        if bpm == None:
+            speed = 50 if speed == None else speed
+            # speed = mapping(speed, 0, 100, 0, 80)
+        for _ in range(step):
+            for motion in self.move_list[motion_name]:
+                if bpm != None:
+                    self.servo_move(motion, bpm=bpm)
+                else:
+                    self.servo_move(motion, speed=speed)
+
+    def add_action(self,action_name,action_list):
+        if action_name not in self.move_list.keys():
+            self.move_list[action_name] = action_list
 
 if __name__=="__main__":
-	a = Sloth([1,2,3,4])
-	while 1:
-		for i in a.move_list:
-			a.do_action(i,step=2,speed=100)
-	# a.do_action("turn right",step=2,speed=100)
-#   new_list_test = [
-#       [0, -90, 0, 90],
-#       [0, 0, 0, 0]
-#     ]
-#   a.add_action("test",new_list_test)
-#   while 1:
-#       a.do_action("test",speed=100)
+    a = Sloth([1,2,3,4])
+    while 1:
+        for i in a.move_list:
+            a.do_action(i,step=2,speed=100)

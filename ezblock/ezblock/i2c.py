@@ -1,5 +1,15 @@
 from .basic import _Basic_class
 from smbus import SMBus
+from .utils import run_command
+import json
+import time
+from multiprocessing import Value
+
+
+def log(msg):
+    msg = "I2C [{}] [DEBUG] {}".format(time.asctime(), msg)
+    run_command("echo {} >> /opt/ezblock/log".format(msg))
+    print(msg)
 
 class I2C(_Basic_class):
     MASTER = 0
@@ -8,9 +18,12 @@ class I2C(_Basic_class):
 
     def __init__(self, *args, **kargs):     # *args表示位置参数（形式参数），可无，； **kargs表示默认值参数，可无。
         super().__init__()
+
         self._bus = 1
         self._smbus = SMBus(self._bus)
 
+
+        
     def _i2c_write_byte(self, addr, data):   # i2C 写系列函数
         self._debug("_i2c_write_byte: [0x{:02X}] [0x{:02X}]".format(addr, data))
         return self._smbus.write_byte(addr, data)
@@ -31,6 +44,10 @@ class I2C(_Basic_class):
         self._debug("_i2c_read_byte: [0x{:02X}]".format(addr))
         return self._smbus.read_byte(addr)
 
+    def _i2c_read_word_data(self, addr, reg):
+        self._debug("_i2c_read_word_data: [0x{:02X}] [0x{:02X}]".format(addr, reg))
+        return self._smbus.read_word_data(addr, reg)
+    
     def _i2c_read_i2c_block_data(self, addr, reg, num):
         self._debug("_i2c_read_i2c_block_data: [0x{:02X}] [0x{:02X}] [{}]".format(addr, reg, num))
         return self._smbus.read_i2c_block_data(addr, reg, num)
@@ -61,6 +78,7 @@ class I2C(_Basic_class):
         return addresses
 
     def send(self, send, addr, timeout=0):                      # 发送数据，addr为从机地址，send为数据
+
         if isinstance(send, bytearray):
             data_all = list(send)
         elif isinstance(send, int):
@@ -95,6 +113,7 @@ class I2C(_Basic_class):
             self._i2c_write_i2c_block_data(addr, reg, data)
 
     def recv(self, recv, addr=0x00, timeout=0):     # 接收数据
+
         if isinstance(recv, int):                   # 将recv转化为二进制数
             result = bytearray(recv)
         elif isinstance(recv, bytearray):
@@ -103,6 +122,7 @@ class I2C(_Basic_class):
             return False
         for i in range(len(result)):
             result[i] = self._i2c_read_byte(addr)
+
         return result
 
     def mem_write(self, data, addr, memaddr, timeout=5000, addr_size=8): #memaddr match to chn

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from .i2c import I2C
+import time
 
 class ADC(I2C):
     ADDR=0x14                   # 扩展板的地址为0x14
@@ -18,7 +19,9 @@ class ADC(I2C):
         self.reg = 0x40 + self.chn
         # self.bus = smbus.SMBus(1)
         
-    def read(self):                     # adc通道读取数---写一次数据，读取两次数据 （读取的数据范围是0~4095）
+    def read(self): 
+
+        # adc通道读取数---写一次数据，读取两次数据 （读取的数据范围是0~4095）
         self._debug("Write 0x%02X to 0x%02X"%(self.chn, self.ADDR))
         # self.bus.write_byte(self.ADDR, self.chn)      # 写入数据
         self.send([self.chn, 0, 0], self.ADDR)

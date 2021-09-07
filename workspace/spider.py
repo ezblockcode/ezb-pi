@@ -121,11 +121,54 @@ class Spider(Robot):
             self.do_step(self.current_coord, speed=100)
             
         
-    # def cali_reset(self, leg):
-    #     offset = list(self.offset)
-    #     leg = leg - 1
-    #     offset[leg*3:(leg + 1)*3] = [0, 0, 0]
-    #     self.set_offset(offset)
+    def cali_helper_web(self, leg, pos, enter):
+        step=0.2
+        cali_position = []
+        cali_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
+
+        for coord in cali_coord: # each servo motion
+            alpha, beta, gamma = self.coord2polar(coord)
+            cali_position += [beta, alpha, gamma]
+
+        cali_position = [cali_position[i] + self.offset[i] for i in range(12)]
+        print("cali_position:",cali_position)
+
+        positive_list = [
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, 1, -1, 1, -1],
+            [-1, 1, 1, -1, 1, -1],
+            [-1, 1, -1, 1, 1, -1],
+        ]
+        
+        offset = list(self.offset)
+        leg = leg - 1
+        if pos == 'up':
+            self.current_coord[leg][1] += step * positive_list[leg][0]
+        elif pos == 'down':
+            self.current_coord[leg][1] += step * positive_list[leg][1]
+        elif pos == 'left':
+            self.current_coord[leg][0] += step * positive_list[leg][2]
+        elif pos == 'right':
+            self.current_coord[leg][0] += step * positive_list[leg][3]
+        elif pos == 'high':
+            self.current_coord[leg][2] += step * positive_list[leg][4]
+        elif pos == 'low':
+            self.current_coord[leg][2] += step * positive_list[leg][5]
+        
+        for coord in self.current_coord:
+            coord[0] = max(40, min(80, coord[0]))
+            coord[1] = max(-20, min(20, coord[1]))
+            coord[2] = max(-50, min(-10, coord[2]))
+        # print("coord:%s"%self.current_coord)
+        self.do_step(self.current_coord, speed=100)
+        current_position = self.do_step(self.current_coord, speed=100)
+        if enter == 1:
+            tmp = [current_position[i] - cali_position[i] + offset[i] for i in range(len(current_position))]
+            offset[leg*3:(leg + 1)*3] = tmp[leg*3:(leg + 1)*3]
+            self.current_coord[leg] = [60, 0, -30]
+            self.set_offset(offset)
+            self.do_step(self.current_coord, speed=100)
+            
     
 
     class MoveList(dict):
@@ -499,85 +542,9 @@ class Spider(Robot):
             _dance.append(self.move_body_absolute(0, 0, 0))
             return _dance
 
-# import sys
-# import tty
-# import termios
-# import asyncio
-
-# def readchar():
-#     fd = sys.stdin.fileno()
-#     old_settings = termios.tcgetattr(fd)
-#     try:
-#         tty.setraw(sys.stdin.fileno())
-#         ch = sys.stdin.read(1)
-#     finally:
-#         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-#     return ch
-
-# def readkey(getchar_fn=None):
-#     getchar = getchar_fn or readchar
-#     c1 = getchar()
-#     if ord(c1) != 0x1b:
-#         return c1
-#     c2 = getchar()
-#     if ord(c2) != 0x5b:
-#         return c1
-#     c3 = getchar()
-#     return chr(0x10 + ord(c3) - 65)
-
-
-# def test():
-#     sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
-#     sp.do_step([[62, 0, -30], [62, 0, -30], [62, 0, -30], [62, 0, -30]], 100)
-#     leg = 1
-#     while True:
-#         key = readkey()
-#         print(key)
-#         if key == "w":
-#             sp.cali_helper(leg, 1, 0, 0, 0, 0, 0, 0)
-#         elif key == "s":
-#             sp.cali_helper(leg, 0, 1, 0, 0, 0, 0, 0)
-#         elif key == "a":
-#             sp.cali_helper(leg, 0, 0, 1, 0, 0, 0, 0)
-#         elif key == "d":
-#             sp.cali_helper(leg, 0, 0, 0, 1, 0, 0, 0)
-#         elif key == "i":
-#             sp.cali_helper(leg, 0, 0, 0, 0, 1, 0, 0)
-#         elif key == "k":
-#             sp.cali_helper(leg, 0, 0, 0, 0, 0, 1, 0)
-#         elif key == " ":
-#             sp.cali_helper(leg, 0, 0, 0, 0, 0, 0, 1)
-#         elif key == "1":
-#             leg = 1
-#         elif key == "2":
-#             leg = 2
-#         elif key == "3":
-#             leg = 3
-#         elif key == "4":
-#             leg = 4
-#         elif key == "q":
-#             break
-#         time.sleep(0.05)
-
-# test()
 
 
 if __name__ == "__main__":
     sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
     sp.do_step([[50, 50, -20],[50, 50, -20],[50, 50, -20],[130, 0, 70]])
-    # sp.cali_reset(4)
-#     sp.add_action("action", [
-#             # [[0,150,-40],[0,150,-40],[0,150,-40],[0,150,-40],],
-#             [[0,150,-40],[150,0,-40],[0,150,-40],[0,130,30],],
-#             [[105,105,-40],[100,0,8],[0,130,30],[0,150,-40],],
-#             [[150,0,-40],[50,0,55],[0,150,-40],[0,130,30],],
-#             [[100,0,8],[0,50,55],[0,130,30],[0,150,-40],],
-#             [[50,0,55],[0,150,-40],[0,150,-40],[0,130,30],],
-#             [[0,50,55],[105,105,-40],[0,130,30],[0,150,-40],],                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-#             # [[0,150,-40],[150,0,-40],[0,130,30],[0,150,-40],],
-#             # [[150,0,-40],[50,0,55],[0,120,30],[0,150,-40],],
-            
-#         ])
-# #     sp.do_action("forward", speed=100)
-#     sp.do_action("action", step= 2, speed=100)
-#     # sp.do_action("forward", speed=100)
+   

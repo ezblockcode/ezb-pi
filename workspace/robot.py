@@ -7,22 +7,53 @@ class Robot():
     move_list = {}
     PINS = [None, "P0","P1","P2","P3","P4","P5","P6","P7","P8","P9","P10","P11"]
     # PINS = [None, "D0","D1","D2","D3","D6","D7","A8","A9","A10","A11","A12","A13"]
-    def __init__(self, pin_list, group=4, db='/opt/ezblock/config'):
+    def __init__(self, pin_list, group=4, db='/opt/ezblock/.config'):
         self.pin_list = []
+        pin_lenth_val = len(pin_list)
+        #print("pin_list:",pin_lenth_val)   
+        self.pin_num = pin_lenth_val  
+
+        if pin_lenth_val == 12:
+            self.db = fileDB(db=db)
+            self.list_name = 'spider_servo_offset_list'
+            temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
+            temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
+            self.offset = temp
+            #print(self.offset)
+        elif group == 3:
+            self.db = fileDB(db=db)
+            self.list_name = 'piarm_servo_offset_list'
+            temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
+            temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
+            self.offset = temp
+            #print(self.offset)
+
+        elif pin_lenth_val == 4:
+            self.db = fileDB(db=db)
+            self.list_name = 'sloth_servo_offset_list'
+            temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
+            temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
+            self.offset = temp
+            #print(self.offset)
+
         for i in range(0, len(pin_list), group):
             _pin_list = pin_list[i:i+group]
-            for pin in _pin_list:
-                pwm = PWM(self.PINS[pin])
+
+            for pin in range(len(_pin_list)):
+                pwm = PWM(self.PINS[_pin_list[pin]])
+                #print(self.PINS[_pin_list[pin]])
                 servo = Servo(pwm)
-                servo.angle(0)
+                servo.angle(self.offset[i * 1 + pin])
+                #print("offffffffffffffff:",self.offset[i * 1 + pin])
+                # servo.angle(self.offset[i * 1 + pin])
                 self.pin_list.append(servo)
             time.sleep(0.2)
-        self.pin_num = len(pin_list)
+        # self.pin_num = pin_lenth_val
         self.origin_positions = self.new_list(0)
-        self.db = fileDB(db=db)
-        temp = self.db.get('servo_offset_list', default_value=str(self.new_list(0)))
-        temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
-        self.offset = temp
+        # self.db = fileDB(db=db)
+        # temp = self.db.get('servo_offset_list', default_value=str(self.new_list(0)))
+        # temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
+        # self.offset = temp
         self.servo_positions = self.new_list(0)
         self.calibrate_position = self.new_list(0)
         self.direction = self.new_list(1)
@@ -55,7 +86,7 @@ class Robot():
         absdelta = []
         max_step = 0
         steps = []
-
+        # print("targets:",targets)
         for i in range(self.pin_num):
             value = targets[i] - self.servo_positions[i]
             delta.append(value)
@@ -83,7 +114,7 @@ class Robot():
     def set_offset(self,offset_list):
         offset_list = [ min(max(offset, -20), 20) for offset in offset_list]
         temp = str(offset_list)
-        self.db.set('servo_offset_list',temp)
+        self.db.set(self.list_name,temp)
         self.offset = offset_list
         # self.calibration()
         # self.reset()

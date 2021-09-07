@@ -1,8 +1,11 @@
 from .basic import _Basic_class
 # __print__ = print
 from .utils import getIP
-from .utils import print
 import time
+from os import system
+from .ble import BLE
+
+ble = BLE()
 # re-正则表达式
 class WiFi(_Basic_class):
     message = """
@@ -14,6 +17,9 @@ network={{
     psk="{}"
     key_mgmt=WPA-PSK
 }}"""
+    text = """
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1 """
 
     def __init__(self):
         self.country = ""
@@ -30,10 +36,9 @@ network={{
         with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:
             f.write(message)
         
-        for i in range(6):
-            if i != 0:
-                print('Timeout, retry (%s)...'%i)
-            self.run_command("wpa_cli -i wlan0 reconfigure")
+        for _ in range(3):
+            print("connet: ",_)
+            self.run_command("sudo wpa_cli -i wlan0 reconfigure")
             time.sleep(1)
             time_start = time.time()
             while True:
@@ -64,6 +69,12 @@ network={{
         # print(result != "OK")
         if result != "OK":
             print("Set country failed")
+            ble.write("Set country failed")
+            with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:
+                f.write(self.text)
+            self.run_command("sudo systemctl enable wpa_supplicant.service")
+            self.run_command("sudo systemctl restart dhcpcd")
+            # self.run_command("sudo service networking restart")
             return False
         _, result = self.run_command("wpa_cli -i wlan0 save_config")
         result = result.strip()
@@ -74,18 +85,22 @@ network={{
         self.run_command("hash rfkill")
         self.run_command("rfkill unblock wifi")
         self.country = country
+        # self.run_command("sudo service networking restart")
         print("Set country success")
         
 
     def write(self, country, ssid, psk):
+        # if commition failed   sudo systemctl enable wpa_supplicant.service  and reboot
         self.set_country(country)
         self.connect(ssid, psk)
 
 def test():
-    WiFi().write("CN", "MakerStarsHall_5G", "sunfounder")
-    # status, result = WiFi().run_command("iwgetid")
-    # result = result.split(":")[1].strip().strip('"')
-    # print(result)
+    # WiFi()
+    a = WiFi()
+    a.write("CN", "MakerStarsHall_5G", "sunfounder")
+    status, result = WiFi().run_command("iwgetid")
+    result = result.split(":")[1].strip().strip('"')
+    print(result)
 if __name__ == "__main__":
     test()
 

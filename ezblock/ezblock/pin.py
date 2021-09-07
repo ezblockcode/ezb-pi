@@ -34,6 +34,7 @@ class Pin(_Basic_class):
         "D15": 20,
         "D16": 21,
         "SW":  19,
+        "USR":  19,
         "LED": 26,
         "BOARD_TYPE": 12,
         "RST": 16,
@@ -61,6 +62,7 @@ class Pin(_Basic_class):
         "D15": 20,
         "D16": 21,
         "SW":  25, # Changed
+        "USR":  19,
         "LED": 26,
         "BOARD_TYPE": 12,
         "RST": 16,
@@ -133,15 +135,13 @@ class Pin(_Basic_class):
 
     def value(self, *value):
         if len(value) == 0:
-            if self._mode in [None, self.OUT]:
-                self.mode(self.IN)
+            self.mode(self.IN)
             result = GPIO.input(self._pin)
             self._debug("read pin %s: %s" % (self._pin, result))
             return result
         else:
             value = value[0]
-            if self._mode in [None, self.IN]:
-                self.mode(self.OUT)
+            self.mode(self.OUT)
             GPIO.output(self._pin, value)
             return value
 
@@ -159,14 +159,11 @@ class Pin(_Basic_class):
 
     def mode(self, *value):
         if len(value) == 0:
-            return (self._mode, self._pull)
+            return self._mode
         else:
-            self._mode = value[0]
-            if len(value) == 1:
-                GPIO.setup(self._pin, self._mode)
-            elif len(value) == 2:
-                self._pull = value[1]
-                GPIO.setup(self._pin, self._mode, self._pull)
+            mode = value[0]
+            self._mode = mode
+            GPIO.setup(self._pin, mode)
 
     def pull(self, *value):
         return self._pull

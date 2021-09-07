@@ -31,15 +31,22 @@ APT_INSTALL_LIST = [
     "libavformat-dev",
     "libswscale-dev",
     "libqtgui4",
+    "python3-flask",
+    "libzbar0",
     #"libttspico-utils",
 ]
 
 PIP_INSTALL_LIST = [
     "picamera",
     "gpiozero",
-    "websockets"
+    "paho-mqtt",
+    "websockets",
+    "pyzbar",
+    "pillow",
+    "pygame"
     #"opencv-python",
 ]
+
 
 def install():
     options = []
@@ -105,8 +112,9 @@ def install():
         cmd='run_command("sudo cp ./bin/ezblock-service /usr/bin")')
     do(msg="add excutable mode for ezblock-service",
         cmd='run_command("sudo chmod +x /usr/bin/ezblock-service")')
-    do(msg="copy libezblock file",
-        cmd='run_command("sudo cp ./lib/libezblock.so /usr/local/lib/python3.7/dist-packages")')
+    # do(msg="copy libezblock file",
+    #     cmd='run_command("sudo cp ./lib/libezblock.so /usr/local/lib/python3.7/dist-packages")')
+    
 
     print("Setup ezblock-reset service")
     do(msg="copy ezblock-reset file",
@@ -142,6 +150,9 @@ def install():
 
     do(msg="change owner to opt ezblock",
         cmd='run_command("sudo chown -R pi:pi /opt/ezblock/")')
+
+    do(msg="create .uspid_init_config file",
+        cmd='run_command("sudo touch /opt/ezblock/.uspid_init_config")')
 
     os.chdir("./ezblock")
     print("Install ezblock python package")

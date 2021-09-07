@@ -11,12 +11,17 @@ ble = BLE()
 
 __PRINT__ = print
 
-def print(msg, end='\n', tag='[DEBUG]'):
-    _msg = "Ezblock [{}] [DEBUG] {}".format(time.asctime(), msg)
-    os.system("echo {} >> /opt/ezblock/log".format(_msg))
-    msg = '%s %s %s' % (tag, msg, tag)
-    __PRINT__(msg, end=end)
-    ble.write(msg)
+# def print(msg, end='\n', tag='[DEBUG]'):
+#     _msg = "Ezblock [{}] [DEBUG] {}".format(time.asctime(), msg)
+#     os.system("echo {} >> /opt/ezblock/log".format(_msg))
+#     msg = '%s %s %s' % (tag, msg, tag)
+#     __PRINT__(msg, end=end)
+#     ble.write(msg)
+
+def log(msg,module_name='_',tag='DEBUG'):
+    msg = "{} [{}] [{}] {}".format(module_name,time.asctime(),tag, msg)
+    run_command("echo {} >> /opt/ezblock/log".format(msg))
+    print(msg)
 
 def delay(ms):
     time.sleep(ms/1000)

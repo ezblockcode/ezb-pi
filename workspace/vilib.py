@@ -7,14 +7,19 @@ import os
 from flask import Flask, render_template, Response
 from multiprocessing import Process, Manager
 import time
-# from utils import cpu_temperature
-# import imutils
-# from rgb_matrix import RGB_Matrix
-import tensorflow as tf 
+import tflite_runtime.interpreter as tflite
 from pyzbar import pyzbar
 import datetime
 
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+from PIL import Image, ImageDraw, ImageFont
+import threading
+from ezblock import run_command
 
+# face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+# face_recognizer.read("/home/pi/face_recognizer.yml")
+# master_name = ["","chentao","zhangguoliang"]
 
 traffic_num_list = [i for i in range(4)]
 ges_num_list = [i for i in range(3)]
@@ -30,16 +35,19 @@ ges_dict = dict(zip(ges_num_list,gesture_list))
 
 
 # test_image_dir = './ges_pic/'
+# traffic_sign_model_path = "/home/pi/sport_camera/example/tf_150_dr0.2.tflite"
+# gesture_model_path = "/home/pi/sport_camera/example/3bak_ges_200_dr0.2.tflite"
+
 traffic_sign_model_path = "/opt/ezblock/tf_150_dr0.2.tflite"
 gesture_model_path = "/opt/ezblock/3bak_ges_200_dr0.2.tflite"
-# gesture_model_path = "/opt/ezblock/mb1_gesture_200_dr0.2.tflite"
+# gesture_model_path = "/home/pi/sport_camera/example/mb1_gesture_200_dr0.2.tflite"
 
 
 
-interpreter_1 = tf.lite.Interpreter(model_path=traffic_sign_model_path)
+interpreter_1 = tflite.Interpreter(model_path=traffic_sign_model_path)
 interpreter_1.allocate_tensors()
 
-interpreter_2 = tf.lite.Interpreter(model_path=gesture_model_path)
+interpreter_2 = tflite.Interpreter(model_path=gesture_model_path)
 interpreter_2.allocate_tensors()
 
 # Get input and output tensors.
@@ -75,6 +83,7 @@ def get_png_frame():
 def gen():
     """Video streaming generator function."""
     while True:  
+        # start_time = time.time()
         # frame = cv2.imread("123.jpeg")Vilib.q.get()  
         # print("1")
         # if Vilib.conn2.recv()
@@ -84,6 +93,9 @@ def gen():
         frame = get_frame()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        time.sleep(0.03)
+        # end_time = time.time() - start_time
+        # print(int(1/end_time))
 
 @app.route('/mjpg')   ## video
 def video_feed():
@@ -98,7 +110,7 @@ def video_feed():
 def video_feed_jpg():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
-    # path = "/opt/ezblock/cali.jpg"
+    # path = "/home/pi/sport_camera/example/cali.jpg"
     response = Response(get_frame(), mimetype="image/jpeg")
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
@@ -107,7 +119,7 @@ def video_feed_jpg():
 def video_feed_png():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
-    # path = "/opt/ezblock/cali.jpg"
+    # path = "/home/pi/sport_camera/example/cali.jpg"
     response = Response(get_png_frame(), mimetype="image/png")
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
@@ -116,7 +128,7 @@ def video_feed_png():
 # def video_feed_jpg():
     # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
-    # path = "/opt/ezblock/cali.jpg"
+    # path = "/home/pi/sport_camera/example/cali.jpg"
     # return Response(get_qrcode_pictrue(), mimetype="image/jpeg") 
 # @app.route('/mjpg.jpg', methods=['post', 'get'])
 # def video_feed_jpg():
@@ -131,6 +143,82 @@ def video_feed_png():
 def web_camera_start():
     app.run(host='0.0.0.0', port=9000,threaded=True)
 
+EFFECTS = [ 
+    "none",
+    "negative",#
+    "solarize",#
+    # "sketch",
+    # "denoise",
+    "emboss",#
+    # "oilpaint",
+    # "hatch",
+    # "gpen",
+    # "pastel",
+    # "watercolor",
+    # "film",
+    # "blur",
+    # "saturation",
+    # "colorswap",
+    # "washedout",
+    "posterise",#
+    # "colorpoint",
+    # "colorbalance",
+    "cartoon",#
+    # "deinterlace1",
+    # "deinterlace2",
+]
+
+Camera_SETTING = [
+        "resolution",    #max(4056,3040)
+        #"framerate 
+        "rotation",      #(0 90 180 270)
+        # "shutter_speed",
+        "brightness",    # 0~100  default 50
+        "sharpness",    # -100~100  default 0
+        "contrast",    # -100~100  default 0
+        "saturation",    # -100~100  default 0
+        "iso",           #Vaild value:0(auto) 100,200,320,400,500,640,800
+        "exposure_compensation",       # -25~25  default 0
+        "exposure_mode",       #Valid values are: 'off', 'auto' (default),'night', 'nightpreview', 'backlight', 'spotlight', 'sports', 'snow', 'beach','verylong', 'fixedfps', 'antishake', or 'fireworks'
+        "meter_mode",     #Valid values are: 'average' (default),'spot', 'backlit', 'matrix'.
+        "awb_mode",       #'off', 'auto' (default), ‘sunlight', 'cloudy', 'shade', 'tungsten', 'fluorescent','incandescent', 'flash', or 'horizon'.
+        "hflip",          # Default:False ,True
+        "vflip",          # Default:False ,True
+        # "crop",           #Retrieves or sets the zoom applied to the camera’s input, as a tuple (x, y, w, h) of floating point
+                          #values ranging from 0.0 to 1.0, indicating the proportion of the image to include in the output
+                          #(the ‘region of interest’). The default value is (0.0, 0.0, 1.0, 1.0), which indicates that everything
+                          #should be included.
+]
+
+time_font = lambda x: ImageFont.truetype('/opt/ezblock/Roboto-Light-2.ttf', int(x / 320.0 * 6))
+text_font = lambda x: ImageFont.truetype('/opt/ezblock/Roboto-Light-2.ttf', int(x / 320.0 * 10))
+company_font = lambda x: ImageFont.truetype('/opt/ezblock/Roboto-Light-2.ttf', int(x / 320.0 * 8))
+
+
+def add_text_to_image(name, text_1):
+    # rgba_image = image.convert('RGB')
+    # text_overlay = Image.new('RGB', rgba_image.size, (255, 255, 255))
+    image_target = Image.open(name)
+
+    image_draw = ImageDraw.Draw(image_target)
+
+    
+    time_text = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    time_size_x, time_size_y = image_draw.textsize(time_text, font=time_font(image_target.size[0]))
+    text_size_x, text_size_y = image_draw.textsize(text_1, font=text_font(image_target.size[0]))
+
+  # 设置文本文字位置
+    # print(rgba_image)
+    time_xy = (image_target.size[0] - time_size_x - time_size_y, image_target.size[1] - int(1.5*time_size_y))
+    text_xy = (text_size_y, image_target.size[1] - int(1.5*text_size_y))
+    company_xy = (text_size_y, image_target.size[1] - int(1.5*text_size_y) - text_size_y)
+
+  # 设置文本颜色和透明度
+    image_draw.text(time_xy, time_text, font=time_font(image_target.size[0]), fill=(255, 255, 255))
+    image_draw.text(company_xy, text_1, font=text_font(image_target.size[0]), fill=(255, 255, 255))
+    # image_draw.text(text_xy, text_2, font=company_font(image_target.size[0]), fill=(255, 255, 255))
+    # run_command("sudo rm " + str(name))
+    image_target.save(name,quality=95,subsampling=0)# 
 
 
 class Vilib(object): 
@@ -154,7 +242,7 @@ class Vilib(object):
     roi = cv2.imread("/opt/ezblock/cali.jpg")
     roi_hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-    # obj_roi = cv2.imread("/opt/ezblock/object.jpg")
+    # obj_roi = cv2.imread("/home/pi/sport_camera/example/object.jpg")
     # h,w = obj_roi.shape[:2]
 
     # obj_hsv = cv2.cvtColor(obj_roi, cv2.COLOR_BGR2HSV)
@@ -179,8 +267,8 @@ class Vilib(object):
     # lower_color = np.array([min(color_dict[detect_obj_parameter['color_default']]), 60, 60])  
     # upper_color = np.array([max(color_dict[detect_obj_parameter['color_default']]), 255, 255])
 
-    detect_obj_parameter['color_x'] = 160
-    detect_obj_parameter['color_y'] = 120
+    detect_obj_parameter['color_x'] = 320
+    detect_obj_parameter['color_y'] = 240
     detect_obj_parameter['color_w'] = 0
     detect_obj_parameter['color_h'] = 0
     detect_obj_parameter['color_n'] = 0
@@ -189,23 +277,23 @@ class Vilib(object):
     
 
 #Human_obj_parameter
-    detect_obj_parameter['human_x'] = 160
-    detect_obj_parameter['human_y'] = 120
+    detect_obj_parameter['human_x'] = 320
+    detect_obj_parameter['human_y'] = 240
     detect_obj_parameter['human_w'] = 0
     detect_obj_parameter['human_h'] = 0
     detect_obj_parameter['human_n'] = 0
 
 #traffic_sign_obj_parameter
-    detect_obj_parameter['traffic_sign_x'] = 160
-    detect_obj_parameter['traffic_sign_y'] = 120
+    detect_obj_parameter['traffic_sign_x'] = 320
+    detect_obj_parameter['traffic_sign_y'] = 240
     detect_obj_parameter['traffic_sign_w'] = 0
     detect_obj_parameter['traffic_sign_h'] = 0
     detect_obj_parameter['traffic_sign_t'] = 'None'
     detect_obj_parameter['traffic_sign_acc'] = 0
 
 #gesture_obj_parameter
-    detect_obj_parameter['gesture_x'] = 160
-    detect_obj_parameter['gesture_y'] = 120
+    detect_obj_parameter['gesture_x'] = 320
+    detect_obj_parameter['gesture_y'] = 240
     detect_obj_parameter['gesture_w'] = 0
     detect_obj_parameter['gesture_h'] = 0
     detect_obj_parameter['gesture_t'] = 'None'
@@ -224,8 +312,8 @@ class Vilib(object):
 
 #QR_code
     detect_obj_parameter['qr_data'] = "None"
-    detect_obj_parameter['qr_x'] = 160
-    detect_obj_parameter['qr_y'] = 120
+    detect_obj_parameter['qr_x'] = 320
+    detect_obj_parameter['qr_y'] = 240
     detect_obj_parameter['qr_w'] = 0
     detect_obj_parameter['qr_h'] = 0
 #video
@@ -245,7 +333,37 @@ class Vilib(object):
     # color_dict = {'red':[0,4],'orange':[5,18],'yellow':[22,37],'green':[42,85],'blue':[92,110],'purple':[115,165],'red_2':[166,180]}
     # lower_color = np.array([min(color_dict[detect_obj_parameter['color_default']]), 60, 60])  
     # upper_color = np.array([max(color_dict[detect_obj_parameter['color_default']]), 255, 255])
+    detect_obj_parameter['video_flag'] = None
 
+    detect_obj_parameter['ensure_flag'] = False
+    detect_obj_parameter['clarity_val'] = 0
+
+#diy
+    detect_obj_parameter['human_n'] = 0
+    # detect_obj_parameter['hdf_flag'] = False
+
+#picture
+    detect_obj_parameter['eff'] = 0
+    detect_obj_parameter['setting'] = 0
+    detect_obj_parameter['setting_flag'] = False
+    detect_obj_parameter['setting_val'] = 0
+    # detect_obj_parameter['current_setting_val'] = None
+    detect_obj_parameter['setting_resolution'] = (3840,2880)
+    detect_obj_parameter['change_setting_flag'] = False
+    detect_obj_parameter['change_setting_type'] = 'None'
+    detect_obj_parameter['change_setting_val'] = 0
+
+    detect_obj_parameter['photo_button_flag'] = False
+    detect_obj_parameter['content_length'] = 0
+    detect_obj_parameter['content_num'] = 0
+    detect_obj_parameter['process_content_1'] = []
+    detect_obj_parameter['process_si'] = []
+    # detect_obj_parameter['process_dict'] = {}
+
+    detect_obj_parameter['watermark_flag'] = True
+    detect_obj_parameter['camera_flip'] = False
+    detect_obj_parameter['watermark'] = "Shot by Picar-x"
+    # detect_obj_parameter['google_upload_flag'] = False
 
     rt_img = np.ones((320,240),np.uint8)
     front_view_img = np.zeros((240,320,3), np.uint8)
@@ -256,6 +374,158 @@ class Vilib(object):
     # img_array = rt_img
     vi_img = np.ones((320,240),np.uint8)  
 
+
+    # @staticmethod
+    # def clarity_val():
+    #     return Vilib.detect_obj_parameter['clarity_val']
+
+
+    # @staticmethod
+    # def camera_start():
+        # from multiprocessing import Process
+        
+        
+        # worker_2 = Process(name='worker 2',target=Ras_Cam.camera_clone)
+        # worker_1 = Process(name='worker 1',target=dis)
+        # worker_3 = Process(name='worker 3',target=web_camera_start)
+        # worker_1.start()
+        # worker_2.start()
+        # worker_3.start()
+
+    # @staticmethod
+    # def gamma_method(img):
+    #     (b, g, r) = cv2.split(img)
+    #     b_mean = np.mean(b)
+    #     g_mean = np.mean(g)
+    #     r_mean = np.mean(r)
+        
+    #     b_gamma_val = math.log10(0.5)/math.log10(b_mean/255)
+    #     g_gamma_val = math.log10(0.5)/math.log10(g_mean/255)
+    #     r_gamma_val = math.log10(0.5)/math.log10(r_mean/255)
+
+    #     b_gamma_table = [np.power(x / 255.0, b_gamma_val) * 255.0 for x in range(256)]  # 建立映射表
+    #     g_gamma_table = [np.power(x / 255.0, g_gamma_val) * 255.0 for x in range(256)]  # 建立映射表
+    #     r_gamma_table = [np.power(x / 255.0, r_gamma_val) * 255.0 for x in range(256)]  # 建立映射表
+
+    #     b_gamma_table = np.round(np.array(b_gamma_table)).astype(np.uint8)  # 颜色值为整数
+    #     g_gamma_table = np.round(np.array(g_gamma_table)).astype(np.uint8)  # 颜色值为整数
+    #     r_gamma_table = np.round(np.array(r_gamma_table)).astype(np.uint8)  # 颜色值为整数
+
+    #     bh = cv2.LUT(b, b_gamma_table)  # 图片颜色查表。另外可以根据光强（颜色）均匀化原则设计自适应算法。   
+    #     gh = cv2.LUT(g, g_gamma_table)  # 图片颜色查表。另外可以根据光强（颜色）均匀化原则设计自适应算法。   
+    #     rh = cv2.LUT(r, r_gamma_table)  # 图片颜色查表。另外可以根据光强（颜色）均匀化原则设计自适应算法。   
+
+
+    #     # cv2.normalize(b,b, 0, 255, cv2.NORM_MINMAX)
+    #     # cv2.normalize(g,g, 0, 255, cv2.NORM_MINMAX)
+    #     # cv2.normalize(r,r, 0, 255, cv2.NORM_MINMAX)
+    #     # #归一化
+    #     # bh= cv2.convertScaleAbs(b)
+    #     # gh= cv2.convertScaleAbs(g)
+    #     # rh= cv2.convertScaleAbs(r)
+    #     # #将格式从uint16转为uint8
+
+    #     # fgamma = 120.0
+    #     # img_gamma = np.power((bh/255.0),1/fgamma)*255.0
+    #     # img_gamma = np.power((gh/255.0),1/fgamma)*255.0
+    #     # img_gamma = np.power((rh/255.0),1/fgamma)*255.0
+
+    #     img = cv2.merge((bh, gh, rh))
+        
+    #     return img
+
+    @staticmethod
+    def photo_effect(shirt_way = 'Shift_left'):
+        print(shirt_way)
+        shirt_way = str(shirt_way)
+        if shirt_way == 'Shift_left':
+            Vilib.detect_obj_parameter['eff'] += 1
+            if Vilib.detect_obj_parameter['eff'] >= len(EFFECTS):
+                Vilib.detect_obj_parameter['eff'] = 0
+        elif shirt_way == 'Shift_right':
+            Vilib.detect_obj_parameter['eff'] -= 1
+            if Vilib.detect_obj_parameter['eff'] < 0:
+                Vilib.detect_obj_parameter['eff'] = len(EFFECTS) - 1
+        else:
+            raise Exception("parameter error!")
+
+
+    # @staticmethod
+    # def change_show_setting(shirt_way = 'None'):
+    #     global button_motion
+    #     if shirt_way == 'Shift_left':
+    #         Vilib.detect_obj_parameter['setting'] += 1
+    #         if Vilib.detect_obj_parameter['setting'] >= len(Camera_SETTING):
+    #             Vilib.detect_obj_parameter['setting'] = 0
+
+    #     elif shirt_way == 'Shift_right':
+    #         Vilib.detect_obj_parameter['setting'] -= 1
+    #         if Vilib.detect_obj_parameter['setting'] < 0:
+    #             Vilib.detect_obj_parameter['setting'] = len(Camera_SETTING) - 1
+
+    #     elif shirt_way == 'None':
+    #         pass
+
+    #     else:
+    #         raise Exception("parameter error!")
+
+
+    #     # print(Camera_SETTING[Ras_Cam.detect_obj_parameter['setting']])
+    #     if type(Vilib.detect_obj_parameter['setting_val']) == str:
+    #         Vilib.detect_obj_parameter['setting_val'] = "'" + Vilib.detect_obj_parameter['setting_val'] + "'"
+    #     return Camera_SETTING[Vilib.detect_obj_parameter['setting']], Vilib.detect_obj_parameter['setting_val']
+
+
+
+    # @staticmethod
+    # def google_upload(flag):
+    #     # global button_motion
+    #     Ras_Cam.detect_obj_parameter['google_upload_flag'] = flag
+
+    @staticmethod
+    def video_flag(flag):
+        # global button_motion
+        Vilib.detect_obj_parameter['video_flag'] = flag
+
+    # @staticmethod
+    # def show_content(id_num,content,content_coordinate,content_color,font_size):
+
+    #     cmd_test = "Vilib.detect_obj_parameter['process_content_" + str(id_num) + "'" + "] = [" + "'" + str(content) + "'" + "," + str(content_coordinate)+","+str(content_color)+","+str(font_size)+"]"
+    #     exec(cmd_test)
+    #     if id_num > Vilib.detect_obj_parameter['content_num']:
+    #         Vilib.detect_obj_parameter['content_num'] = id_num
+
+    @staticmethod
+    def watermark(watermark = "Shot by Picar-x"):
+        # global button_motion
+        watermark = str(watermark)
+        Vilib.detect_obj_parameter['watermark_flag'] = True
+        Vilib.detect_obj_parameter['watermark'] = watermark
+
+    @staticmethod
+    def show_setting(flag):
+        # global button_motion
+
+        Vilib.detect_obj_parameter['setting_flag'] = flag
+        # button_motion = 'free'
+
+    @staticmethod
+    def change_setting_type_val(setting_type,setting_val):
+        # global button_motion
+        if setting_type == 'resolution':
+            Vilib.detect_obj_parameter['setting_resolution'] = setting_val
+        else:
+            Vilib.detect_obj_parameter['change_setting_type'] = setting_type
+            Vilib.detect_obj_parameter['change_setting_val'] = setting_val
+            Vilib.detect_obj_parameter['change_setting_flag'] = True
+
+
+    @staticmethod
+    def shuttle_button():
+        # global button_motion
+        Vilib.detect_obj_parameter['photo_button_flag']  = True
+        # button_motion = 'free'
+        
 
     @staticmethod
     def make_qrcode_picture(data):
@@ -268,10 +538,10 @@ class Vilib(object):
     def color_detect_object(obj_parameter):
         if obj_parameter == 'x':
             # print(Vilib.detect_obj_parameter['x'])          
-            return int(Vilib.detect_obj_parameter['color_x']/107.0)-1
+            return int(Vilib.detect_obj_parameter['color_x']/214.0)-1
         elif obj_parameter == 'y':
             # print(Vilib.detect_obj_parameter['y']) 
-            return -1*(int(Vilib.detect_obj_parameter['color_y']/80.1)-1) #max_size_object_coordinate_y
+            return -1*(int(Vilib.detect_obj_parameter['color_y']/160.2)-1) #max_size_object_coordinate_y
         elif obj_parameter == 'width':
             return Vilib.detect_obj_parameter['color_w']   #objects_max_width
         elif obj_parameter == 'height':
@@ -284,10 +554,10 @@ class Vilib(object):
     def human_detect_object(obj_parameter):
         if obj_parameter == 'x':
             # print(Vilib.detect_obj_parameter['x'])          
-            return int(Vilib.detect_obj_parameter['human_x']/107.0)-1
+            return int(Vilib.detect_obj_parameter['human_x']/214.0)-1
         elif obj_parameter == 'y':
             # print(Vilib.detect_obj_parameter['y']) 
-            return -1*(int(Vilib.detect_obj_parameter['human_y']/80.1)-1) #max_size_object_coordinate_y
+            return -1*(int(Vilib.detect_obj_parameter['human_y']/160.2)-1) #max_size_object_coordinate_y
         elif obj_parameter == 'width':
             return Vilib.detect_obj_parameter['human_w']   #objects_max_width
         elif obj_parameter == 'height':
@@ -300,10 +570,10 @@ class Vilib(object):
     def traffic_sign_detect_object(obj_parameter):
         if obj_parameter == 'x':
             # print(Vilib.detect_obj_parameter['x'])          
-            return int(Vilib.detect_obj_parameter['traffic_sign_x']/107.0)-1
+            return int(Vilib.detect_obj_parameter['traffic_sign_x']/214.0)-1
         elif obj_parameter == 'y':
             # print(Vilib.detect_obj_parameter['y']) 
-            return -1*(int(Vilib.detect_obj_parameter['traffic_sign_y']/80.1)-1) #max_size_object_coordinate_y
+            return -1*(int(Vilib.detect_obj_parameter['traffic_sign_y']/160.2)-1) #max_size_object_coordinate_y
         elif obj_parameter == 'width':
             return Vilib.detect_obj_parameter['traffic_sign_w']   #objects_max_width
         elif obj_parameter == 'height':
@@ -320,10 +590,10 @@ class Vilib(object):
     def gesture_detect_object(obj_parameter):
         if obj_parameter == 'x':
             # print(Vilib.detect_obj_parameter['x'])          
-            return int(Vilib.detect_obj_parameter['gesture_x']/107.0)-1
+            return int(Vilib.detect_obj_parameter['gesture_x']/214.0)-1
         elif obj_parameter == 'y':
             # print(Vilib.detect_obj_parameter['y']) 
-            return -1*(int(Vilib.detect_obj_parameter['gesture_y']/80.1)-1) #max_size_object_coordinate_y
+            return -1*(int(Vilib.detect_obj_parameter['gesture_y']/160.2)-1) #max_size_object_coordinate_y
         elif obj_parameter == 'width':
             return Vilib.detect_obj_parameter['gesture_w']   #objects_max_width
         elif obj_parameter == 'height':
@@ -335,13 +605,13 @@ class Vilib(object):
         return 'none'
 
     @staticmethod
-    def qrcode_detect_object(obj_parameter):
+    def qrcode_detect_object(obj_parameter = 'data'):
         if obj_parameter == 'x':
             # print(Vilib.detect_obj_parameter['x'])          
-            return int(Vilib.detect_obj_parameter['qr_x']/107.0)-1
+            return int(Vilib.detect_obj_parameter['qr_x']/214.0)-1
         elif obj_parameter == 'y':
             # print(Vilib.detect_obj_parameter['y']) 
-            return -1*(int(Vilib.detect_obj_parameter['qr_y']/80.1)-1) #max_size_object_coordinate_y
+            return -1*(int(Vilib.detect_obj_parameter['qr_y']/160.2)-1) #max_size_object_coordinate_y
         elif obj_parameter == 'width':
             return Vilib.detect_obj_parameter['qr_w']   #objects_max_width
         elif obj_parameter == 'height':
@@ -356,24 +626,56 @@ class Vilib(object):
         Vilib.detect_obj_parameter['color_default'] = color_name
         Vilib.detect_obj_parameter['lower_color'] = np.array([min(Vilib.color_dict[Vilib.detect_obj_parameter['color_default']]), 60, 60])  
         Vilib.detect_obj_parameter['upper_color'] = np.array([max(Vilib.color_dict[Vilib.detect_obj_parameter['color_default']]), 255, 255])
+        Vilib.detect_obj_parameter['cdf_flag']  = True
         # Vilib.detect_obj_parameter['color_x'] = 160
         # Vilib.detect_obj_parameter['color_y'] = 120
         # Vilib.detect_obj_parameter['color_w'] = 0
         # Vilib.detect_obj_parameter['color_h'] = 0
         # Vilib.detect_obj_parameter['color_n'] = 0
 
+
+
     @staticmethod
-    def camera_start(web_func = True):
-        from multiprocessing import Process
-        # Vilib.conn1, Vilib.conn2 = Pipe()
-        # Vilib.q = Queue()
-        
-        
-        worker_2 = Process(name='worker 2',target=Vilib.camera_clone)
-        if web_func == True:
-            worker_1 = Process(name='worker 1',target=web_camera_start)
+    def camera_start(web_func = True,inverted_flag = False):
+        # from multiprocessing import Process
+
+        if inverted_flag == True:
+            Vilib.detect_obj_parameter['camera_flip'] = True
+        else:
+            Vilib.detect_obj_parameter['camera_flip'] = False
+
+        worker_2 = threading.Thread(target=Vilib.camera_clone, name="Thread1")
+        # worker_2.setDaemon(True)
+        if web_func == True: 
+            worker_1 = threading.Thread(name='worker 1',target=web_camera_start)
+            # worker_1.setDaemon(True)
             worker_1.start()
+            # print("worker_1:",worker_1.pid)
         worker_2.start()
+        # # print("worker_2:",worker_2.pid)
+
+
+        # if inverted_flag == True:
+        #     Vilib.detect_obj_parameter['camera_flip'] = True
+        # else:
+        #     Vilib.detect_obj_parameter['camera_flip'] = False
+
+        # worker_2 = Process(target=Vilib.camera_clone, name="Thread1")
+        # worker_2.daemon = True
+        # if web_func == True: 
+        #     worker_1 = Process(name='worker 1',target=web_camera_start)
+        #     worker_1.daemon = True
+        #     worker_1.start()
+        #     print("worker_1:",worker_1.pid)
+        # worker_2.start()
+        # print("worker_2:",worker_2.pid)
+        # timer.start()
+        
+        # worker_2 = Process(name='worker 2',target=Vilib.camera_clone)
+        # if web_func == True:
+        #     worker_1 = Process(name='worker 1',target=web_camera_start)
+        #     worker_1.start()
+        # worker_2.start()
         # if web_func == True:
         #     print("1")
         #     # from flask_camera import web_camera_start
@@ -420,229 +722,185 @@ class Vilib(object):
 
     @staticmethod
     def camera():
-        # from PIL import Image
-        # rm = RGB_Matrix(0X74)  #RGB
-        # k_img = []   
-        camera = cv2.VideoCapture(Vilib.video_source)
-        # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        global effect
+        camera = PiCamera()
+        camera.resolution = (640, 480)
+        camera.image_effect = EFFECTS[Vilib.detect_obj_parameter['eff']]
+        camera.framerate = 24
+        camera.rotation = 0
+        # camera.rotation = 180   
+        camera.brightness = 50    #(0 to 100)
+        camera.sharpness = 0      #(-100 to 100)
+        camera.contrast = 0       #(-100 to 100)
+        camera.saturation = 0     #(-100 to 100)
+        camera.iso = 0            #(automatic)(100 to 800)
+        camera.exposure_compensation = 0   #(-25 to 25)
+        camera.exposure_mode = 'auto'
+        camera.meter_mode = 'average'
+        camera.awb_mode = 'auto'
+        camera.hflip = False
+        camera.vflip = Vilib.detect_obj_parameter['camera_flip']
+        camera.crop = (0.0, 0.0, 1.0, 1.0)
+        rawCapture = PiRGBArray(camera, size=camera.resolution)  
+        last_e ='none'
+        camera_val = 0
+        last_show_content_list = []
+        show_content_list = []
+        change_type_val  = []
+        change_type_dict = {"shutter_speed":0,"resolution":[2592,1944], "brightness":50, "contrast":0, "sharpness":0, "saturation":0, "iso":0, "exposure_compensation":0, "exposure_mode":'auto', \
+            "meter_mode":'average' ,"rotation":0 ,"awb_mode":'auto',"drc_strength":'off',"hflip":False,"vflip":True}
+        start_time = 0
+        end_time = 0
+        # camera.framerate = 10
+        # 
+        try:
+            while True:
 
-        camera.set(3,320)
-        camera.set(4,240)
-        # camera.set(5,80)
-        width = int(camera.get(3))
-        height = int(camera.get(4))
-        # camera.set(cv2.CAP_PROP_FPS,30)
-        # M = cv2.getRotationMatrix2D((width / 2, height / 2), 180, 1)
-        # print("fps:",camera.get(5))
-        camera.set(cv2.CAP_PROP_BUFFERSIZE,1)
-        cv2.setUseOptimized(True)
-        # fps = camera.get(cv2.CAP_PROP_FPS)
 
-        # pj_img = cv2.imread("javars.png") 
-        # pj_img = cv2.resize(pj_img, (320, 240), interpolation=cv2.INTER_LINEAR)
-        
-        # print(Vilib.front_view_img.shape)
-        # front_view_coor_1 = ()
-        # front_view_coor_2 = ()
-        # video_recorder = cv2.VideoWriter('./video_file/buffer.avi', fourcc, Vilib.detect_obj_parameter['vi_fps'], (320, 240))
-        # current_video_path = Vilib.detect_obj_parameter['video_path'] 
-
-        # wait_fp = 0
-        while True:
-            # start_time = cv2.getTickCount()
-            _, img = camera.read()
-            # print(fps)
-
-            bak_img = img.copy()
-            img = Vilib.gesture_calibrate(img)
-            img = Vilib.traffic_detect(img)
-            img = Vilib.color_detect_func(img)
-            img = Vilib.human_detect_func(img)
-            img = Vilib.gesture_recognition(img)
-            img = Vilib.qrcode_detect_func(img)
-            # img = Vilib.object_follow(img)
-
-            # small_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            # red_mask_1 = cv2.inRange(small_hsv,(0,50,20), (4,255,255))           # 3.inRange()：介于lower/upper之间的为白色，其余黑色
-            # red_mask_2 = cv2.inRange(small_hsv,(167,50,20), (180,255,255))
-            # red_mask_all = cv2.bitwise_or(red_mask_1,red_mask_2)
-
-            # # new_binary = cv2.GaussianBlur(red_mask_all, (5, 5), 0)
-
-            # open_img = cv2.morphologyEx(red_mask_all, cv2.MORPH_OPEN,Vilib.kernel_5,iterations=1)              #开运算 
-            # open_img = cv2.dilate(open_img, Vilib.kernel_5,iterations=5) 
-            # # open_img = cv2.morphologyEx(open_img, cv2.MORPH_OPEN,Vilib.kernel_5,iterations=1)
-
-            # blue_contours, hierarchy = cv2.findContours(open_img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)          ####在binary中发现轮廓，轮廓按照面积从小到大排列
-                                
-            # contours_count = len(blue_contours)
-            # # print(contours_count)
-            # blue_contours = sorted(blue_contours,key = Vilib.cnt_area, reverse=True)
-            # if contours_count >=1:
-            #     # for cnt in range(contours_count):
-            #                     # print("contours:",contours_count)
-            #     blue_contours = sorted(blue_contours,key = Vilib.cnt_area, reverse=True)
-                                
-            #                     # cv2.drawContours(img,contours,0,(0,0,255),3)
-            #                     # print(len(blue_contours[0]))
-                                
-            #     epsilon = 0.02 * cv2.arcLength(blue_contours[0], True)
-            #     approx = cv2.approxPolyDP(blue_contours[0], epsilon, True)
-            #     cv2.drawContours(img,blue_contours,0,(0,0,255),3)
-
-            #                     #     # 分析几何形状
-            #     corners = len(approx)
-                                        
-            #                         #     # shape_type = ""
-            #                         #     cv2.drawContours(img,blue_contours,0,(0,0,255),1)
-            #     print(corners)
-            # Vilib.video_record(img)
-
-                
-            # if Vilib.detect_obj_parameter['video_flag'] == True:
-            #     if Vilib.detect_obj_parameter['video_path'] != current_video_path:
-            #         current_video_path = Vilib.detect_obj_parameter['video_path']
-            #         video_recorder = cv2.VideoWriter(Vilib.detect_obj_parameter['video_path'], fourcc, Vilib.detect_obj_parameter['vi_fps'], (320, 240))
+                for frame in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):# use_video_port=True
                     
-            #     print('start')
-            #     # print(Vilib.detect_obj_parameter['video_path'])
-            #     print(Vilib.detect_obj_parameter['video_path'])
-            #     video_recorder.write(img)
-
-            # Vilib.video_recorder.write(img)
-            # img = cv2.warpAffine(img, M, (320, 240))
-            # Vilib.front_view_img =img.copy()
-            
-### main
-            # human_img = Vilib.human_detect_func(img)
-            # color_img = Vilib.color_detect_func(human_img)
-            # img = Vilib.gesture_recognition(img)
-
-            if Vilib.detect_obj_parameter['picture_flag'] == True: 
-                if Vilib.detect_obj_parameter['process_picture'] == True: 
-                    # print(Vilib.detect_obj_parameter['process_picture'])
-                    Vilib.take_photo(img)
-                else:
-                    # print(Vilib.detect_obj_parameter['process_picture'])
-                    Vilib.take_photo(bak_img)
-
-
-            Vilib.img_array[0] = img
-            # end_time = cv2.getTickCount()
-            # print(int(1/((end_time - start_time) / cv2.getTickFrequency())))
-            # Vilib.refresh_fps(start_time,end_time)
-
-            # img = Vilib.new_color_detect(img)
-            # print(Vilib.color_detect_func(img).shape)
-            # front_view_coor_1 = (Vilib.detect_obj_parameter['color_x'], Vilib.detect_obj_parameter['color_y'])
-            # front_view_coor_2 = (Vilib.detect_obj_parameter['color_x']+40, Vilib.detect_obj_parameter['color_y']+40)
-            # cv2.rectangle(Vilib.front_view_img, front_view_coor_1, front_view_coor_2, (255, 144, 30), -1)
-            # cv2.rectangle(Vilib.front_view_img, (0,0), (320,20), (46,139,87), -1)
-            # cv2.putText(Vilib.front_view_img,"temp: "+str(cpu_temperature()),(0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(0,0,255),1,cv2.LINE_AA)
-            # cv2.putText(Vilib.front_view_img,'hello world!',(160,160), cv2.FONT_HERSHEY_SIMPLEX, 1.5,(255,255,255),2, cv2.LINE_AA)
-           # cv2.line(Vilib.front_view_img, (Vilib.detect_obj_parameter['color_x'], Vilib.detect_obj_parameter['color_y']), (120, 200), (255, 144, 30), 5)
-            # Vilib.img_array[0] = cv2.addWeighted(img, 0.5, Vilib.front_view_img, 0.5, 0)
-
-
-### photo picture
-            # Vilib.img_array[0] = color_img
-
-            # if Vilib.detect_obj_parameter['video_flag'] == True:
-               
-            #     if Vilib.detect_obj_parameter['new_video'] == True:
-            #         video_recorder = cv2.VideoWriter('./video_file/buffer.avi', fourcc, Vilib.detect_obj_parameter['vi_fps'], (320, 240))
-            #     else:
-            #         if Vilib.detect_obj_parameter['video_path'] != current_video_path:
-            #             # print('init:',Vilib.detect_obj_parameter['vi_fps'])
-            #             # print(Vilib.detect_obj_parameter['video_path'])
-            #             current_video_path = Vilib.detect_obj_parameter['video_path']
-            #             video_recorder = cv2.VideoWriter(Vilib.detect_obj_parameter['video_path'], fourcc,Vilib.detect_obj_parameter['vi_fps'], (320, 240))
-            #             wait_fp = 0
-
-            #     if  wait_fp >=4:
-            #         Vilib.detect_obj_parameter['new_video'] = False
-            #     else:
-            #         wait_fp += 1
-                
-            #     print("process_video:",Vilib.detect_obj_parameter['process_video'])
-            #     if Vilib.detect_obj_parameter['process_video'] == True:
-            #         video_recorder.write(color_img)
-            #     else:
-            #         video_recorder.write(bak_img)
-            #     # print(Vilib.detect_obj_parameter['vi_fps'])
-            #     # if wait_fp >=5:
-            #     #     video_recorder.write(img)
-
-            #         # print('fps:',Vilib.detect_obj_parameter['vi_fps'])
-            #         # if Vilib.detect_obj_parameter['video_path'] != current_video_path:
-            #         #     print(Vilib.detect_obj_parameter['video_path'])
-            #         #     current_video_path = Vilib.detect_obj_parameter['video_path']
-            #         #     video_recorder = cv2.VideoWriter(Vilib.detect_obj_parameter['video_path'], fourcc,Vilib.detect_obj_parameter['vi_fps'], (320, 240))
-            #             # Vilib.detect_obj_parameter['new_video'] = True
-            #         # wait_fp = 0
-
+                    start_time = time.time()
+                    img = frame.array
+                    # img2gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    # Vilib.detect_obj_parameter['clarity_val'] = round(cv2.Laplacian(img2gray, cv2.CV_64F).var(),2)
+                    # img = Vilib.human_detect_func(img)
+                    # img = Vilib.gamma_method(img)
+                    img = Vilib.gesture_calibrate(img)
+                    img = Vilib.traffic_detect(img)
+                    img = Vilib.color_detect_func(img)
+                    img = Vilib.human_detect_func(img)
+                    img = Vilib.gesture_recognition(img)
+                    img = Vilib.qrcode_detect_func(img)
+                    # cv2.rectangle(img, (280,10), (310,20), (255,255,255))
+                    # cv2.rectangle(img, (310,13), (311,17), (255,255,255))
+                    # cv2.rectangle(img, (282,12), (int((1-round(4.3 - power_val(),3)) / 1 * 26 + 282),18), (0,255,0),thickness=-1)
                     
-            #     # else:
-            #     #     print('fake_fps:',Vilib.detect_obj_parameter['vi_fps'])
-            #     #     video_recorder.write(img)
+                    # change_camera_setting
+                    if Vilib.detect_obj_parameter['change_setting_flag'] == True:
+                        Vilib.detect_obj_parameter['change_setting_flag'] = False
 
-            # # else:
-            # #     wait_fp = 0
-            #     # Vilib.detect_obj_parameter['last_video_flag'] = False
+                        change_setting_cmd = "camera." + Vilib.detect_obj_parameter['change_setting_type'] + '=' + str(Vilib.detect_obj_parameter['change_setting_val'])
+                        print(change_setting_cmd)
+                        exec(change_setting_cmd)
+                        # change_type_dict[Vilib.detect_obj_parameter['change_setting_type']] = Vilib.detect_obj_parameter['change_setting_val']
+                        # change_type_val.append(change_setting_cmd)
+                        change_type_dict[Vilib.detect_obj_parameter['change_setting_type']] = Vilib.detect_obj_parameter['change_setting_val']
+                    if Vilib.detect_obj_parameter['content_num'] != 0:
 
-            # if Vilib.detect_obj_parameter['process_picture'] == True: 
-            #     Vilib.take_photo(img)
-            #     Vilib.take_photo(color_img)
-            # else:
-            #     Vilib.take_photo(bak_img)
-
-            # end_time = cv2.getTickCount()
-            # Vilib.refresh_fps(start_time,end_time)
-            # # cv2.rectangle(Vilib.front_view_img, (0, 0), (320, 240), (255, 144, 30), 40)
-            # # k_img = list(Image.fromarray(cv2.cvtColor(Vilib.img_array[0],cv2.COLOR_BGR2RGB)).getdata())#opencv转PIL
-            # # rm.image(k_img)
-
-            # # Vilib.img_array[0] = cv2.addWeighted(Vilib.color_detect_func(img), 0.9, pj_img, 0.1, 0)
-
-
-            # # if w == True:
-            # #     q.send(Vilib.vi_img)
-
-### video
-
-    # @staticmethod
-    # def refresh_fps(start,end):
-    #     Vilib.detect_obj_parameter['vi_fps'] = int(0.5 * int(1/((end - start) / cv2.getTickFrequency())) + 0.5 * Vilib.detect_obj_parameter['vi_fps'] + 0.5)
-    #     # print(Vilib.vi_fps)
-
-    # @staticmethod
-    # def get_fps():
-    #     return Vilib.detect_obj_parameter['vi_fps']
+                        for i in range(Vilib.detect_obj_parameter['content_num']):
+                            exec("Vilib.detect_obj_parameter['process_si'] = Vilib.detect_obj_parameter['process_content_" + str(i+1) + "'" + "]")
+                            cv2.putText(img, str(Vilib.detect_obj_parameter['process_si'][0]),Vilib.detect_obj_parameter['process_si'][1],cv2.FONT_HERSHEY_SIMPLEX,Vilib.detect_obj_parameter['process_si'][3],Vilib.detect_obj_parameter['process_si'][2],2)
+                    
+                    if Vilib.detect_obj_parameter['setting_flag'] == True:
+                        setting_type = Camera_SETTING[Vilib.detect_obj_parameter['setting']]
+                        if setting_type == "resolution":
+                            Vilib.detect_obj_parameter['setting_val'] = Vilib.detect_obj_parameter['setting_resolution']
+                            # print(Vilib.detect_obj_parameter['change_setting_type'])
+                            # print(list(Vilib.detect_obj_parameter['setting_resolution']))
+                            change_type_dict["resolution"] = list(Vilib.detect_obj_parameter['setting_resolution'])
+                            cv2.putText(img, 'resolution:' + str(Vilib.detect_obj_parameter['setting_resolution']),(10,20),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
+                        elif setting_type == "shutter_speed":
+                            change_type_dict["shutter_speed"] = Vilib.detect_obj_parameter['change_setting_val']
+                            cv2.putText(img, 'shutter_speed:' + str(Vilib.detect_obj_parameter['change_setting_val']),(10,20),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
+                        else:
+                            cmd_text = "Vilib.detect_obj_parameter['setting_val'] = camera." + Camera_SETTING[Vilib.detect_obj_parameter['setting']]
+                            # print('mennu:',Ras_Cam.detect_obj_parameter['setting_val'])
+                            exec(cmd_text)
+                            cv2.putText(img, setting_type + ': ' + str(Vilib.detect_obj_parameter['setting_val']),(10,20),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
 
 
-    # @staticmethod
-    # def set_video(video_name,process_func = True):
-    #     Vilib.detect_obj_parameter['video_path'] = './video_file/' + video_name + '.avi'
-        
-    #     # print('hhh: ',Vilib.detect_obj_parameter['video_path'])
-    #     Vilib.detect_obj_parameter['video_flag'] = True
-    #     Vilib.detect_obj_parameter['new_video'] = True
-    #     Vilib.detect_obj_parameter['process_video'] = process_func
+                    e = EFFECTS[Vilib.detect_obj_parameter['eff']]
+                    
+                    
+                    if last_e != e:
+                        camera.image_effect = e
+                    last_e = e
+                    if last_e != 'none':
+                        cv2.putText(img, str(last_e),(0,15),cv2.FONT_HERSHEY_SIMPLEX,0.6,(204,209,72),2)
 
-    # @staticmethod
-    # def video_record(flag = False):
-    #     Vilib.detect_obj_parameter['video_flag'] = flag
-
+                        
+                    if Vilib.detect_obj_parameter['photo_button_flag'] == True:
+                        camera.close()
+                        break
+                            
     
-    # @staticmethod
-    # def video_flag(flag = False):
-    #     Vilib.detect_obj_parameter['video_flag'] = flag
+                    Vilib.img_array[0] = img
+                    rawCapture.truncate(0)
+                    end_time = time.time()
+                    end_time = end_time - start_time
+                    # print(int(1/end_time))
+                    # print("FPS:",round(time.time() - s_time,2),camera.framerate)
 
-    # @staticmethod
-    # def video_record(img):
-    #     if Vilib.detect_obj_parameter['video_flag'] == True:
-    #         # video_path = './video_file/tst.avi'
-    #         Vilib.video_recorder.write(img)
+
+                # camera = PiCamera()
+
+
+                # imu_x,imu_y = imu_rotate()
+                # # print("change_type_val:",change_type_val)
+                # for i in change_type_val:
+                #     exec(i)
+                # if imu_y < 35 and imu_y >-35 and imu_x <= 90 and imu_x > 45:
+                #     # if Vilib.detect_obj_parameter['setting_resolution'][0] < 3040:
+                #     #     camera.resolution = (Vilib.detect_obj_parameter['setting_resolution'][1],Vilib.detect_obj_parameter['setting_resolution'][0])
+                #     # else:
+                #     # camera.resolution = (Vilib.detect_obj_parameter['setting_resolution'][1],Vilib.detect_obj_parameter['setting_resolution'][0])
+                #     # camera.rotation = 270
+                #     change_type_dict['rotation'] = 270
+                #     image_width, image_height = change_type_dict['resolution'][1],change_type_dict['resolution'][0]
+                # elif imu_y < 35 and imu_y >-35 and imu_x < -45 and imu_x >= -90:
+                #     # if Vilib.detect_obj_parameter['setting_resolution'][0] < 3040:
+                #     #     camera.resolution = (Vilib.detect_obj_parameter['setting_resolution'][1],Vilib.detect_obj_parameter['setting_resolution'][0])
+                #     # else:
+                #     # camera.resolution = (Vilib.detect_obj_parameter['setting_resolution'][1],Vilib.detect_obj_parameter['setting_resolution'][0])
+                #     # camera.rotation = 90
+                #     image_width, image_height  = change_type_dict['resolution'][1],change_type_dict['resolution'][0]
+                #     change_type_dict['rotation'] = 90
+                # elif imu_y < -65 and imu_y >=-90 and imu_x < 45 and imu_x >= -45:
+                #     # camera.resolution = Vilib.detect_obj_parameter['setting_resolution']
+                #     # camera.rotation = 180
+                #     image_width, image_height = change_type_dict['resolution'][0],change_type_dict['resolution'][1]
+                #     change_type_dict['rotation'] = 180
+                # else:
+                #     image_width, image_height = change_type_dict['resolution'][0],change_type_dict['resolution'][1]
+                #     change_type_dict['rotation'] = 0
+                #     # camera.resolution = Vilib.detect_obj_parameter['setting_resolution']
+
+                # camera.image_effect = e
+                # rawCapture = PiRGBArray(camera, size=camera.resolution) 
+                # print("12")
+                picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                Vilib.detect_obj_parameter['picture_path'] = '/home/pi/picture_file/' + picture_time + '.jpg'
+                # print(Vilib.detect_obj_parameter['picture_path']) 
+
+
+                # camera.close()
+                # print(camera.brightness,camera.sharpness,camera.contrast,camera.saturation,camera.iso,camera.exposure_compensation,camera.exposure_mode,camera.meter_mode,camera.awb_mode,camera.shutter_speed)
+                a_t = "sudo raspistill -t 250  -w 2592 -h 1944 -vf" + " -rot " + str(change_type_dict['rotation']) + " -ifx " + str(EFFECTS[Vilib.detect_obj_parameter['eff']]) +" -o " + Vilib.detect_obj_parameter['picture_path']
+                
+
+                print(a_t)
+                run_command(a_t)
+                # camera.capture(Vilib.detect_obj_parameter['picture_path'])
+                # cv2.imread()
+                if Vilib.detect_obj_parameter['watermark_flag'] == True:
+                    add_text_to_image(Vilib.detect_obj_parameter['picture_path'],Vilib.detect_obj_parameter['watermark'])
+
+                # if Vilib.detect_obj_parameter['google_upload_flag'] == True:
+                #     upload(file_path='/home/pi/Pictures/rascam_picture_file/', file_name=picture_time + '.jpg')
+
+                #init again
+                # camera.close()
+                camera = PiCamera()
+                camera.resolution = (640,480)
+                camera.vflip = Vilib.detect_obj_parameter['camera_flip']
+                # camera.rotation = Vilib.detect_obj_parameter['camera_rot']
+                camera.image_effect = e
+                rawCapture = PiRGBArray(camera, size=camera.resolution) 
+                Vilib.detect_obj_parameter['photo_button_flag'] = False
+                   
+        finally:
+            camera.close()
+
 
 
     @staticmethod
@@ -650,15 +908,12 @@ class Vilib(object):
         if Vilib.detect_obj_parameter['calibrate_flag'] == True:
             # cv2.VideoWriter("./video_file/tt.avi", fourcc, 20.0, (640, 480))
                 # roi_hsv = roi_hsv
-            cv2.imwrite('/opt/ezblock/cali.jpg', img[90:150,130:190])
+            cv2.imwrite('/opt/ezblock/cali.jpg', img[190:290,270:370])
             # cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-            cv2.rectangle(img,(130,90),(190,150),(255,255,255),2)
-            # cv2.rectangle(img,(120,80),(80,80),(204,209,72),-1, cv2.LINE_AA)
-            # Vilib.detect_obj_parameter['calibrate_flag'] = False
+            cv2.rectangle(img,(270,190),(370,290),(255,255,255),2)
 
         return img
-            # Vilib.detect_obj_parameter['picture_flag'] = False
-            # cv2.imwrite(pic_path, Vilib.img_array[0])
+
 
 
     @staticmethod
@@ -740,12 +995,12 @@ class Vilib(object):
 
         if x1 <= 0:
             x1 = 0
-        elif x2 >= 320:
-            x2 = 320
+        elif x2 >= 640:
+            x2 = 640
         if y1 <= 0:
             y1 = 0
-        elif y2 >= 320:
-            y2 = 320
+        elif y2 >= 640:
+            y2 = 640
 
         # print(x1,x2,y1,y2)
         new_img = input_img[y1:y2,x1:x2]
@@ -945,8 +1200,8 @@ class Vilib(object):
                     Vilib.detect_obj_parameter['traffic_sign_t'] = traffic_dict[max_obj_t]
                     Vilib.detect_obj_parameter['traffic_sign_acc'] = max_obj_acc
                 else:
-                    Vilib.detect_obj_parameter['traffic_sign_x'] = 160
-                    Vilib.detect_obj_parameter['traffic_sign_y'] = 120
+                    Vilib.detect_obj_parameter['traffic_sign_x'] = 320
+                    Vilib.detect_obj_parameter['traffic_sign_y'] = 240
                     Vilib.detect_obj_parameter['traffic_sign_w'] = 0
                     Vilib.detect_obj_parameter['traffic_sign_h'] = 0
                     Vilib.detect_obj_parameter['traffic_sign_t'] = 'none'
@@ -973,8 +1228,8 @@ class Vilib(object):
         #     return img
         # else:
         else:
-            Vilib.detect_obj_parameter['traffic_sign_x'] = 160
-            Vilib.detect_obj_parameter['traffic_sign_y'] = 120
+            Vilib.detect_obj_parameter['traffic_sign_x'] = 320
+            Vilib.detect_obj_parameter['traffic_sign_y'] = 240
             Vilib.detect_obj_parameter['traffic_sign_w'] = 0
             Vilib.detect_obj_parameter['traffic_sign_h'] = 0
             Vilib.detect_obj_parameter['traffic_sign_t'] = 'none'
@@ -1055,10 +1310,11 @@ class Vilib(object):
                         # w = w*2
                         # h = h*2
                     acc_val = round(acc_val*100,3)
-                    if acc_val >= 50:
+                    if acc_val >= 75:
+                        # print(x,y,w,h)
                         cv2.rectangle(img,(int(x-0.1*w),int(y-0.2*h)),(int(x+1.1*w), int(y+1.2*h)),(0,125,0),2, cv2.LINE_AA)
-                        cv2.rectangle(img,(105,0),(220,27),(204,209,72),-1, cv2.LINE_AA)
-                        cv2.putText(img,ges_dict[ges_type]+': '+str(acc_val) + '%',(105,17),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)  ##(0,97,240)
+                        cv2.rectangle(img,(0,0),(125,27),(204,209,72),-1, cv2.LINE_AA)
+                        cv2.putText(img,ges_dict[ges_type]+': '+str(acc_val) + '%',(0,17),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)  ##(0,97,240)
 
                         # object_area = w*h
                         # if object_area > max_area: 
@@ -1077,8 +1333,8 @@ class Vilib(object):
                         Vilib.detect_obj_parameter['gesture_acc'] = acc_val
                                 # print()
                     else:
-                        Vilib.detect_obj_parameter['gesture_x'] = 160
-                        Vilib.detect_obj_parameter['gesture_y'] = 120
+                        Vilib.detect_obj_parameter['gesture_x'] = 320
+                        Vilib.detect_obj_parameter['gesture_y'] = 240
                         Vilib.detect_obj_parameter['gesture_w'] = 0
                         Vilib.detect_obj_parameter['gesture_h'] = 0
                         Vilib.detect_obj_parameter['gesture_t'] = 'none'
@@ -1089,16 +1345,16 @@ class Vilib(object):
             #     return img
             #     # cv2.rectangle(img,(55,35),(210,160),(255,0,0),2, cv2.LINE_AA)
                 else:
-                    Vilib.detect_obj_parameter['gesture_x'] = 160
-                    Vilib.detect_obj_parameter['gesture_y'] = 120
+                    Vilib.detect_obj_parameter['gesture_x'] = 320
+                    Vilib.detect_obj_parameter['gesture_y'] = 240
                     Vilib.detect_obj_parameter['gesture_w'] = 0
                     Vilib.detect_obj_parameter['gesture_h'] = 0
                     Vilib.detect_obj_parameter['gesture_t'] = 'none'
                     Vilib.detect_obj_parameter['gesture_acc'] = 0
 
             else:
-                Vilib.detect_obj_parameter['gesture_x'] = 160
-                Vilib.detect_obj_parameter['gesture_y'] = 120
+                Vilib.detect_obj_parameter['gesture_x'] = 320
+                Vilib.detect_obj_parameter['gesture_y'] = 240
                 Vilib.detect_obj_parameter['gesture_w'] = 0
                 Vilib.detect_obj_parameter['gesture_h'] = 0
                 Vilib.detect_obj_parameter['gesture_t'] = 'none'
@@ -1109,7 +1365,7 @@ class Vilib(object):
     @staticmethod
     def human_detect_func(img):
         if Vilib.detect_obj_parameter['hdf_flag'] == True:
-            resize_img = cv2.resize(img, (160,120), interpolation=cv2.INTER_LINEAR)            # 2.从BGR转换到RAY
+            resize_img = cv2.resize(img, (320,240), interpolation=cv2.INTER_LINEAR)            # 2.从BGR转换到RAY
             gray = cv2.cvtColor(resize_img, cv2.COLOR_BGR2GRAY) 
             faces = Vilib.face_cascade.detectMultiScale(gray, 1.3, 2)
             # print(len(faces))
@@ -1117,10 +1373,15 @@ class Vilib(object):
             max_area = 0
             if Vilib.detect_obj_parameter['human_n'] > 0:
                 for (x,y,w,h) in faces:
+                    
                     x = x*2
                     y = y*2
                     w = w*2
                     h = h*2
+                    # face_gray = cv2.cvtColor(img[y:y + w, x:x + h], cv2.COLOR_BGR2GRAY) 
+                    # label = face_recognizer.predict(face_gray)
+                    # if round(label[1],2) > 80:
+                    #     cv2.putText(img, master_name[label[0]] + ": " + str(round(label[1],2)), (x, y), cv2.FONT_HERSHEY_COMPLEX, 1, (128, 128, 0), 2)
                     cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
                     object_area = w*h
                     if object_area > max_area: 
@@ -1131,8 +1392,8 @@ class Vilib(object):
                         Vilib.detect_obj_parameter['human_h'] = h
             
             else:
-                Vilib.detect_obj_parameter['human_x'] = 160
-                Vilib.detect_obj_parameter['human_y'] = 120
+                Vilib.detect_obj_parameter['human_x'] = 320
+                Vilib.detect_obj_parameter['human_y'] = 240
                 Vilib.detect_obj_parameter['human_w'] = 0
                 Vilib.detect_obj_parameter['human_h'] = 0
                 Vilib.detect_obj_parameter['human_n'] = 0
@@ -1188,10 +1449,10 @@ class Vilib(object):
 
                         #在图像上画上矩形（图片、左上角坐标、右下角坐标、颜色、线条宽度）
                     if w >= 8 and h >= 8: 
-                        x = x*2
-                        y = y*2
-                        w = w*2
-                        h = h*2
+                        x = x*4
+                        y = y*4
+                        w = w*4
+                        h = h*4
                         cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
                                 #给识别对象写上标号
                         cv2.putText(img,color_type,(x,y), cv2.FONT_HERSHEY_SIMPLEX, 1,(0,0,255),2)#加减10是调整字符位置
@@ -1205,8 +1466,8 @@ class Vilib(object):
                             Vilib.detect_obj_parameter['color_h'] = h
                             # print()
             else:
-                Vilib.detect_obj_parameter['color_x'] = 160
-                Vilib.detect_obj_parameter['color_y'] = 120
+                Vilib.detect_obj_parameter['color_x'] = 320
+                Vilib.detect_obj_parameter['color_y'] = 240
                 Vilib.detect_obj_parameter['color_w'] = 0
                 Vilib.detect_obj_parameter['color_h'] = 0
                 Vilib.detect_obj_parameter['color_n'] = 0
@@ -1246,8 +1507,8 @@ class Vilib(object):
                                 0.5, (0, 0, 255), 2)
             else:
                 Vilib.detect_obj_parameter['qr_data'] = "None"
-                Vilib.detect_obj_parameter['qr_x'] = 160
-                Vilib.detect_obj_parameter['qr_y'] = 120
+                Vilib.detect_obj_parameter['qr_x'] = 320
+                Vilib.detect_obj_parameter['qr_y'] = 240
                 Vilib.detect_obj_parameter['qr_w'] = 0
                 Vilib.detect_obj_parameter['qr_h'] = 0
             return img
@@ -1300,8 +1561,8 @@ class Vilib(object):
                             Vilib.detect_obj_parameter['color_h'] = h
                             # print()
             else:
-                Vilib.detect_obj_parameter['color_x'] = 160
-                Vilib.detect_obj_parameter['color_y'] = 120
+                Vilib.detect_obj_parameter['color_x'] = 320
+                Vilib.detect_obj_parameter['color_y'] = 240
                 Vilib.detect_obj_parameter['color_w'] = 0
                 Vilib.detect_obj_parameter['color_h'] = 0
                 Vilib.detect_obj_parameter['color_n'] = 0
