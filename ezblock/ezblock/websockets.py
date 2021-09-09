@@ -33,7 +33,6 @@ ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1 """
 
 
-
 def read_info(key):
     try:
         config.read("/opt/ezblock/ezb-info.ini")
@@ -57,6 +56,8 @@ def write_info(key, value):
 
 
 class Ezb_Service(object):
+    update_flag = Value('d',0) # 0:none 1:ING 2:OK 3:Failed
+    update_work = False 
     share_dict = Manager().dict()
     share_dict['debug'] = [None,False]
 
@@ -125,6 +126,7 @@ class Ezb_Service(object):
 
     
 class WS():
+
     def __init__(self):
         self.recv_dict = {}   
         self.send_dict = {}
@@ -139,6 +141,8 @@ class WS():
         self.sloth = None
         self.px = None
         self.user_service_process = None
+
+
 
     def main_process(self):
         try:
@@ -214,11 +218,33 @@ class WS():
             write_info("type", self.type)
             self.send_dict["type"] = self.type
         if "UE" in self.recv_dict.keys():
-            if self.recv_dict["UE"]:
-                self.recv_dict["UE"] = False
-                self.send_dict['update'] = ezb.update()
-                self.send_dict["UE"] = True
+            if self.recv_dict["UE"] and Ezb_Service.update_work == False:
+                Ezb_Service.update_work = True
+        # Update Ezblock
+        if Ezb_Service.update_work == True:
+            log('Updating ...')
+            log('Ezb_Service.update_flag.value: %s'% Ezb_Service.update_flag.value)
+            if Ezb_Service.update_flag.value == 0: # 0:none 1:ING 2:OK 3:Failed
+                self.update_process = Process(name='update_process',target=self.update_ezblock,args=(Ezb_Service.update_flag,))
+                self.update_process.start()
+                log('update_process start, pid = %s'% self.update_process.pid)
+                Ezb_Service.update_flag.value = 1
+            elif Ezb_Service.update_flag.value == 1: #  1:ING 
+                self.send_dict["UE"] = 'ING'
+            elif Ezb_Service.update_flag.value == 2: #  2:OK   
+                self.send_dict["UE"] = 'OK'
+                Ezb_Service.update_work = False
+                self.update_process.terminate()
                 self.send_dict['version'] = read_info("version")
+                Ezb_Service.update_flag.value = 0
+            elif Ezb_Service.update_flag.value == 3: #  3:Failed
+                self.send_dict["UE"] = 'Failed'
+                Ezb_Service.update_work = False
+                self.update_process.terminate()
+                Ezb_Service.update_flag.value = 0
+            else:
+                sleep(0.02)
+        #        
         if "RB" in self.recv_dict.keys():
             if self.recv_dict["RB"]:
                 run_command("sudo reboot")
@@ -448,6 +474,13 @@ class WS():
                 ble.write("Connect Failed!")
                 log("WS.__start_ws__ failed: %s" % e)
         
+    def update_ezblock(self,update_flag):
+        update_flag.value = 1  # 1:ING
+        flag = ezb.update()
+        if flag == True:
+            update_flag.value = 2 # 2:OK
+        else:
+            update_flag.value = 3 # 3:Failed
 
 ws = WS()
 

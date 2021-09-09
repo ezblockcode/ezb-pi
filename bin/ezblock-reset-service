@@ -101,9 +101,6 @@ def main():
     count = 0
     user_flag = False
     while True:
-        # log('is_user: %s'%is_user)    
-        # log('is_reset:  %s'%is_reset)
-        # log('user_flag:  %s'%user_flag)
         if is_reset == True:
             count += 1
             if count > 6:
@@ -116,8 +113,6 @@ def main():
                         log("servo  reset") 
                         time.sleep(0.01)                  
         elif is_reset == False and user_flag == False:
-            # log("turn off ezblock service")
-            # run_command("sudo service ezblock stop")
             if count > 6:
                 log("hard reset")
                 reset_ble()

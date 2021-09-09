@@ -19,14 +19,13 @@ class Robot():
             temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
             temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
             self.offset = temp
-            #print(self.offset)
+
         elif group == 3:
             self.db = fileDB(db=db)
             self.list_name = 'piarm_servo_offset_list'
             temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
             temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
             self.offset = temp
-            #print(self.offset)
 
         elif pin_lenth_val == 4:
             self.db = fileDB(db=db)
@@ -34,26 +33,18 @@ class Robot():
             temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
             temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
             self.offset = temp
-            #print(self.offset)
 
         for i in range(0, len(pin_list), group):
             _pin_list = pin_list[i:i+group]
 
             for pin in range(len(_pin_list)):
                 pwm = PWM(self.PINS[_pin_list[pin]])
-                #print(self.PINS[_pin_list[pin]])
                 servo = Servo(pwm)
                 servo.angle(self.offset[i * 1 + pin])
-                #print("offffffffffffffff:",self.offset[i * 1 + pin])
-                # servo.angle(self.offset[i * 1 + pin])
                 self.pin_list.append(servo)
             time.sleep(0.2)
-        # self.pin_num = pin_lenth_val
+
         self.origin_positions = self.new_list(0)
-        # self.db = fileDB(db=db)
-        # temp = self.db.get('servo_offset_list', default_value=str(self.new_list(0)))
-        # temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
-        # self.offset = temp
         self.servo_positions = self.new_list(0)
         self.calibrate_position = self.new_list(0)
         self.direction = self.new_list(1)
@@ -70,8 +61,7 @@ class Robot():
         rel_angles = []  # ralative angle to home
         for i in range(self.pin_num):
             rel_angles.append(self.direction[i] * (self.origin_positions[i] + angles[i] + self.offset[i]))
-            # rel_angles.append(angles[i])
-            # print(rel_angles)
+
         self.angle_list(rel_angles)
 
     def servo_move(self, targets, speed=50):
@@ -116,9 +106,7 @@ class Robot():
         temp = str(offset_list)
         self.db.set(self.list_name,temp)
         self.offset = offset_list
-        # self.calibration()
-        # self.reset()
-
+        
     def calibration(self):
         self.servo_positions = self.calibrate_position
         self.servo_write_all(self.servo_positions)
