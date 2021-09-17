@@ -542,7 +542,56 @@ class Spider(Robot):
             _dance.append(self.move_body_absolute(0, 0, 0))
             return _dance
 
+# 2021.7.29 
 
+    step_list = {
+        "stand":[
+            [50, 50, -80],
+            [50, 50, -80],
+            [50, 50, -80],
+            [50, 50, -80]
+        ],
+        "sit":[
+            [50, 50, -33],
+            [50, 50, -33],
+            [50, 50, -33],
+            [50, 50, -33]
+        ],
+        "step3":[
+            [60, 60, 80],
+            [60, 60, 80],
+            [60, 60, 80],
+            [60, 60, 80]
+        ],
+        "step4":[
+            [60, 60, -80],
+            [60, 60, -80],
+            [60, 60, -80],
+            [60, 60, -80]
+        ],                
+    }
+
+
+    def do_single_leg(self,leg,coodinate=[50,50,-33],speed=50):
+        target_coord = self.current_step_all_leg_value()
+        target_coord[leg] = coodinate
+        self.do_step(target_coord,speed)
+ 
+
+    def current_step_leg_value(self,leg):
+        return self.current_coord[leg]
+
+
+    def current_step_all_leg_value(self):
+        return list(self.current_coord)
+
+
+    def mix_step(self,basic_step,leg,coodinate=[50,50,-33]):
+        # Pay attention to adding list(), otherwise the address pointer is returned
+        new_step = list(basic_step)
+        new_step[leg] = coodinate
+        return list(new_step)
+        
 
 if __name__ == "__main__":
     sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])

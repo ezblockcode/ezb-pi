@@ -40,11 +40,11 @@ def read_info(key):
         return temp
     except:
         run_command("sudo touch /opt/ezblock/ezb-info.ini")
-        config['DEFAULT'] ={'version':"1.0.0",
+        config['DEFAULT'] ={'version':"1.0.2",
                             'name':"null",
                             'type':"null",
                             'mac':"null"}
-        config['message'] ={'version':"1.0.0"}
+        config['message'] ={'version':"1.0.2"}
         with open("/opt/ezblock/ezb-info.ini", 'w') as f:
             config.write(f)
         return None
