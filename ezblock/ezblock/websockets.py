@@ -442,7 +442,7 @@ class WS():
                 if value == "":
                     continue
 
-                log("value: %s" % value)
+                log("ble value: %s" % value)
                 if value == "get":
                     if ip:
                         ble.write(ip)
