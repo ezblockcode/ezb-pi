@@ -442,11 +442,13 @@ class WS():
                 if value == "":
                     continue
 
-                log("value: %s" % value)
+                log("ble read value: %s" % value)
                 if value == "get":
                     if ip:
+                        log("ble write value: %s" % ip)
                         ble.write(ip)
                     else:
+                        log("ble write value: No IP")
                         ble.write("No IP")
                 elif value:
                     try:
