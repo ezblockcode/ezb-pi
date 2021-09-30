@@ -430,24 +430,18 @@ class WS():
                 if ip and self.ws_process == None:
                     log("got ip: %s " % ip)
                     self.websocket_service_process()
-                value = ""
-
-                raw_data = ble.read(1).decode()
-                if raw_data != "":
-                    while True:
-                        value = value + raw_data
-                        raw_data = ble.read(1).decode()
-                        if raw_data == "\n":
-                            break
-                if value == "":
+ 
+                value = ble.readline()
+                if not value:
                     continue
-
                 log("ble value: %s" % value)
                 if value == "get":
                     if ip:
                         ble.write(ip)
                     else:
                         ble.write("No IP")
+                elif value == "OK":
+                    continue
                 elif value:
                     try:
                         if self.ws_process != None:

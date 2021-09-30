@@ -1,10 +1,10 @@
-from .ble import BLE
+# from .ble import BLE
 import time
 import os
 import re
 import math
 
-ble = BLE()
+# ble = BLE()
 
 # ble.write('NAME+ezb-RPi')
 # ble.write('ADVP+') # 0~F

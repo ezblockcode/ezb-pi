@@ -3,9 +3,9 @@ from .basic import _Basic_class
 from .utils import getIP
 import time
 from os import system
-from .ble import BLE
+# from .ble import BLE
 
-ble = BLE()
+# ble = BLE()
 # re-正则表达式
 class WiFi(_Basic_class):
     message = """
@@ -69,7 +69,7 @@ update_config=1 """
         # print(result != "OK")
         if result != "OK":
             print("Set country failed")
-            ble.write("Set country failed")
+            # ble.write("Set country failed")
             with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:
                 f.write(self.text)
             self.run_command("sudo systemctl enable wpa_supplicant.service")

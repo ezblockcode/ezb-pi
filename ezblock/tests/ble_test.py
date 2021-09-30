@@ -104,6 +104,14 @@ class BLE():
             self.write_command("TRANSENTER", expect=None, force=False)
             self.is_trans = True
 
+def invert_uuid(uuid):
+    result = ""
+    while len(uuid)>0:
+        result += uuid[-2:]
+        uuid = uuid[:-2]
+    print(result)
+    return result
+
 print("Start!")
 
 ble = BLE()

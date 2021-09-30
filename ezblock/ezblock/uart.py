@@ -1,10 +1,10 @@
 from serial import Serial
 
 class UART(object):
-    def __init__(self, device, baudrate=115200, tx=None, rx=None):
+    def __init__(self, device, baudrate=115200, tx=None, rx=None, timeout=None):
         self._port = device
         self._baudrate = baudrate
-        self.ser = Serial(self._port, self._baudrate, timeout=1)
+        self.ser = Serial(self._port, self._baudrate, timeout=timeout)
 
     def deinit(self):
         pass
