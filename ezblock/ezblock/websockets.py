@@ -424,57 +424,47 @@ class WS():
 
     def __start_ws__(self):
         log("WS.__start_ws__")
+        ble = BLE()
         while True:
-            try :
-                ip = getIP()
-                if ip and self.ws_process == None:
-                    log("got ip: %s " % ip)
-                    self.websocket_service_process()
-                value = ""
-
-                raw_data = ble.read(1).decode()
-                if raw_data != "":
-                    while True:
-                        value = value + raw_data
-                        raw_data = ble.read(1).decode()
-                        if raw_data == "\n":
-                            break
-                if value == "":
-                    continue
-
-                log("ble read value: %s" % value)
-                if value == "get":
+            ip = getIP()
+            if ip and self.ws_process == None:
+                log("got ip: %s " % ip)
+                self.websocket_service_process()
+            value = ble.readline()
+            if value == "":
+                continue
+            log("ble read value: %s" % value)
+            if value == "get":
+                if ip:
+                    log("ble write value: %s" % ip)
+                    ble.write(ip)
+                else:
+                    log("ble write value: No IP")
+                    ble.write("No IP")
+            elif value:
+                if self.ws_process != None:
+                    self.ws_process.terminate()
+                log("Connecting to wifi")
+                data_list = value.split("#*#")
+                from .wifi import WiFi
+                wifi = WiFi()
+                wifi.write(*data_list)
+                # Retry 3 times
+                for _ in range(3):
+                    ip = getIP()
                     if ip:
-                        log("ble write value: %s" % ip)
+                        log("IP Address: %s" % ip)
+                        self.websocket_service_process()
                         ble.write(ip)
-                    else:
-                        log("ble write value: No IP")
-                        ble.write("No IP")
-                elif value:
-                    try:
-                        if self.ws_process != None:
-                            self.ws_process.terminate()
-
-                        data_list = value.split("#*#")
-                        from .wifi import WiFi
-                        wifi = WiFi()
-                        wifi.write(*data_list)
-                        # Retry 3 times
-                        for _ in range(3):
-                            ip = getIP()
-                            if ip:
-                                log("IP Address: %s" % ip)
-                                self.websocket_service_process()
-                                ble.write(ip)
-                                break
-                            time.sleep(1)
-                        else:
-                            ble.write("Connect Failed!")
-                    except Exception as e:
-                        log("WS.__start_ws__ failed: %s" % e)
-            except Exception as e:
-                ble.write("Connect Failed!")
-                log("WS.__start_ws__ failed: %s" % e)
+                        break
+                    time.sleep(1)
+                else:
+                    ble.write("Connect Failed!")
+            #         except Exception as e:
+            #             log("WS.__start_ws__ failed: %s" % e)
+            # except Exception as e:
+            #     ble.write("Connect Failed!")
+            #     log("WS.__start_ws__ failed: %s" % e)
         
     def update_ezblock(self,update_flag):
         update_flag.value = 1  # 1:ING
@@ -486,7 +476,6 @@ class WS():
 
 ws = WS()
 
-ble = BLE()
 
 def ws_print(msg, end='\n', tag='[DEBUG]'):
     ws.print(msg, end, tag)

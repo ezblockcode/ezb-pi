@@ -33,6 +33,7 @@ APT_INSTALL_LIST = [
     "libqtgui4",
     "python3-flask",
     "libzbar0",
+    "bluez-firmware",  # Update bluez firmware
     #"libttspico-utils",
 ]
 

@@ -1,1 +1,0 @@
-from .uart_peripheral import BLE_UART
