@@ -20,9 +20,10 @@ class Spider(Robot):
             1,1,1,
         ]
         # self.soft_reset()
-        self.current_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
+        self.current_coord = [[90 ,90, 90], [90 ,90, 90], [90 ,90, 90], [90 ,90, 90]]
         
     def coord2polar(self, coord):
+        print(coord)
         x,y,z = coord
         
         w = math.sqrt(math.pow(x,2) + math.pow(y,2))
@@ -64,14 +65,30 @@ class Spider(Robot):
                 print("No such action")
 
     def do_step(self, _step, speed=50):
+
+        step_temp = []
+        if isinstance(_step,str):
+            if _step in self.step_list.keys():
+                step_temp  = list(self.step_list[_step])
+            else:
+                print("The name of gait is not in the default gait dictionary")
+        elif isinstance(_step,list):
+            step_temp = _step
+        else:
+            print("The \"_step\" parameter is wrong.")
+            return
+
         translate_list = []
-        for coord in _step: # each servo motion
+        for coord in step_temp: # each servo motion
             alpha, beta, gamma = self.coord2polar(coord)
             translate_list += [beta, alpha, gamma]
-       
+            
         self.servo_move(translate_list, speed=speed)
+        self.current_coord = step_temp
         return translate_list
     
+    def current_step_all_leg_angle(self):
+        return self.servo_positions
 
     def add_action(self,action_name, action_list):
         self.move_list_add[action_name] = action_list
@@ -573,13 +590,45 @@ class Spider(Robot):
 
 
     def do_single_leg(self,leg,coodinate=[50,50,-33],speed=50):
+        leg_num = 0
+        print(leg)
+        if isinstance(leg,str):
+            if leg == 'left_front':
+                leg_num = 1
+            elif leg == 'right_front':
+                leg_num = 0
+            elif leg == 'left_rear':
+                leg_num = 2
+            elif leg == 'right_rear':
+                leg_num = 3  
+            else:
+                print('no this leg')
+                return  
+        elif isinstance(leg,int):
+            leg_num = leg  
+        else:
+            print('parameter type error')
+            return
+
         target_coord = self.current_step_all_leg_value()
-        target_coord[leg] = coodinate
+        target_coord[leg_num] = coodinate
         self.do_step(target_coord,speed)
  
 
     def current_step_leg_value(self,leg):
-        return self.current_coord[leg]
+        leg_num = 0
+        if isinstance(leg,str):
+            if leg == 'left_front':
+                leg_num = 1
+            if leg == 'right_front':
+                leg_num = 0
+            if leg == 'left_rear':
+                leg_num = 2
+            if leg == 'right_rear':
+                leg_num = 3   
+        elif isinstance(leg,int):
+            leg_num = leg                      
+        return self.current_coord[leg_num]
 
 
     def current_step_all_leg_value(self):
@@ -596,4 +645,3 @@ class Spider(Robot):
 if __name__ == "__main__":
     sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
     sp.do_step([[50, 50, -20],[50, 50, -20],[50, 50, -20],[130, 0, 70]])
-   

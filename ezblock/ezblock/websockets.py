@@ -1,4 +1,6 @@
 import asyncio
+from asyncio.tasks import sleep
+from re import I, S
 import websockets
 import json
 import time
@@ -12,14 +14,16 @@ from .i2c import I2C
 import sys,os
 import RPi.GPIO as GPIO
 from ezblock import Pin,Servo,PWM,fileDB
-
+import ssl
+import pathlib
+import threading
 
 def turn_hex(c):
     return hex(c)   
 detect_i2c = I2C()
 i2c_adress_list = list(map(turn_hex, detect_i2c.scan()))
 
-sys.path.append(r'/opt/ezblock')
+sys.path.append('/opt/ezblock')
 from ezb_update import Ezbupdate
 
 mcu_reset = Pin("MCURST")
@@ -96,9 +100,7 @@ class Ezb_Service(object):
                 ws.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
             elif product_type == "SlothForPi":
                 ws.sloth = Sloth([1,2,3,4])
-
         Ezb_Service.ezb_service_start()
-
 
     @staticmethod
     def return_share_val():
@@ -134,17 +136,46 @@ class WS():
         self.output_module_dict = {}
         self.user_service_pid = None
         self.websocket_service_pid = None
-        self.ws_process = None
-        self.user_service_status = False
+        self.ws_process = None    
         self.type = None
         self.sp = None
         self.sloth = None
         self.px = None
         self.user_service_process = None
+        self.user_service_status = False
+        # battery
+        self.voltage = Value('d',0.0)
+        self.battery = Value('d',0)
+        self.ws_battery_process = None
+        self.ws_battery_status = False
+        # ssl   PROTOCOL_TLS , PROTOCOL_TLS_SERVER
+        # self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        # self.ssl_context.load_cert_chain(pathlib.Path('/opt/ezblock/localhost2.pem').with_name('localhost2.pem'))
 
+    @staticmethod
+    def get_battery(voltage,battery,id='user'):
+        
+        def fuc():
+            while True:
+                voltage.value = min(round(ADC('A4').read() / 4096.0 * 3.3 * 3,2), 8.40)
+                battery.value = round(max((voltage.value - 7.0) / 1.4, 0) * 100, 2)
+                time.sleep(1)
 
+        log('start getting battery thread by %s process'%id)
+        t = threading.Thread(target=fuc)
+        # t.setDaemon(True)
+        t.start()
 
-    def main_process(self):
+    # battery
+    def ws_battery_process_start(self):
+        self.ws_battery_process = Process(name='ws battery',target=self.get_battery,args=(ws.voltage,ws.battery,'websocket'))
+        self.ws_battery_process.start()
+        self.ws_battery_status = True
+             
+    def main_process(self,voltage,battery):
+        # battery    
+        self.get_battery(voltage,battery,'user')
+        #   
         try:
             from main import forever
             while True:
@@ -156,9 +187,17 @@ class WS():
 
     def user_service_start(self):
         log("WS.user_service_start")
-        self.user_service_process = Process(name='user service',target=self.main_process)
+        if self.ws_battery_status == True:
+            self.ws_battery_process.terminate()
+            self.ws_battery_status = False
+        self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
         self.user_service_process.start()
-        
+        self.user_service_status = True
+
+    def user_service_close(self):
+        self.user_service_process.terminate()
+        self.user_service_status = False
+
     def flash(self, name):
         file_dir = '/opt/ezblock/'
         dir = "%s/%s.py"%(file_dir, name)
@@ -168,34 +207,21 @@ class WS():
     def send_data(self):
         global i2c_adress_list
         if "RE" in self.recv_dict.keys():
-            if self.recv_dict['RE'] == "all":
-                if '0x14' in i2c_adress_list:
-                    self.send_dict['name'] = read_info("name")
-                    self.type = read_info("type")
-                    self.send_dict['type'] = self.type
-                    self.send_dict['version'] = read_info("version")
-                    temp = read_info("mac")
-                    if temp == "null":
-                        addr = run_command("hciconfig hci0")
-                        addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
-                        write_info("mac", addr)
-                    self.send_dict['mac'] = read_info("mac")
-                    self.send_dict['ip'] = getIP()
-                    self.send_dict['update'] = ezb.get_status()
-                else:
-                    self.send_dict['name'] = read_info("name")
-                    self.type = read_info("type")
-                    self.send_dict['type'] = self.type
-                    self.send_dict['version'] = read_info("version")
-                    temp = read_info("mac")
-                    if temp == "null":
-                        addr = run_command("hciconfig hci0")
-                        addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
-                        write_info("mac", addr)
-                    self.send_dict['mac'] = read_info("mac")
-                    self.send_dict['ip'] = getIP()
-                    self.send_dict['update'] = ezb.get_status()
-
+            if self.recv_dict['RE'] == "all":               
+                self.send_dict['name'] = read_info("name")
+                self.type = read_info("type")
+                self.send_dict['type'] = self.type
+                self.send_dict['version'] = read_info("version")
+                temp = read_info("mac")
+                if temp == "null":
+                    addr = run_command("hciconfig hci0")
+                    addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
+                    write_info("mac", addr)
+                self.send_dict['mac'] = read_info("mac")
+                self.send_dict['ip'] = getIP()
+                self.send_dict['update'] = ezb.get_status()
+                self.send_dict['voltage'] = self.voltage.value
+                self.send_dict['battery'] = self.battery.value
             elif self.recv_dict['RE'] == "name":
                 self.send_dict['name'] = read_info("name")
             elif self.recv_dict['RE'] == "type":
@@ -204,7 +230,8 @@ class WS():
             elif self.recv_dict['RE'] == "version":
                 self.send_dict['version'] = read_info("version")
             elif self.recv_dict['RE'] == "battery":
-                pass
+                self.send_dict['voltage'] = self.voltage.value
+                self.send_dict['battery'] = self.battery.value
             elif self.recv_dict['RE'] == "offset":
                 if read_info("type") == "PiCarMini":
                     self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
@@ -273,14 +300,14 @@ class WS():
             elif self.type == "SlothForPi":
                 self.sloth.set_offset(self.recv_dict['OF'])
                 self.sloth.calibration()
-                
+             
     async def main_loop_frame(self):
         global i2c_adress_list
-        while 1:
+        while True:     
             # Download code
             if "FL" in self.recv_dict.keys() and self.recv_dict['FL']:
                 # Stop User service
-                self.user_service_process.terminate()
+                self.user_service_close()
 
                 Ezb_Service.share_dict['SS'] = {}
                 Ezb_Service.share_dict['LB'] = {}
@@ -308,8 +335,8 @@ class WS():
             # Stop user service
             elif "ST" in self.recv_dict.keys() and self.recv_dict["ST"]:
                 # Stop User service
-                self.user_service_process.terminate()
-
+                self.user_service_close()
+                self.ws_battery_process_start()
                 if '0x14' in i2c_adress_list:
                     Ezb_Service.reset_mcu_func()
                     self.type = read_info("type")
@@ -335,7 +362,7 @@ class WS():
             # Run user service
             elif "RU" in self.recv_dict.keys() and self.recv_dict["RU"]:
                 # Stop User service
-                self.user_service_process.terminate()
+                self.user_service_close()
 
                 if not self.user_service_status:
                     if '0x14' in i2c_adress_list:
@@ -351,10 +378,12 @@ class WS():
                     self.recv_dict = {}
             await asyncio.sleep(0.1)
             
-
+    # recv
     async def main_logic(self, websocket,path):
         while True:
-            # print("main_logic")
+            # battery 
+            if self.user_service_status == False and self.ws_battery_status == False:
+                self.ws_battery_process_start()
             try:
                 tmp = await asyncio.wait_for(websocket.recv(), timeout=0.001)
                 tmp = json.loads(tmp)
@@ -365,7 +394,9 @@ class WS():
                 if 'PF' in self.recv_dict.keys():
                     log('pong')
                     self.send_dict['PF'] = 'pong'
-
+                # battery
+                log('vol: %s, bat: %s '%(self.voltage.value,self.battery.value))
+                # send data
                 self.send_data()
                 for key in tmp.keys():
                     if key in ["JS", "SL", "DP", "BT", "SW"]:
@@ -402,9 +433,10 @@ class WS():
                 await asyncio.sleep(0.01)
             except KeyboardInterrupt:
                 pass
-            
+
+    # start func     
     def start_loop(self, ip):
-        start_server_1 = websockets.serve(self.main_logic, ip, 8765)
+        start_server_1 = websockets.serve(self.main_logic,ip, 8765)   # ssl=self.ssl_context
         tasks = [self.main_loop_frame(),start_server_1]
         asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
         asyncio.get_event_loop().run_forever()
@@ -414,8 +446,9 @@ class WS():
         os.system("echo {} >> /opt/ezblock/log".format(_msg))
         Ezb_Service.set_share_val('debug',[str(msg),True])
         while Ezb_Service.return_share_val()['debug'][1] == True:
-            pass
-
+            time.sleep(0.01)
+  
+    # start websocket_service_process
     def websocket_service_process(self):
         self.ws_process = Process(name='websocket service',target=self.start_loop,args=('0.0.0.0', )) # args=(ip, ) ：This is a tuple, the ',' is necessary !!!
         self.ws_process.start()
