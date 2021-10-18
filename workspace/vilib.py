@@ -623,10 +623,13 @@ class Vilib(object):
 
     @staticmethod
     def detect_color_name(color_name):
-        Vilib.detect_obj_parameter['color_default'] = color_name
-        Vilib.detect_obj_parameter['lower_color'] = np.array([min(Vilib.color_dict[Vilib.detect_obj_parameter['color_default']]), 60, 60])  
-        Vilib.detect_obj_parameter['upper_color'] = np.array([max(Vilib.color_dict[Vilib.detect_obj_parameter['color_default']]), 255, 255])
-        Vilib.detect_obj_parameter['cdf_flag']  = True
+        if color_name == 'close':
+            Vilib.detect_obj_parameter['cdf_flag']  = False
+        else:
+            Vilib.detect_obj_parameter['color_default'] = color_name
+            Vilib.detect_obj_parameter['lower_color'] = np.array([min(Vilib.color_dict[Vilib.detect_obj_parameter['color_default']]), 60, 60])  
+            Vilib.detect_obj_parameter['upper_color'] = np.array([max(Vilib.color_dict[Vilib.detect_obj_parameter['color_default']]), 255, 255])
+            Vilib.detect_obj_parameter['cdf_flag']  = True
         # Vilib.detect_obj_parameter['color_x'] = 160
         # Vilib.detect_obj_parameter['color_y'] = 120
         # Vilib.detect_obj_parameter['color_w'] = 0
