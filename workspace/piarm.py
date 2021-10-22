@@ -14,26 +14,45 @@ class Arm(Robot):
     def __init__(self, pin_list,steps_path='/opt/ezblock/steps_record.json'):
         super().__init__(pin_list, group=3)     
         # define variables
-        self.speed = 50
         self.component = 'none'
         self.speed = 50
         self.current_coord = [0, 80, 80] 
         self.coord_temp = [0,0,0]
         self.component_staus = 0    
-          # checking steps record file 
+        # checking steps record file 
         self.path = steps_path 
-        self.is_file(self.path)
         self.steps_buff = []
+        self.record_data = []
+        self.data_index = 0
+        self.record_init(self.path)
   
-    def is_file(self,_path):
+    def record_init(self,_path):
         if not path.exists(_path):
             log('Steps record file does not exist.Create now...')
             try:
                 run_command('sudo mkdir -p '+_path.rsplit('/',1)[0])
                 run_command('sudo touch '+_path)
                 run_command('sudo chmod a+rw '+_path)
+
+                self.record_data.append({'component':'none','values':None})
+                self.record_data.append({'component':'bucket','values':None})
+                self.record_data.append({'component':'hanging_clip','values':None})
+                self.record_data.append({'component':'electromagnet','values':None})
+                with open(_path,'w')as f:
+                    json.dump(self.record_data,f)
+                    time.sleep(0.1)
+                    f.close()
             except Exception as e:
-                log(e)
+                raise(e)    
+
+        self.record_buff_clear()
+        try:
+            with open(_path,'r')as f:
+                self.record_data = json.load(f)
+                time.sleep(0.1)
+                f.close()
+        except Exception as e:
+            raise(e)
 
     def set_speed(self, speed):
         self.speed = speed 
@@ -42,14 +61,17 @@ class Arm(Robot):
         self.bucket = Servo(pin)
         self.bucket_angle = 0
         self.component = 'bucket'
+        self.data_index = 1
 
     def hanging_clip_init(self, pin):
         self.hanging_clip = Servo(pin)
+        self.data_index = 2
     
     def electromagnet_init(self, pin):
         self.elecma = pin
         self.hanging_clip_angle = 0
-        self.component = 'hanging_clip' 
+        self.component = 'hanging_clip'
+        self.data_index = 3
 
     def set_angle(self, angles,israise=False):
         result,angles = self.limit_angle(angles)
@@ -181,82 +203,55 @@ class Arm(Robot):
         self.component_staus = status
 
 # Related to 'steps record'
-    def record_buff(self):
-        self.steps_buff.append(list(self.servo_positions)) # list() is necessary
-        self.steps_buff.append(self.component_staus)
-        
     def record_buff_clear(self):
         self.steps_buff.clear()
 
-    def record_save(self,name):
-        msg = {'name':name,
-               'type':self.component,
-               'steps':self.steps_buff
+    def record(self):
+        self.steps_buff.append(list(self.servo_positions)) # list() is necessary
+        self.steps_buff.append(self.component_staus)
+
+        msg = {
+            'component':self.component,
+            'steps':self.steps_buff,
         }
-        # log('msg :%s' %msg) 
-        # r 
-        data = []
-        try:
-            with open(self.path,'r')as f:
-                data = json.load(f)
-                time.sleep(0.1)
-                f.close()
-        except Exception as e:
-            log(e)
-        # w
-        for index,d in enumerate(data):
-            print(type(d),type(data))
-            if d['name'] == name:
-                data[index] = msg
-                break
-        else:
-            data.append(msg)
-        # log(data)
+        self.record_data[self.data_index] = msg
+
         try:
             with open(self.path,'w')as f:
-                json.dump(data,f)
+                json.dump(self.record_data,f)
                 time.sleep(0.1)
                 f.close()
         except Exception as e:
-            log(e)    
-        # done
-        log('record done')
+            log(e)   
 
-    def record_reproduce(self,name,delay=0.01):    
-        data = {}              
+    def record_reproduce(self,delay=0.01):    
+        _data = []          
         # read data
         try:
             with open(self.path,'r')as f:
-                data = json.load(f)
+                _data = json.load(f)
                 time.sleep(0.1)
                 f.close()
         except Exception as e:
             log(e)
 
-        log(type(data))
-        for d in data:
-            log(type(d))
-            if d['name'] == name:
-                # log(str(d))
-                if d['type'] != self.component:
-                    log('Component mismatch.This record corresponds to the %s component.' % d['type'])
-                else:
-                    steps = d['steps']
-                    for i in range(0,len(steps),2):      
-                        angles = steps[i]
-                        status = steps[i+1]
-                        log('step %s: %s,%s '%(int(i/2),angles,status))
-                        self.set_angle(angles)  
-                        if self.component == 'bucket':
-                            self.set_bucket(status)
-                        if self.component == 'hanging_clip':
-                            self.set_hanging_clip(status)
-                        if self.component == 'electromagnet':
-                            self.set_electromagnet(status) 
-                        time.sleep(delay)   
-                break
+        if _data[self.data_index]['component'] != self.component:
+            log('Component mismatch.This record corresponds to the %s component.' % d['type'])
         else:
-            log('There is no such item in the record file.')
+            steps = _data[self.data_index]['steps']   
+            for i in range(0,len(steps),2):      
+                angles = steps[i]
+                status = steps[i+1]
+                log('step %s: %s,%s '%(int(i/2),angles,status))
+                self.set_angle(angles)  
+                if self.component == 'bucket':
+                    self.set_bucket(status)
+                if self.component == 'hanging_clip':
+                    self.set_hanging_clip(status)
+                if self.component == 'electromagnet':
+                    self.set_electromagnet(status) 
+                time.sleep(delay)   
+
 
 if __name__ == "__main__":
     arm = Arm([1,2,3])
