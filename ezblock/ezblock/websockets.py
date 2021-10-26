@@ -488,10 +488,7 @@ class WS():
         bl_led_t.setDaemon(True)
         bl_led_t.start()
 
-
         while True:
-            
-
             ip = getIP()
             # start websocket_service once
             if ip and self.ws_process == None:
@@ -511,9 +508,10 @@ class WS():
                     log("ble write value: No IP")
                     ble.write("No IP")
             # reconfigure wifi
-            elif value:
+            elif value and "#*#" in value:
                 if self.ws_process != None:
                     self.ws_process.terminate()
+                    log("self.ws_process.terminate()")
                     
                 log("Connecting to wifi")
                 data_list = value.split("#*#")
@@ -526,6 +524,7 @@ class WS():
                     if ip:
                         log("IP Address: %s" % ip)
                         self.websocket_service_process()
+                        log("self.websocket_service_process()")
                         ble.write(ip)
                         break
                     time.sleep(1)
