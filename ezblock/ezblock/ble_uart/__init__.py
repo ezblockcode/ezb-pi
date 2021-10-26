@@ -11,10 +11,10 @@ import time
 from os import system as run_command
 from .utils import *
 
-UART_SERVICE_UUID =            'FFF0'
+UART_SERVICE_UUID =            'FF00' # 'FF00' 
 UART_TXRX_CHARACTERISTIC_UUID ='FFF1'
-LOCAL_NAME =                   'ezb-test'
-mainloop = None
+LOCAL_NAME =                   'ezb-Raspberry' # 'ezb-Raspberry'
+mainloop = None 
  
 class TxRxCharacteristic(Characteristic):
     def __init__(self, bus, index, service, on_write_value):
@@ -38,7 +38,10 @@ class TxRxCharacteristic(Characteristic):
         value = []
         for c in s:
             value.append(dbus.Byte(c.encode()))
-        self.PropertiesChanged(GATT_CHARACTERISTIC_INTERFACE, {'Value': value}, [])
+        if len(value) != 0:
+            self.PropertiesChanged(GATT_CHARACTERISTIC_INTERFACE, {'Value': value}, [])
+        else:
+            self.log("send_tx: Skip. emply value")
  
     def StartNotify(self):
         if self.notifying:

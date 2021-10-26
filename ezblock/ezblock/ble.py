@@ -3,6 +3,8 @@ import time
 from .filedb import fileDB
 from .basic import _Basic_class
 from .ble_uart import BLE_UART
+from .utils import  run_command, log
+
 
 class BLE(_Basic_class):
     def __init__(self):
@@ -79,3 +81,4 @@ class BLE(_Basic_class):
                 else:
                     return True
 
+  

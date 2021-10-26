@@ -1,4 +1,10 @@
 import asyncio
+from asyncio.tasks import sleep
+from inspect import Traceback
+from itertools import count
+import threading
+
+from requests.packages.urllib3.connection import connection
 import websockets
 import json
 import time
@@ -12,7 +18,9 @@ from .i2c import I2C
 import sys,os
 import RPi.GPIO as GPIO
 from ezblock import Pin,Servo,PWM,fileDB
+from .music import Music
 
+bt_status_led = Pin("LED")
 
 def turn_hex(c):
     return hex(c)   
@@ -141,10 +149,42 @@ class WS():
         self.sloth = None
         self.px = None
         self.user_service_process = None
+        # battery
+        self.voltage = Value('d',0.0)
+        self.battery = Value('d',0)
+        self.ws_battery_process = None
+        self.ws_battery_status = False
+        # self.music = Music()
+        # self.music.sound_effect_play('mi.wav')
+        self.is_client_conneted = Value('i',0)
+        self.ping_time_interval = Value('i',0)
+        
+        self.loop = asyncio.get_event_loop()
 
+    @staticmethod
+    def get_battery(voltage,battery,id='user'):
+        
+        def fuc():
+            while True:
+                voltage.value = min(round(ADC('A4').read() / 4096.0 * 3.3 * 3,2), 8.40)
+                battery.value = round(max((voltage.value - 7.0) / 1.4, 0) * 100, 2)
+                time.sleep(1)
 
+        log('start getting battery thread by %s process'%id)
+        t = threading.Thread(target=fuc)
+        # t.setDaemon(True)
+        t.start()
 
-    def main_process(self):
+    # battery
+    def ws_battery_process_start(self):
+        self.ws_battery_process = Process(name='ws battery',target=self.get_battery,args=(ws.voltage,ws.battery,'websocket'))
+        self.ws_battery_process.start()
+        self.ws_battery_status = True
+
+    def main_process(self,voltage,battery):
+        # battery    
+        self.get_battery(voltage,battery,'user')
+        # 
         try:
             from main import forever
             while True:
@@ -156,8 +196,12 @@ class WS():
 
     def user_service_start(self):
         log("WS.user_service_start")
-        self.user_service_process = Process(name='user service',target=self.main_process)
+        if self.ws_battery_status == True:
+            self.ws_battery_process.terminate()
+            self.ws_battery_status = False
+        self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
         self.user_service_process.start()
+        self.user_service_status = True
         
     def flash(self, name):
         file_dir = '/opt/ezblock/'
@@ -168,34 +212,21 @@ class WS():
     def send_data(self):
         global i2c_adress_list
         if "RE" in self.recv_dict.keys():
-            if self.recv_dict['RE'] == "all":
-                if '0x14' in i2c_adress_list:
-                    self.send_dict['name'] = read_info("name")
-                    self.type = read_info("type")
-                    self.send_dict['type'] = self.type
-                    self.send_dict['version'] = read_info("version")
-                    temp = read_info("mac")
-                    if temp == "null":
-                        addr = run_command("hciconfig hci0")
-                        addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
-                        write_info("mac", addr)
-                    self.send_dict['mac'] = read_info("mac")
-                    self.send_dict['ip'] = getIP()
-                    self.send_dict['update'] = ezb.get_status()
-                else:
-                    self.send_dict['name'] = read_info("name")
-                    self.type = read_info("type")
-                    self.send_dict['type'] = self.type
-                    self.send_dict['version'] = read_info("version")
-                    temp = read_info("mac")
-                    if temp == "null":
-                        addr = run_command("hciconfig hci0")
-                        addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
-                        write_info("mac", addr)
-                    self.send_dict['mac'] = read_info("mac")
-                    self.send_dict['ip'] = getIP()
-                    self.send_dict['update'] = ezb.get_status()
-
+            if self.recv_dict['RE'] == "all":               
+                self.send_dict['name'] = read_info("name")
+                self.type = read_info("type")
+                self.send_dict['type'] = self.type
+                self.send_dict['version'] = read_info("version")
+                temp = read_info("mac")
+                if temp == "null":
+                    addr = run_command("hciconfig hci0")
+                    addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
+                    write_info("mac", addr)
+                self.send_dict['mac'] = read_info("mac")
+                self.send_dict['ip'] = getIP()
+                self.send_dict['update'] = ezb.get_status()
+                self.send_dict['voltage'] = self.voltage.value
+                self.send_dict['battery'] = self.battery.value
             elif self.recv_dict['RE'] == "name":
                 self.send_dict['name'] = read_info("name")
             elif self.recv_dict['RE'] == "type":
@@ -204,7 +235,8 @@ class WS():
             elif self.recv_dict['RE'] == "version":
                 self.send_dict['version'] = read_info("version")
             elif self.recv_dict['RE'] == "battery":
-                pass
+                self.send_dict['voltage'] = self.voltage.value
+                self.send_dict['battery'] = self.battery.value
             elif self.recv_dict['RE'] == "offset":
                 if read_info("type") == "PiCarMini":
                     self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
@@ -308,7 +340,8 @@ class WS():
             # Stop user service
             elif "ST" in self.recv_dict.keys() and self.recv_dict["ST"]:
                 # Stop User service
-                self.user_service_process.terminate()
+                self.user_service_close()
+                self.ws_battery_process_start()
 
                 if '0x14' in i2c_adress_list:
                     Ezb_Service.reset_mcu_func()
@@ -353,19 +386,34 @@ class WS():
             
 
     async def main_logic(self, websocket,path):
+
+        # self.music.sound_effect_play('mi.wav')
+        run_command('sudo aplay /home/pi/Sound/mi.wav')
+        self.is_client_conneted.value = True
+        self.ping_time_interval.value = 0
+
         while True:
-            # print("main_logic")
+            # battery 
+            if self.user_service_status == False and self.ws_battery_status == False:
+                self.ws_battery_process_start()
+
+            self.is_client_conneted.value = True
+
             try:
                 tmp = await asyncio.wait_for(websocket.recv(), timeout=0.001)
                 tmp = json.loads(tmp)
-                # if tmp != {}:
+                self.is_client_conneted.value = True
+
                 log("recv_data_load:%s"%tmp,'websockets')
                 self.recv_dict = tmp
                 # heartbeat
                 if 'PF' in self.recv_dict.keys():
-                    log('pong')
+                    # log('pong')
                     self.send_dict['PF'] = 'pong'
-
+                    self.ping_time_interval.value = 0
+                # battery
+                log('vol: %s, bat: %s '%(self.voltage.value,self.battery.value))
+                # send data
                 self.send_data()
                 for key in tmp.keys():
                     if key in ["JS", "SL", "DP", "BT", "SW"]:
@@ -406,8 +454,14 @@ class WS():
     def start_loop(self, ip):
         start_server_1 = websockets.serve(self.main_logic, ip, 8765)
         tasks = [self.main_loop_frame(),start_server_1]
-        asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
-        asyncio.get_event_loop().run_forever()
+        self.loop.run_until_complete(asyncio.wait(tasks))
+        self.loop.run_forever()
+        # while True:
+        #     print(self.loop.is_running())
+
+        # asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
+        # asyncio.get_event_loop().run_forever()
+        # asyncio.get_event_loop().is_running()
 
     def print(self, msg, end='\n', tag='[DEBUG]'):
         _msg = "Ezblock [{}] [DEBUG] {}".format(time.asctime(), msg)
@@ -425,15 +479,30 @@ class WS():
     def __start_ws__(self):
         log("WS.__start_ws__")
         ble = BLE()
+        # ezblock service start sound effect / 
+        # self.music.sound_effect_play('mi.wav')
+        run_command('sudo aplay /home/pi/Sound/iphone.wav')
+
+        # bl_led_t = threading.Thread(name='bl_led',target=self.bluetooth_status_led,args=(self.is_client_conneted,self.ping_time_interval))
+        bl_led_t = threading.Thread(name='bl_led',target=self.bluetooth_status_led,args=())
+        bl_led_t.setDaemon(True)
+        bl_led_t.start()
+
+
         while True:
+            
+
             ip = getIP()
+            # start websocket_service once
             if ip and self.ws_process == None:
                 log("got ip: %s " % ip)
                 self.websocket_service_process()
+            # wait app connect the bluetooth  
             value = ble.readline()
             if value == "":
                 continue
             log("ble read value: %s" % value)
+            # send ip to app so that the app can connect to the WebSocket
             if value == "get":
                 if ip:
                     log("ble write value: %s" % ip)
@@ -441,9 +510,11 @@ class WS():
                 else:
                     log("ble write value: No IP")
                     ble.write("No IP")
+            # reconfigure wifi
             elif value:
                 if self.ws_process != None:
                     self.ws_process.terminate()
+                    
                 log("Connecting to wifi")
                 data_list = value.split("#*#")
                 from .wifi import WiFi
@@ -473,6 +544,61 @@ class WS():
             update_flag.value = 2 # 2:OK
         else:
             update_flag.value = 3 # 3:Failed
+
+    # def bluetooth_status_led(self,flag,count):
+    #     log("bluetooth_status_led thread start")
+    #     while True:
+    #         # count ping_time_interval
+    #         count.value += 1
+    #         if count.value > 6:
+    #             flag.value = False
+    #             count.value = 0 
+
+    #         if flag.value == True:
+    #             bt_status_led.value(1)
+    #             time.sleep(0.1)
+    #             bt_status_led.value(0)
+    #             time.sleep(0.1)
+    #             bt_status_led.value(1)
+    #             time.sleep(0.1)
+    #             bt_status_led.value(0)
+    #             time.sleep(2)
+    #         else:
+    #             bt_status_led.value(1)
+    #             time.sleep(0.2)
+    #             bt_status_led.value(0)
+    #             time.sleep(0.2)
+
+    def bluetooth_status_led(self):
+        log("bluetooth_status_led thread start")
+        count = 0
+        while True:
+            count += 1
+            if count > 6:
+                if self.is_client_conneted.value == True:
+                    log("disconnnect")
+                    run_command('sudo aplay /home/pi/Sound/mi.wav')
+                self.is_client_conneted.value = False
+                self.ping_time_interval.value = 0
+                count = 0
+
+            
+            # print(self.loop.is_running())
+            if self.loop.is_running() == True or self.is_client_conneted.value == True:
+                bt_status_led.value(1)
+                time.sleep(0.1)
+                bt_status_led.value(0)
+                time.sleep(0.1)
+                bt_status_led.value(1)
+                time.sleep(0.1)
+                bt_status_led.value(0)
+                time.sleep(2)
+            else:
+                bt_status_led.value(1)
+                time.sleep(0.2)
+                bt_status_led.value(0)
+                time.sleep(0.2)
+                
 
 ws = WS()
 
