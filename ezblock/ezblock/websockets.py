@@ -202,7 +202,11 @@ class WS():
         self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
         self.user_service_process.start()
         self.user_service_status = True
-        
+
+    def user_service_close(self):
+        self.user_service_process.terminate()
+        self.user_service_status = False
+
     def flash(self, name):
         file_dir = '/opt/ezblock/'
         dir = "%s/%s.py"%(file_dir, name)
@@ -581,7 +585,7 @@ class WS():
         count = 0
         while True:
             count += 1
-            if count > 6:
+            if count > 8:
                 if self.is_client_conneted.value == True:
                     log("disconnnect")
                     run_command('sudo aplay /home/pi/Sound/mi.wav')
