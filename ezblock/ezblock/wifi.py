@@ -30,7 +30,7 @@ update_config=1 """
         if result == ssid and ip != False:
             print('Wi-Fi is already connected to %s, skip'%(ssid))
             print("IP: %s" % ip)
-            return True
+            return ip
         print("Connecting to \"{}\"...".format(ssid))
         message = self.message.format(self.country, ssid, psk)
         with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:
@@ -46,7 +46,7 @@ update_config=1 """
                 if ip:
                     print("IP: %s" % ip)
                     print('WiFi connect success')
-                    return True
+                    return ip
 
                 time_end = time.time()
                 if time_end-time_start > 10:
@@ -92,7 +92,7 @@ update_config=1 """
     def write(self, country, ssid, psk):
         # if commition failed   sudo systemctl enable wpa_supplicant.service  and reboot
         self.set_country(country)
-        self.connect(ssid, psk)
+        return self.connect(ssid, psk)
 
 def test():
     # WiFi()

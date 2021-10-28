@@ -517,19 +517,27 @@ class WS():
                 data_list = value.split("#*#")
                 from .wifi import WiFi
                 wifi = WiFi()
-                wifi.write(*data_list)
-                # Retry 3 times
-                for _ in range(3):
-                    ip = getIP()
-                    if ip:
-                        log("IP Address: %s" % ip)
-                        self.websocket_service_process()
-                        log("self.websocket_service_process()")
-                        ble.write(ip)
-                        break
-                    time.sleep(1)
+                ip = wifi.write(*data_list)
+                if ip:
+                    log("IP Address: %s" % ip)
+                    self.websocket_service_process()
+                    log("self.websocket_service_process()")
+                    ble.write(ip)
                 else:
                     ble.write("Connect Failed!")
+
+                # Retry 3 times
+                # for _ in range(3):
+                #     ip = getIP()
+                #     if ip:
+                #         log("IP Address: %s" % ip)
+                #         self.websocket_service_process()
+                #         log("self.websocket_service_process()")
+                #         ble.write(ip)
+                #         break
+                #     time.sleep(1)
+                # else:
+                #     ble.write("Connect Failed!")
             #         except Exception as e:
             #             log("WS.__start_ws__ failed: %s" % e)
             # except Exception as e:
