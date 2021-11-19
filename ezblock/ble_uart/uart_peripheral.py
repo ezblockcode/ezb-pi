@@ -27,17 +27,18 @@ class TxRxCharacteristic(Characteristic):
         Characteristic.__init__(self, bus, index, UART_TXRX_CHARACTERISTIC_UUID,
                                 ['notify', 'write'], service)
         self.notifying = False
-        GLib.io_add_watch(sys.stdin, GLib.IO_IN, self.on_console_input)
+        # GLib.io_add_watch(sys.stdin, GLib.IO_IN, self.on_console_input)
         self.on_write_value = on_write_value
         self.add_descriptor(UartDescriptor(bus, 0, self))
  
-    def on_console_input(self, fd, condition):
-        s = fd.readline()
-        if s.isspace():
-            pass
-        else:
-            self.send_tx(s)
-        return True
+    # def on_console_input(self, fd, condition):
+    #     time.sleep(0.01)
+    #     s = fd.readline()
+    #     if s.isspace():
+    #         pass
+    #     else:
+    #         self.send_tx(s)
+    #     return True
  
     def send_tx(self, s):
         if not self.notifying:
