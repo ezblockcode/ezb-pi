@@ -24,13 +24,15 @@ class Ezbupdate(object):
         self.file_address = "/opt/ezblock/ezb-info.ini"
         self.url = url
         
-
     def get_status(self):
-        _,index =  self.check_version()
-        if index > 0:
-            return True
+        result = self.check_version()
+        if result == False:
+            return False  
         else:
-            return False
+            if result[1] > 0:
+                return True
+            else:
+                return False
 
     def check_version(self):
         result = {}
