@@ -15,10 +15,11 @@ class TTS(_Basic_class):
         'it-IT', # 意大利语(意大利)Italia-lingua italiana
     ]
 
-    def __init__(self, engine='espeak'):
+    def __init__(self, engine='espeak', url=None):
         super().__init__()
         self._lang = "en-US"            # 默认输入的语言为英语
         self.engine = engine
+        self.url = url
         if (engine == "espeak"):
             # if not is_installed("espeak"):
             # try:
@@ -66,8 +67,7 @@ class TTS(_Basic_class):
 
         data = self.json.dumps(data)
         data = bytes(data, 'utf8')
-        url = 'http://192.168.6.224:11000/api/web/v2/ezblock/google/tts'
-        req = self.request.Request(url, data=data, headers=header, method='POST')
+        req = self.request.Request(self.url, data=data, headers=header, method='POST')
         r = self.request.urlopen(req)
         result = r.read()
         result = result.decode("utf-8")
@@ -94,8 +94,7 @@ class TTS(_Basic_class):
         data = self.json.dumps(data)
         data = bytes(data, 'utf8')
         for i in range(5):
-            url = 'https://test2.ezblock.com.cn:11000/api/web/v2/ezblock/aws/tts'
-            req = self.request.Request(url, data=data, headers=header, method='POST')
+            req = self.request.Request(self.url, data=data, headers=header, method='POST')
             r = self.request.urlopen(req)
             result = r.read()
             result = result.decode("utf-8")
