@@ -70,7 +70,7 @@ class Arm(Robot):
         self.data_index = 2
 
     def electromagnet_init(self, pin):
-        self.elecma = pin
+        self.elecma = PWM(pin)
         self.elecma.pulse_width_percent(0)
         self.component = 'electromagnet'
         self.data_index = 3
