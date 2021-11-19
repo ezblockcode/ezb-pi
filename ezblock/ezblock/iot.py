@@ -97,13 +97,7 @@ def test():
         print("%s"%(__IOT__.get("com/iot/actuators_Slider_1_b")))
         time.sleep(1)
 
-    # iot = IOT("16128573140003757843323708413916266436285")
-    # iot.post("com/iot/sensorsHumidity1Drr", 6.6)
-    # while True:
-        
-    #     iot.get("com/iot/sensorsHumidity1Drr")
-        
-    #     time.sleep(1)
+
     
 if __name__ == "__main__":
     test()

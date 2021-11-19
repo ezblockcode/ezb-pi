@@ -66,13 +66,3 @@ Options:
     else:
         __PRINT__(usage)
         quit()
-
-# def service():
-#     # import threading
-#     # web_thread = threading.Thread(target=start_loop)
-#     # web_thread.start()
-#     from multiprocessing import Process
-#     web_service = Process(name='websocket service',target=start_loop)
-#     web_service.start()
-    
-# service()
