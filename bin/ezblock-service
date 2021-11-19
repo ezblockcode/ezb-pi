@@ -1,20 +1,14 @@
 #!/usr/bin/python3
 # -*- coding utf-8 -*-
-from ezblock import websockets
-# from ezblock import Pin
-# import time
-if __name__ == '__main__':
-    # mcu_reset = Pin("MCURST")
-    # user_service = Process(name='user service',target=main_process)
-    # user_service.start()
-    # websockets.ws.user_service_pid = user_service.pid
-    # websockets.ws.main_loop = main_loop
-    # websockets.ws.user_service_start()
-    # mcu_reset.off()
-    # time.sleep(0.001)
-    # mcu_reset.on()
-    # time.sleep(0.01)
-    # print("reset ssssssssssssss")
-    websockets.Ezb_Service.start_service()  
-    print("ezblock-service start_2")  
 
+# import platform 
+# print('python_version: %s\n'%platform.python_version())
+from ezblock import websockets
+import os
+
+if __name__ == '__main__':
+    try:
+        websockets.Ezb_Service.start_service()  
+        print("ezblock-service start_2")  
+    except KeyboardInterrupt:
+        os.system('sudo killall ezblock-service')
