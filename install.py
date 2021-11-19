@@ -34,6 +34,7 @@ APT_INSTALL_LIST = [
     "python3-flask",
     "libzbar0",
     #"libttspico-utils",
+    "lsof",
 ]
 
 PIP_INSTALL_LIST = [

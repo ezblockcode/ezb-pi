@@ -1,27 +1,25 @@
 import asyncio
 from asyncio.tasks import sleep
-from re import I, S
 import websockets
-import json
+
+import threading
+from multiprocessing import Process, Manager, Value
+
+import sys,os
 import time
-from .utils import getIP, run_command, log
-import os
-from multiprocessing import Process, Manager, Queue, Pipe, Value
+import json
+
+import RPi.GPIO as GPIO
+from ezblock import Pin,Servo,PWM
+from .utils import delay,getIP, run_command, log
 from .ble import BLE
 from configparser import ConfigParser
 from .adc import ADC
 from .i2c import I2C
-import sys,os
-import RPi.GPIO as GPIO
-from ezblock import Pin,Servo,PWM,fileDB
-import ssl
-import pathlib
-import threading
+from .version import VERSION
 
-def turn_hex(c):
-    return hex(c)   
 detect_i2c = I2C()
-i2c_adress_list = list(map(turn_hex, detect_i2c.scan()))
+i2c_adress_list = list(map(hex, detect_i2c.scan()))
 
 sys.path.append('/opt/ezblock')
 from ezb_update import Ezbupdate
@@ -36,7 +34,6 @@ message = """
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1 """
 
-
 def read_info(key):
     try:
         config.read("/opt/ezblock/ezb-info.ini")
@@ -44,11 +41,11 @@ def read_info(key):
         return temp
     except:
         run_command("sudo touch /opt/ezblock/ezb-info.ini")
-        config['DEFAULT'] ={'version':"1.0.2",
+        config['DEFAULT'] ={'version':VERSION,
                             'name':"null",
                             'type':"null",
                             'mac':"null"}
-        config['message'] ={'version':"1.0.2"}
+        config['message'] ={'version':VERSION}
         with open("/opt/ezblock/ezb-info.ini", 'w') as f:
             config.write(f)
         return None
@@ -67,6 +64,7 @@ class Ezb_Service(object):
 
     @staticmethod
     def reset_mcu_func():
+        log('reset_mcu')
         mcu_reset.off()
         time.sleep(0.001)
         mcu_reset.on() 
@@ -79,6 +77,7 @@ class Ezb_Service(object):
         worker_2 = Process(name='worker 2',target=ws.__start_ws__)
         worker_2.start()
         log("[Process] __start_ws__: %s" % worker_2.pid)
+        # this loop is necessary
         while True:
             time.sleep(1)
  
@@ -88,7 +87,7 @@ class Ezb_Service(object):
         global i2c_adress_list
         Ezb_Service.reset_mcu_func()
         detect_i2c = I2C()
-        i2c_adress_list = list(map(turn_hex,detect_i2c.scan()))
+        i2c_adress_list = list(map(hex,detect_i2c.scan()))
         if '0x14' in i2c_adress_list:
             from spider import Spider
             from sloth import Sloth
@@ -114,7 +113,7 @@ class Ezb_Service(object):
     def set_share_val(item,value):
         item = str(item)
         if item in ["SS", "LB", "MT", "LC", "PC","BC"]:
-            if item in list(ws.remote_dict.keys()):#判断控件是否已经存在
+            if item in list(ws.remote_dict.keys()): # Determines whether the control exists
                 if item == 'LC' and value == {}:
                     pass
                 else:
@@ -143,18 +142,14 @@ class WS():
         self.px = None
         self.user_service_process = None
         self.user_service_status = False
-        # battery
         self.voltage = Value('d',0.0)
         self.battery = Value('d',0)
         self.ws_battery_process = None
         self.ws_battery_status = False
-        # ssl   PROTOCOL_TLS , PROTOCOL_TLS_SERVER
-        # self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        # self.ssl_context.load_cert_chain(pathlib.Path('/opt/ezblock/localhost2.pem').with_name('localhost2.pem'))
+        self.is_client_conneted = Value('i',0)
 
     @staticmethod
     def get_battery(voltage,battery,id='user'):
-        
         def fuc():
             while True:
                 voltage.value = min(round(ADC('A4').read() / 4096.0 * 3.3 * 3,2), 8.40)
@@ -163,7 +158,7 @@ class WS():
 
         log('start getting battery thread by %s process'%id)
         t = threading.Thread(target=fuc)
-        # t.setDaemon(True)
+        t.setDaemon(True)
         t.start()
 
     # battery
@@ -171,7 +166,13 @@ class WS():
         self.ws_battery_process = Process(name='ws battery',target=self.get_battery,args=(ws.voltage,ws.battery,'websocket'))
         self.ws_battery_process.start()
         self.ws_battery_status = True
-             
+
+    def ws_battery_process_close(self):
+        if self.ws_battery_status == True:
+            log("[Process] ws_battery_process_close: %s" % self.ws_battery_process.pid)
+            self.ws_battery_process.terminate()
+            self.ws_battery_status = False
+
     def main_process(self,voltage,battery):
         # battery    
         self.get_battery(voltage,battery,'user')
@@ -188,10 +189,10 @@ class WS():
     def user_service_start(self):
         log("WS.user_service_start")
         if self.ws_battery_status == True:
-            self.ws_battery_process.terminate()
-            self.ws_battery_status = False
+            self.ws_battery_process_close()
         self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
         self.user_service_process.start()
+        log("[Process] user_service_start: %s" % self.user_service_process.pid)
         self.user_service_status = True
 
     def user_service_close(self):
@@ -236,14 +237,17 @@ class WS():
                 if read_info("type") == "PiCarMini":
                     self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
             self.recv_dict = {}
+        # name
         if "NA" in self.recv_dict.keys():
             name_temp = self.recv_dict["NA"]
             write_info("name", name_temp)
             self.send_dict["name"] = name_temp
+        # type
         if "Type" in self.recv_dict.keys():
             self.type = self.recv_dict["Type"]
             write_info("type", self.type)
             self.send_dict["type"] = self.type
+        # has_update ?
         if "UE" in self.recv_dict.keys():
             if self.recv_dict["UE"] and Ezb_Service.update_work == False:
                 Ezb_Service.update_work = True
@@ -271,12 +275,14 @@ class WS():
                 Ezb_Service.update_flag.value = 0
             else:
                 sleep(0.02)
-        #        
+        # reboot       
         if "RB" in self.recv_dict.keys():
             if self.recv_dict["RB"]:
                 run_command("sudo reboot")
-
+        # offset 
         if "OF" in self.recv_dict.keys():
+            self.user_service_close()
+            self.ws_battery_process_close()
             if self.type == "PiCarMini":
                 dir_servo_pin = Servo(PWM('P2'))
                 camera_servo_pin1 = Servo(PWM('P0'))
@@ -300,156 +306,212 @@ class WS():
             elif self.type == "SlothForPi":
                 self.sloth.set_offset(self.recv_dict['OF'])
                 self.sloth.calibration()
-             
+            self.ws_battery_process_start()
+
+
     async def main_loop_frame(self):
         global i2c_adress_list
-        while True:     
-            # Download code
-            if "FL" in self.recv_dict.keys() and self.recv_dict['FL']:
-                # Stop User service
-                self.user_service_close()
+        while True:  
+            try:   
+                # Download code
+                if "FL" in self.recv_dict.keys() and self.recv_dict['FL']:
+                    # Stop User service
+                    self.user_service_close()
+                    self.ws_battery_process_close()
 
-                Ezb_Service.share_dict['SS'] = {}
-                Ezb_Service.share_dict['LB'] = {}
-                Ezb_Service.share_dict['MT'] = {}
-                Ezb_Service.share_dict['LC'] = {}
-                Ezb_Service.share_dict['PC'] = {}
-                Ezb_Service.share_dict['BC'] = {}
-                Ezb_Service.share_dict['SL'] = {}
+                    Ezb_Service.share_dict['SS'] = {}
+                    Ezb_Service.share_dict['LB'] = {}
+                    Ezb_Service.share_dict['MT'] = {}
+                    Ezb_Service.share_dict['LC'] = {}
+                    Ezb_Service.share_dict['PC'] = {}
+                    Ezb_Service.share_dict['BC'] = {}
+                    Ezb_Service.share_dict['SL'] = {}
 
-                if '0x14' in i2c_adress_list:
-                    Ezb_Service.reset_mcu_func()
-                    self.type = read_info("type")
-                    if self.type == "SpiderForPi":
-                        pass
-                elif '0x74'in i2c_adress_list:
-                    GPIO.setmode(GPIO.BCM)
-                    GPIO.setup(24, GPIO.OUT)
-                    GPIO.output(24,GPIO.LOW)
-                    GPIO.cleanup(24)
-                self.flash("main")
-                self.user_service_start()
-                for _ in range(10): 
-                    self.send_dict["CD"] = True
-                self.recv_dict['FL'] = False
-            # Stop user service
-            elif "ST" in self.recv_dict.keys() and self.recv_dict["ST"]:
-                # Stop User service
-                self.user_service_close()
-                self.ws_battery_process_start()
-                if '0x14' in i2c_adress_list:
-                    Ezb_Service.reset_mcu_func()
-                    self.type = read_info("type")
-                    if self.type == "SpiderForPi":
-                        from spider import Spider
-                        self.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
-                        self.sp.servo_positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                    elif self.type == "SlothForPi":
-                        from sloth import Sloth
-                        self.sloth = Sloth([1,2,3,4])
-                    elif self.type == "PiCarMini":
-                        from picarx import Picarx
-                        self.px = Picarx()
-
-                elif '0x74'in i2c_adress_list:
-                    GPIO.setmode(GPIO.BCM)
-                    GPIO.setup(24, GPIO.OUT)
-                    GPIO.output(24,GPIO.LOW)
-                    GPIO.cleanup(24)
-                self.user_service_status = False
-                self.send_dict["ST"] = True
-                self.recv_dict = {}
-            # Run user service
-            elif "RU" in self.recv_dict.keys() and self.recv_dict["RU"]:
-                # Stop User service
-                self.user_service_close()
-
-                if not self.user_service_status:
                     if '0x14' in i2c_adress_list:
                         Ezb_Service.reset_mcu_func()
+                        self.type = read_info("type")
+                        if self.type == "SpiderForPi":
+                            pass
                     elif '0x74'in i2c_adress_list:
                         GPIO.setmode(GPIO.BCM)
                         GPIO.setup(24, GPIO.OUT)
                         GPIO.output(24,GPIO.LOW)
                         GPIO.cleanup(24)
+                    self.flash("main")
                     self.user_service_start()
-                    self.user_service_status = True
-                    self.send_dict["RU"] = True
+                    for _ in range(10): 
+                        self.send_dict["CD"] = True
+                    self.recv_dict['FL'] = False
+                # Stop user service
+                elif "ST" in self.recv_dict.keys() and self.recv_dict["ST"]:
+                    # Stop User service
+                    self.user_service_close()
+                    self.ws_battery_process_start()
+                    if '0x14' in i2c_adress_list:
+                        Ezb_Service.reset_mcu_func()
+                        self.type = read_info("type")
+                        if self.type == "SpiderForPi":
+                            from spider import Spider
+                            self.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
+                            self.sp.servo_positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        elif self.type == "SlothForPi":
+                            from sloth import Sloth
+                            self.sloth = Sloth([1,2,3,4])
+                        elif self.type == "PiCarMini":
+                            from picarx import Picarx
+                            self.px = Picarx()
+
+                    elif '0x74'in i2c_adress_list:
+                        GPIO.setmode(GPIO.BCM)
+                        GPIO.setup(24, GPIO.OUT)
+                        GPIO.output(24,GPIO.LOW)
+                        GPIO.cleanup(24)
+                    self.user_service_status = False
+                    self.send_dict["ST"] = True
                     self.recv_dict = {}
+                # Run user service
+                elif "RU" in self.recv_dict.keys() and self.recv_dict["RU"]:
+                    # Stop User service
+                    self.user_service_close()
+
+                    if not self.user_service_status:
+                        if '0x14' in i2c_adress_list:
+                            Ezb_Service.reset_mcu_func()
+                        elif '0x74'in i2c_adress_list:
+                            GPIO.setmode(GPIO.BCM)
+                            GPIO.setup(24, GPIO.OUT)
+                            GPIO.output(24,GPIO.LOW)
+                            GPIO.cleanup(24)
+                        self.user_service_start()
+                        self.user_service_status = True
+                        self.send_dict["RU"] = True
+                        self.recv_dict = {}
+            except OSError as e:
+                log(e,level='ERROR')
+                Ezb_Service.reset_mcu_func()
+                sleep(1)
+                continue
+            except Exception as e:
+                log(e,level='ERROR')
             await asyncio.sleep(0.1)
             
-    # recv
+   
     async def main_logic(self, websocket,path):
+        log('client conneted')
+        self.is_client_conneted.value = True
+        # battery 
+        if self.user_service_status == False and self.ws_battery_status == False:
+            self.ws_battery_process_start()
+
         while True:
-            # battery 
-            if self.user_service_status == False and self.ws_battery_status == False:
-                self.ws_battery_process_start()
-            try:
-                tmp = await asyncio.wait_for(websocket.recv(), timeout=0.001)
-                tmp = json.loads(tmp)
-                # if tmp != {}:
-                log("recv_data_load:%s"%tmp,'websockets')
-                self.recv_dict = tmp
-                # heartbeat
-                if 'PF' in self.recv_dict.keys():
-                    log('pong')
-                    self.send_dict['PF'] = 'pong'
-                # battery
-                log('vol: %s, bat: %s '%(self.voltage.value,self.battery.value))
-                # send data
-                self.send_data()
-                for key in tmp.keys():
-                    if key in ["JS", "SL", "DP", "BT", "SW"]:
-                        # print("data put")
-                        if key in list(self.remote_dict.keys()):#判断控件是否已经存在
-                            self.remote_dict[key][list(tmp[key].keys())[0]] = tmp[key][list(tmp[key].keys())[0]]
-                            Ezb_Service.set_share_val(key,self.remote_dict[key])
-                        else:
-                            self.remote_dict[key] = tmp[key]
-                            Ezb_Service.set_share_val(key,self.remote_dict[key])
-            except:
-                pass
-            
-            try:
-                if self.send_dict != {}:
-                    data = self.send_dict
-                else:
-                    data = Ezb_Service.return_share_val()
-                data = dict(data)
-                await websocket.send(json.dumps(data))
+            try: #  to catch websockets.exceptions.ConnectionClosed 
+                # recv
+                try:
+                    tmp = await asyncio.wait_for(websocket.recv(), timeout=0.001)
+                except asyncio.TimeoutError as e:
+                    # log('asyncio.TimeoutError : %s'%e)
+                    pass
 
-                if 'debug' in data.keys():
-                    if data['debug'][1] == True:
-                        Ezb_Service.set_share_val('debug',[data['debug'][0],False])
-                if 'LC' in data.keys():
-                    LC_list = list(data['LC'].keys())
-                    if  LC_list != []:
-                        for i in LC_list:
-                            if data['LC'][i][-1] == True:
-                                data['LC'][i][-1] = False
-                                Ezb_Service.set_share_val('LC',data['LC'])
-                if self.send_dict != {} and data == self.send_dict:
-                    self.send_dict = {} 
-                await asyncio.sleep(0.01)
-            except KeyboardInterrupt:
-                pass
+                # Received data processing
+                try:   
+                    tmp = json.loads(str(tmp))                    
+                    self.recv_dict = tmp
+                    log("recv_data_load:%s"%tmp,'websockets')
 
-    # start func     
-    def start_loop(self, ip):
-        start_server_1 = websockets.serve(self.main_logic,ip, 8765)   # ssl=self.ssl_context
-        tasks = [self.main_loop_frame(),start_server_1]
-        asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
-        asyncio.get_event_loop().run_forever()
+                    # heartbeat
+                    if 'PF' in self.recv_dict.keys() and self.recv_dict['PF']:
+                        self.send_dict['PF'] = 'pong'
+
+                    self.send_data()              
+                    for key in tmp.keys():
+                        if key in ["JS", "SL", "DP", "BT", "SW"]:
+                            if key in list(self.remote_dict.keys()): # Determines whether the control exists
+                                self.remote_dict[key][list(tmp[key].keys())[0]] = tmp[key][list(tmp[key].keys())[0]]
+                                Ezb_Service.set_share_val(key,self.remote_dict[key])
+                            else:
+                                self.remote_dict[key] = tmp[key]
+                                Ezb_Service.set_share_val(key,self.remote_dict[key])
+                except Exception as e:
+                    # log(e)
+                    pass
+
+                # send           
+                try:
+                    if self.send_dict != {}:
+                        data = self.send_dict
+                        log('send data: %s'% data)
+                    else:
+                        data = Ezb_Service.return_share_val()
+
+                    data = dict(data)
+                    await websocket.send(json.dumps(data))
+
+                    if 'debug' in data.keys():
+                        if data['debug'][1] == True:
+                            Ezb_Service.set_share_val('debug',[data['debug'][0],False])
+                    if 'LC' in data.keys():
+                        LC_list = list(data['LC'].keys())
+                        if  LC_list != []:
+                            for i in LC_list:
+                                if data['LC'][i][-1] == True:
+                                    data['LC'][i][-1] = False
+                                    Ezb_Service.set_share_val('LC',data['LC'])
+                    if self.send_dict != {} and data == self.send_dict:
+                        self.send_dict = {} 
+                except KeyboardInterrupt:
+                    pass
+            # disconneted exception
+            except websockets.exceptions.ConnectionClosed as connection_code:
+                log(connection_code)
+                self.is_client_conneted.value = False
+                log('client disconneted')
+                run_command('sudo aplay /home/pi/Sound/mi.wav')
+                break   
+            await asyncio.sleep(0.01)
 
     def print(self, msg, end='\n', tag='[DEBUG]'):
-        _msg = "Ezblock [{}] [DEBUG] {}".format(time.asctime(), msg)
-        os.system("echo {} >> /opt/ezblock/log".format(_msg))
+        log(msg)
         Ezb_Service.set_share_val('debug',[str(msg),True])
         while Ezb_Service.return_share_val()['debug'][1] == True:
             time.sleep(0.01)
-  
+
+
+    def close_tcp_port(self,port=8765):
+        # check port
+        results = os.popen("sudo lsof -i:%s|grep %s|awk '{print $2}'"%(port,port)).readlines()
+        if results == []:
+            log('no process occupies port %s'%port)
+        else:
+            # close related processes
+            log('port 8765 is already occupied,try to close related processes ...')
+            for pid in results:
+                log('kill %s .... '%pid.replace('\n',''),end='')
+                status = os.system('sudo kill %s'%pid)
+                if status == 0:
+                    log('succeed',timestamp=False)
+                else:
+                    log('failed',timestamp=False)
+                    return False
+        return True
+
+
+    def start_loop(self, ip):
+        port = 8765
+        # check port
+        while not self.close_tcp_port(port):
+            time.sleep(0.01)
+        # start websockets
+        log('open websockets server')
+        start_server_1 = websockets.serve(self.main_logic, ip, port)
+        tasks = [self.main_loop_frame(),start_server_1]
+        self.loop = asyncio.get_event_loop()
+        self.loop.run_until_complete(asyncio.wait(tasks))
+        self.loop.run_forever()
+
+
     # start websocket_service_process
     def websocket_service_process(self):
+        Ezb_Service.reset_mcu_func()
         self.ws_process = Process(name='websocket service',target=self.start_loop,args=('0.0.0.0', )) # args=(ip, ) ：This is a tuple, the ',' is necessary !!!
         self.ws_process.start()
         self.websocket_service_pid = self.ws_process.pid
@@ -463,8 +525,8 @@ class WS():
                 if ip and self.ws_process == None:
                     log("got ip: %s " % ip)
                     self.websocket_service_process()
-                value = ""
 
+                value = ""
                 raw_data = ble.read(1).decode()
                 if raw_data != "":
                     while True:
@@ -473,6 +535,7 @@ class WS():
                         if raw_data == "\n":
                             break
                 if value == "":
+                    time.sleep(0.05)
                     continue
 
                 log("ble read value: %s" % value)
@@ -518,7 +581,6 @@ class WS():
             update_flag.value = 3 # 3:Failed
 
 ws = WS()
-
 ble = BLE()
 
 def ws_print(msg, end='\n', tag='[DEBUG]'):

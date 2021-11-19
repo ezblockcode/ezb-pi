@@ -1,27 +1,21 @@
-from .ble import BLE
+import sys
 import time
 import os
 import re
 import math
 
-ble = BLE()
 
-# ble.write('NAME+ezb-RPi')
-# ble.write('ADVP+') # 0~F
-
-__PRINT__ = print
-
-# def print(msg, end='\n', tag='[DEBUG]'):
-#     _msg = "Ezblock [{}] [DEBUG] {}".format(time.asctime(), msg)
-#     os.system("echo {} >> /opt/ezblock/log".format(_msg))
-#     msg = '%s %s %s' % (tag, msg, tag)
-#     __PRINT__(msg, end=end)
-#     ble.write(msg)
-
-def log(msg,module_name='_',tag='DEBUG'):
-    msg = "{} [{}] [{}] {}".format(module_name,time.asctime(),tag, msg)
-    run_command("echo {} >> /opt/ezblock/log".format(msg))
-    print(msg)
+log_file = open('/opt/ezblock/log','a+')
+def log(msg:str=None,level='DEBUG',end='\n',flush=False,timestamp=True):
+    if timestamp == True:
+        _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+        ct = time.time()
+        _msecs = '%03d '%((ct - int(ct)) * 1000)
+        print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=log_file)
+        print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
+    else:
+        print('%s'%msg, end=end, flush=flush, file=log_file)
+        print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
 
 def delay(ms):
     time.sleep(ms/1000)
@@ -30,14 +24,6 @@ def set_volume(value):
     value = min(100, max(0, value))
     cmd = "sudo amixer -M sset 'PCM' %d%%" % value
     os.system(cmd)
-
-# def set_audio_device(value):
-#     if value > 100:
-#         value = 100
-#     if value < 0:
-#         value = 0
-#     cmd = "amixer cset numid=3 %d%%" % value
-#     os.system(cmd)
 
 def run_command(cmd):
     import subprocess
