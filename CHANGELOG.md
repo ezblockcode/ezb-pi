@@ -18,9 +18,14 @@
 - Fix the issue of version update failure
 - Fix Remote I/O error caused by power reading
 
+### Changed
+- Change TTS engine parameter
+
 ### Optimized
 - Optimize log output
 - Optimize code readability
+
+
 
 
 ## [1.0.2] - 2021-09-07
