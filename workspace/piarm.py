@@ -1,6 +1,6 @@
 import math
 from robot import Robot
-from ezblock import Servo
+from ezblock import Servo,PWM
 import time
 from os import path
 import json
@@ -58,19 +58,21 @@ class Arm(Robot):
         self.speed = speed 
     
     def bucket_init(self, pin):
-        self.bucket = Servo(pin)
+        self.bucket = Servo(PWM(pin))
         self.bucket_angle = 0
         self.component = 'bucket'
         self.data_index = 1
 
     def hanging_clip_init(self, pin):
-        self.hanging_clip = Servo(pin)
-        self.data_index = 2
-    
-    def electromagnet_init(self, pin):
-        self.elecma = pin
+        self.hanging_clip = Servo(PWM(pin))
         self.hanging_clip_angle = 0
         self.component = 'hanging_clip'
+        self.data_index = 2
+
+    def electromagnet_init(self, pin):
+        self.elecma = pin
+        self.elecma.pulse_width_percent(0)
+        self.component = 'electromagnet'
         self.data_index = 3
 
     def set_angle(self, angles,israise=False):
@@ -236,7 +238,7 @@ class Arm(Robot):
             log(e)
 
         if _data[self.data_index]['component'] != self.component:
-            log('Component mismatch.This record corresponds to the %s component.' % d['type'])
+            log('Component mismatch.This record corresponds to the %s component.' % _data[self.data_index]['component'])
         else:
             steps = _data[self.data_index]['steps']   
             for i in range(0,len(steps),2):      
