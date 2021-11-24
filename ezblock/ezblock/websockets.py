@@ -386,6 +386,10 @@ class WS():
                         self.user_service_status = True
                         self.send_dict["RU"] = True
                         self.recv_dict = {}
+                # heartbeat
+                elif 'PF' in self.recv_dict.keys() and self.recv_dict['PF']:
+                    self.send_dict['PF'] = 'pong'  
+                    self.recv_dict = {}       
             except OSError as e:
                 log(e,level='ERROR')
                 Ezb_Service.reset_mcu_func()
@@ -417,10 +421,6 @@ class WS():
                     tmp = json.loads(str(tmp))                    
                     self.recv_dict = tmp
                     log("recv_data_load:%s"%tmp,'websockets')
-
-                    # heartbeat
-                    if 'PF' in self.recv_dict.keys() and self.recv_dict['PF']:
-                        self.send_dict['PF'] = 'pong'
 
                     self.send_data()              
                     for key in tmp.keys():
@@ -465,7 +465,6 @@ class WS():
                 log(connection_code)
                 self.is_client_conneted.value = False
                 log('client disconneted')
-                run_command('sudo aplay /home/pi/Sound/mi.wav')
                 break   
             await asyncio.sleep(0.01)
 
@@ -585,6 +584,7 @@ ble = BLE()
 
 def ws_print(msg, end='\n', tag='[DEBUG]'):
     ws.print(msg, end, tag)
+
 
 class Remote():
     
