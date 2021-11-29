@@ -91,16 +91,6 @@ update_config=1 """
 
     def write(self, country, ssid, psk):
         # if commition failed   sudo systemctl enable wpa_supplicant.service  and reboot
-        self.set_country(country)
-        self.connect(ssid, psk)
-
-def test():
-    # WiFi()
-    a = WiFi()
-    a.write("CN", "MakerStarsHall_5G", "sunfounder")
-    status, result = WiFi().run_command("iwgetid")
-    result = result.split(":")[1].strip().strip('"')
-    print(result)
-if __name__ == "__main__":
-    test()
+        self.set_country(country) 
+        return self.connect(ssid, psk)
 
