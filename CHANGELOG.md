@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.0.3] - 2021-11-29
+
 ### Added
 - Install lsof tool 
 - Add change log
@@ -17,6 +20,8 @@
 - Fix the issue of OSError occasionally when disconnected
 - Fix the issue of version update failure
 - Fix Remote I/O error caused by power reading
+- Fix conflicts between heartbeat and remote control 
+- Fix checking update causing program blockage
 
 ### Changed
 - Change TTS engine parameter
@@ -29,7 +34,7 @@
 
 
 ## [1.0.2] - 2021-09-07
-
+    - 
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi
