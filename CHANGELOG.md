@@ -22,6 +22,7 @@
 - Fix Remote I/O error caused by power reading
 - Fix conflicts between heartbeat and remote control 
 - Fix checking update causing program blockage
+- Fix calibration failure of PaKe products
 
 ### Changed
 - Change TTS engine parameter
