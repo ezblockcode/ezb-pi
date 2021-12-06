@@ -71,6 +71,22 @@ class Ezb_Service(object):
         time.sleep(0.01)  
 
     @staticmethod
+    def reset_servo():
+        Ezb_Service.reset_mcu_func()
+        ws.type = read_info("type")
+        if ws.type == "SpiderForPi":
+            from spider import Spider
+            ws.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
+            ws.sp.servo_positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        elif ws.type == "SlothForPi":
+            from sloth import Sloth
+            ws.sloth = Sloth([1,2,3,4])
+        elif ws.type in ["PiCarMini","PaKe"]:
+            from picarx import Picarx
+            ws.px = Picarx()       
+
+
+    @staticmethod
     def ezb_service_start():
         log("Ezb_Service.ezb_service_start")
         ws.user_service_start()
@@ -80,7 +96,8 @@ class Ezb_Service(object):
         # this loop is necessary
         while True:
             time.sleep(1)
- 
+
+
     @staticmethod
     def start_service():
         log("Ezb_Service.start_service")
@@ -89,16 +106,7 @@ class Ezb_Service(object):
         detect_i2c = I2C()
         i2c_adress_list = list(map(hex,detect_i2c.scan()))
         if '0x14' in i2c_adress_list:
-            from spider import Spider
-            from sloth import Sloth
-            from picarx import Picarx
-            product_type =  read_info("type")
-            if product_type == "PiCarMini":
-                ws.px = Picarx()
-            elif product_type == "SpiderForPi":
-                ws.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
-            elif product_type == "SlothForPi":
-                ws.sloth = Sloth([1,2,3,4])
+            Ezb_Service.reset_servo()
         Ezb_Service.ezb_service_start()
 
     @staticmethod
@@ -244,7 +252,7 @@ class WS():
                     self.send_dict['voltage'] = self.voltage.value
                     self.send_dict['battery'] = self.battery.value
                 elif self.recv_dict['RE'] == "offset":
-                    if read_info("type") == "PiCarMini":
+                    if read_info("type") in ["PiCarMini","PaKe"]:
                         self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
                 self.recv_dict = {}
             # set name
@@ -265,7 +273,7 @@ class WS():
             elif "OF" in self.recv_dict.keys():
                 self.user_service_close()
                 self.ws_battery_process_close()
-                if self.type == "PiCarMini":
+                if self.type in ["PiCarMini","PaKe"]:
                     dir_servo_pin = Servo(PWM('P2'))
                     camera_servo_pin1 = Servo(PWM('P0'))
                     camera_servo_pin2 = Servo(PWM('P1'))
@@ -288,6 +296,8 @@ class WS():
                 elif self.type == "SlothForPi":
                     self.sloth.set_offset(self.recv_dict['OF'])
                     self.sloth.calibration()
+                else:
+                    log("Type Error: %s" % self.type)
                 self.ws_battery_process_start()   
             # Download code
             elif "FL" in self.recv_dict.keys() and self.recv_dict['FL']:
@@ -323,18 +333,7 @@ class WS():
                 # Stop User service
                 self.user_service_close()
                 if '0x14' in i2c_adress_list:
-                    Ezb_Service.reset_mcu_func()
-                    self.type = read_info("type")
-                    if self.type == "SpiderForPi":
-                        from spider import Spider
-                        self.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
-                        self.sp.servo_positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                    elif self.type == "SlothForPi":
-                        from sloth import Sloth
-                        self.sloth = Sloth([1,2,3,4])
-                    elif self.type == "PiCarMini":
-                        from picarx import Picarx
-                        self.px = Picarx()
+                    Ezb_Service.reset_servo()
                 elif '0x74'in i2c_adress_list:
                     GPIO.setmode(GPIO.BCM)
                     GPIO.setup(24, GPIO.OUT)
