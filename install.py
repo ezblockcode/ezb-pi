@@ -35,6 +35,7 @@ APT_INSTALL_LIST = [
     "libzbar0",
     "bluez-firmware",  # Update bluez firmware
     #"libttspico-utils",
+    "lsof",
 ]
 
 PIP_INSTALL_LIST = [
@@ -310,8 +311,8 @@ def run_command(cmd=""):
 
 
 def do(msg="", cmd=""):
-    print(" - %s..." % (msg), end='\r')
-    print(" - %s... " % (msg), end='')
+    # print(" - %s..." % (msg), end='\r')
+    print(" - %s... " % (msg), end='', flush=True)
     status, result = eval(cmd)
     # print(status, result)
     if status == 0 or status == None or result == "":

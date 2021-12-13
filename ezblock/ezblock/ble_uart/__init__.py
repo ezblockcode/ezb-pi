@@ -1,3 +1,4 @@
+from asyncio.tasks import sleep
 import sys
 import uuid
 import dbus, dbus.mainloop.glib
@@ -8,29 +9,32 @@ from .agent import Agent
 from .profile import Profile
 import threading
 import time
-from os import system as run_command
+from os import name, system as run_command
 from .utils import *
+from ..utils import log
 
 UART_SERVICE_UUID =            'FF00' # 'FF00' 
 UART_TXRX_CHARACTERISTIC_UUID ='FFF1'
 LOCAL_NAME =                   'ezb-Raspberry' # 'ezb-Raspberry'
 mainloop = None 
- 
+
+
 class TxRxCharacteristic(Characteristic):
     def __init__(self, bus, index, service, on_write_value):
         Characteristic.__init__(self, bus, index, UART_TXRX_CHARACTERISTIC_UUID,
                                 ['notify', 'write'], service)
         self.notifying = False
-        GLib.io_add_watch(sys.stdin, GLib.IO_IN, self.on_console_input)
+        # GLib.io_add_watch(sys.stdin, GLib.IO_IN, self.on_console_input)
         self.on_write_value = on_write_value
- 
-    def on_console_input(self, fd, condition):
-        s = fd.readline()
-        if s.isspace():
-            pass
-        else:
-            self.send_tx(s)
-        return True
+
+    # def on_console_input(self, fd, condition):
+    #     time.sleep(0.1)
+    #     s = fd.readline()
+    #     if s.isspace():
+    #         pass
+    #     else:
+    #         self.send_tx(s)
+    #     return True
  
     def send_tx(self, s):
         if not self.notifying:
@@ -40,8 +44,8 @@ class TxRxCharacteristic(Characteristic):
             value.append(dbus.Byte(c.encode()))
         if len(value) != 0:
             self.PropertiesChanged(GATT_CHARACTERISTIC_INTERFACE, {'Value': value}, [])
-        else:
-            self.log("send_tx: Skip. emply value")
+        # else:
+        #     log("send_tx: Skip. emply value")
  
     def StartNotify(self):
         if self.notifying:
@@ -56,7 +60,7 @@ class TxRxCharacteristic(Characteristic):
     def WriteValue(self, value, options):
         result = bytearray(value).decode()
         self.on_write_value(result)
-        print('remote: {}'.format(result))
+        log('BLE_UART: remote: %s'%result)
 
 class UartService(Service):
     def __init__(self, bus, index, on_write_value):
@@ -105,28 +109,23 @@ class UartApplication(Application):
         self.send_tx = self.us.send_tx
  
 class UartAdvertisement(Advertisement):
-    def __init__(self, bus, index):
+    def __init__(self, bus, index,name=LOCAL_NAME):
         Advertisement.__init__(self, bus, index, 'peripheral')
         self.add_service_uuid(UART_SERVICE_UUID)
-        self.add_local_name(LOCAL_NAME)
+        self.add_local_name(name)
         self.include_tx_power = True
 
 class BLE_UART():
-    def __init__(self):
-        self.init()
+    def __init__(self,name):
+        self.init(name)
         self.run_flag = True
         self.thread.start()
         self.read_buf = ""
-    
-    def log(self, msg):
-        msg = "BLE_UART [{}] [DEBUG] {}".format(time.asctime(), msg)
-        run_command("echo {} >> /opt/ezblock/log".format(msg))
-        print(msg)
 
     def append_read_buf(self, value):
         self.read_buf += value
 
-    def init(self):
+    def init(self,name):
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SystemBus()
         for _ in range(10):
@@ -143,7 +142,7 @@ class BLE_UART():
         agent_path = "/test/agent"
      
         if not adapter:
-            self.log('BLE adapter not found')
+            log('BLE: adapter not found')
             return
     
         service_manager = dbus.Interface(
@@ -158,7 +157,7 @@ class BLE_UART():
         profile = Profile(bus, [profile_uuid])
  
         app = UartApplication(bus, self.append_read_buf)
-        adv = UartAdvertisement(bus, 0)
+        adv = UartAdvertisement(bus, 0,name)
         agent = Agent(bus, agent_path)
 
         self.send_tx = app.send_tx
@@ -173,20 +172,21 @@ class BLE_UART():
                                         reply_handler=self.register_ad_cb,
                                         error_handler=self.register_ad_error_cb)
         agent_manager.RegisterAgent(agent_path, capability)
-        self.log("Agent registered")
+        log("BLE: Agent registered")
      
         self.thread = threading.Thread(target=self.mainloop.run)
+        
 
     def register_app_cb(self):
-        self.log('GATT application registered')
+        log('BLE: GATT application registered')
 
     def register_app_error_cb(self, error):
-        self.log('Failed to register application: ' + str(error))
+        log('BLE: Failed to register application: ' + str(error))
         self.mainloop.quit()
 
     def register_ad_cb(self):
-        self.log('Advertisement registered')
+        log('BLE: Advertisement registered')
 
     def register_ad_error_cb(self, error):
-        self.log('Failed to register advertisement: ' + str(error))
+        log('BLE: Failed to register advertisement: ' + str(error))
         self.mainloop.quit()

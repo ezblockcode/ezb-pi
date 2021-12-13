@@ -84,29 +84,7 @@ class IOT():
             run_command("sudo touch /home/pi/noip")
 
 
-def test():
-    import time
-    __IOT_TOKEN__ = "16227124370004660887403726913706840856139"
-    __IOT__ = IOT(__IOT_TOKEN__)
 
-
-    while True:
-        print("%s"%(__IOT__.get("com/iot/actuators_Button_1_a")))
-        print("%s"%('abc'))
-        time.sleep(1)
-        print("%s"%(__IOT__.get("com/iot/actuators_Slider_1_b")))
-        time.sleep(1)
-
-    # iot = IOT("16128573140003757843323708413916266436285")
-    # iot.post("com/iot/sensorsHumidity1Drr", 6.6)
-    # while True:
-        
-    #     iot.get("com/iot/sensorsHumidity1Drr")
-        
-    #     time.sleep(1)
-    
-if __name__ == "__main__":
-    test()
 
 
         

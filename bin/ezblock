@@ -17,7 +17,7 @@ case "$1" in
         echo "Starting ezblock"
         # sudo modprobe w1-gpio
         # sudo modprobe w1-therm
-        sudo ezblock-service 2>>/opt/ezblock/log &
+        sudo ezblock-service 2>&1 1>>/dev/null &
         ;;
     stop)
         echo "Stopping ezblock"
