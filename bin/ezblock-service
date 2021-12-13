@@ -1,14 +1,51 @@
 #!/usr/bin/python3
 # -*- coding utf-8 -*-
 
-# import platform 
-# print('python_version: %s\n'%platform.python_version())
-from ezblock import websockets
+import importlib
+import platform 
 import os
+import sys
+import time
+
+def log(msg:str=None,level='Entry',end='\n',flush=False,timestamp=True):
+    with open('/opt/ezblock/log','a+') as log_file:
+        if timestamp == True:
+            _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+            ct = time.time()
+            _msecs = '%03d '%((ct - int(ct)) * 1000)
+            print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=log_file)
+            print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
+        else:
+            print('%s'%msg, end=end, flush=flush, file=log_file)
+            print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
+
+log('python_version: %s'%platform.python_version())
 
 if __name__ == '__main__':
     try:
+        from ezblock import websockets
+        from ezblock import version
+        log('ezblock-service start version: %s '%version.VERSION)
         websockets.Ezb_Service.start_service()  
-        print("ezblock-service start_2")  
     except KeyboardInterrupt:
         os.system('sudo killall ezblock-service')
+    except Exception as e:
+        log("ezblock-service start failed: \n%s"%e)
+        log("\n try reinstall ezblock to solve the problem .. ")
+        try:
+            os.chdir('/home/pi/ezb-pi/ezblock/')
+            os.system('sudo rm -rf ./build/ ./ezblock.egg-info')
+            os.system('sudo python3 setup.py install')
+            log("import reload")
+            importlib.reload(websockets)
+            importlib.reload(version)     
+            try:
+                log("restart ezblock-reset-service ")
+                os.system('sudo service ezblock-reset restart')
+            except Exception as e:
+                log("restart ezblock-reset-service failed ")
+            log('ezblock-service restart version: %s '%version.VERSION)
+            websockets.Ezb_Service.start_service()              
+        except Exception as e:
+            log("reinstall ezblock failed: \n%s"%e )
+            log("Please try to fix it yourself, or contact service@sunfounder.com with this message")

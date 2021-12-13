@@ -2,6 +2,7 @@ import requests
 import json
 from configparser import ConfigParser
 import time
+import sys
 
 def run_command(cmd):
     import subprocess
@@ -11,15 +12,23 @@ def run_command(cmd):
     status = p.poll()
     return status, result
 
-def log(msg,module_name=' ',tag='Update'):
-    msg = "{} [{}] [{}] {}".format(module_name,time.asctime(),tag, msg)
-    run_command("echo {} >> /opt/ezblock/log".format(msg))
-    print(msg)
+
+def log(msg:str=None,level='Update',end='\n',flush=False,timestamp=True):
+    # with open('/opt/ezblock/log','a+') as log_file:
+    if timestamp == True:
+        _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+        ct = time.time()
+        _msecs = '%03d '%((ct - int(ct)) * 1000)
+        # print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=log_file)
+        print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
+    else:
+        # print('%s'%msg, end=end, flush=flush, file=log_file)
+        print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
+
 
 class Ezbupdate(object):
 
-    def __init__(self,url = 'http://ezblock.cc/fileUpload/'):
-
+    def __init__(self,url='http://ezblock.cc/fileUpload/'):
         self.config = ConfigParser()
         self.file_address = "/opt/ezblock/ezb-info.ini"
         self.url = url
@@ -144,6 +153,10 @@ class Ezbupdate(object):
                 except Exception as e:
                     log('\n[Exception] : %s\n'% e) 
 
+                # clean install egg-info
+                log("cleaning egg-info ...")
+                clean_cmd = "sudo rm -rf /home/pi/ezb-pi//ezblock/ezblock.egg-info"
+                    
                 # Update version information   
                 self.config.set('message', 'version',version_list[i])
                 try:
