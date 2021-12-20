@@ -5,17 +5,17 @@ import re
 import math
 
 
-log_file = open('/opt/ezblock/log','a+')
 def log(msg:str=None,level='DEBUG',end='\n',flush=False,timestamp=True):
-    if timestamp == True:
-        _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
-        ct = time.time()
-        _msecs = '%03d '%((ct - int(ct)) * 1000)
-        print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=log_file)
-        print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
-    else:
-        print('%s'%msg, end=end, flush=flush, file=log_file)
-        print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
+    with open('/opt/ezblock/log','a+') as log_file:
+        if timestamp == True:
+            _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+            ct = time.time()
+            _msecs = '%03d '%((ct - int(ct)) * 1000)
+            print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=log_file)
+            print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
+        else:
+            print('%s'%msg, end=end, flush=flush, file=log_file)
+            print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
 
 def delay(ms):
     time.sleep(ms/1000)
