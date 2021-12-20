@@ -19,6 +19,9 @@ def log(msg:str=None,level='Entry',end='\n',flush=False,timestamp=True):
             print('%s'%msg, end=end, flush=flush, file=log_file)
             print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
 
+line = '-'*24
+_time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+log('\n%s%s%s'%(line,_time,line),timestamp=False)
 log('python_version: %s'%platform.python_version())
 
 if __name__ == '__main__':
