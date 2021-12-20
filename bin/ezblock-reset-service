@@ -9,15 +9,19 @@ import subprocess
 
 reset_switch = Button(16)
 user_switch = Button(25)
-
-ble_reset = Pin("BLERST")
 mcu_reset = Pin("MCURST")
 status_led = Pin("LED")
 
 resize_script = "/usr/bin/resize_once"
-
+  
 is_reset = None
 is_user = None
+
+# close external bluetooth
+def close_ex_ble():
+    # close external bluetooth
+    ble_reset = Pin("BLERST")
+    ble_reset.off()
 
 def log(msg):
     msg = "Ezblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
@@ -31,18 +35,6 @@ def run_command(cmd):
         output = f.read()
         return output.decode()
 
-def reset_ble():
-    from ezblock.pin import Pin
-    tx = Pin(14)
-    rx = Pin(15)
-    tx.off()
-    rx.off()
-    ble_reset.off()
-    time.sleep(0.5)
-    run_command("gpio -1 mode 8 alt5")
-    run_command("gpio -1 mode 10 alt5")
-    ble_reset.on()
-    time.sleep(0.1)
 
 def reset_servo():
     PINS = ["P0","P1","P2","P3","P4","P5","P6","P7","P8","P9","P10","P11"]
@@ -93,7 +85,6 @@ user_switch.when_pressed = user_pressed_callback
 user_switch.when_released = user_released_callback
 
 log('Finished')
-ble_reset.value(1)
 
 def main():
     global is_reset
@@ -113,15 +104,12 @@ def main():
                         log("servo  reset") 
                         time.sleep(0.01)                  
         elif is_reset == False and user_flag == False:
-            if count > 6:
-                log("hard reset")
-                reset_ble()
-            else:
-                log("soft reset")
-                mcu_reset.off()
-                time.sleep(0.001)
-                mcu_reset.on()
-                time.sleep(0.01)
+            log("soft reset")
+            close_ex_ble()
+            mcu_reset.off()
+            time.sleep(0.001)
+            mcu_reset.on()
+            time.sleep(0.01)
             log("restart ezblock service")
             run_command("sudo service ezblock restart")
             count = 0
@@ -136,6 +124,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        close_ex_ble()
         main()
     finally:
-        ble_reset.value(0)
+        close_ex_ble
