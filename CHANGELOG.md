@@ -1,10 +1,20 @@
 # Change Log 
 
-## [Unreleased]
+## [1.1.0_Beta] - 2022-1-7
 
 ### Changed
 - Use Raspberry Pi's onboard Bluetooth to communicate 
   with the app 
+- Some changes related to app interaction
+
+### Added
+- Add connection status sound effect and LED indicator
+- Add Bluetooth name and hosstname modification function
+- Add log dividing line 
+- Add servo limit for Picrawler 
+
+### Fixed
+- Fix data blocking in remote control
 
 
 ## [1.0.3] - 2021-11-29
@@ -12,7 +22,7 @@
 ### Added
 - Install lsof tool 
 - Add change log
-- Add servo limit for piarm 
+- Add servo limit for Piarm 
 - Add step memory function for piarm
 - Add battery display 
 - Add websockets connection status 
