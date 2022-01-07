@@ -1,7 +1,10 @@
+from io import SEEK_END
+from ssl import RAND_pseudo_bytes
 from .basic import _Basic_class
-from .utils import mapping, is_installed
+from .utils import log
 from .music import Music
 from distutils.spawn import find_executable
+import json
 
 class TTS(_Basic_class):
     _class_name = 'TTS'
@@ -15,35 +18,44 @@ class TTS(_Basic_class):
         'it-IT', # 意大利语(意大利)Italia-lingua italiana
     ]
 
-    def __init__(self, engine='espeak', url=None):
+    def __init__(self, data):
         super().__init__()
-        self._lang = "en-US"            # 默认输入的语言为英语
-        self.engine = engine
-        self.url = url
-        if (engine == "espeak"):
-            # if not is_installed("espeak"):
-            # try:
-            self._amp   = 100 
-            self._speed = 175
-            self._gap   = 5
-            self._pitch = 50
-            # except:
-            #     raise Exception("TTS engine: espeak is not installed.")
-
-        elif engine == "gtts" or engine == "polly":
-            import urllib.request as request
-            import base64
-            import json
-            self.request = request
-            self.base64 = base64
-            self.json = json
+        if  isinstance(data, dict) is not True:
+            from .websockets import Ezb_Service
+            Ezb_Service().set_share_val('debug', "data parameter is incorrect")
+            raise ValueError('data parameter is incorrect')
+        try: 
+            self._lang = "en-US"            # 默认语言:英语 default language:English
+            self.engine = data['engine']
+            self.url = data['url'] 
+            self.token = data['token'] 
+            if self.engine == "espeak":
+                self._amp   = 100 
+                self._speed = 175
+                self._gap   = 5
+                self._pitch = 50
+            elif self.engine == "gtts" or self.engine == "polly":
+                # import urllib.request as request
+                import requests
+                import base64
+                # self.request = request
+                self.requests = requests
+                self.base64 = base64
+        except Exception as e:
+            from .websockets import Ezb_Service
+            Ezb_Service().set_share_val('debug', "%s"%e)
+            raise (e)
 
     def _check_executable(self, executable):
         executable_path = find_executable(executable)
         found = executable_path is not None
         return found
 
-    def say(self, words):           # 输入的文字
+    def say(self, words:str):           # 输入的文字 
+        if  words.strip() == '':
+            from .websockets import Ezb_Service
+            Ezb_Service().set_share_val('debug', "tts.say is missing parameters")
+            log("tts.say is missing parameters")
         eval(f"self.{self.engine}(words)")
 
     def espeak(self, words):
@@ -65,10 +77,10 @@ class TTS(_Basic_class):
             "Content-Type": "application/json",
         }
 
-        data = self.json.dumps(data)
+        data =json.dumps(data)
         data = bytes(data, 'utf8')
-        req = self.request.Request(self.url, data=data, headers=header, method='POST')
-        r = self.request.urlopen(req)
+        req = self.requests.Request(self.url, data=data, headers=header, method='POST')
+        r = self.requests.urlopen(req)
         result = r.read()
         result = result.decode("utf-8")
         result = self.ast.literal_eval(result)
@@ -81,33 +93,31 @@ class TTS(_Basic_class):
         music = Music()
         music.sound_play(sound_file)
 
+
     def polly(self, words):
         sound_file = "/opt/ezblock/output.mp3"
-        data = {
+        send_data = {
             "text": words,
-            "language": self.lang(),
+            "language": self._lang,
+            "token": self.token
         }
         header = {
             "Content-Type": "application/json",
         }
-
-        data = self.json.dumps(data)
-        data = bytes(data, 'utf8')
+        # print(send_data)
         for i in range(5):
-            req = self.request.Request(self.url, data=data, headers=header, method='POST')
-            r = self.request.urlopen(req)
-            result = r.read()
-            result = result.decode("utf-8")
-            # print('"%s"'%result)
+            r = self.requests.post(url=self.url, headers=header, json=send_data)
+            result = r.json()
+            # print('result: %s'%result)
             if result != "":
                 break
             else:
                 print("Empty result")
         else:
             raise IOError("Network Error")
-        # result = ast.literal_eval(result)
-        result = self.json.loads(result)
+
         data = result["data"]
+        # print(data)
         data = self.base64.b64decode(data)
         # print(data)
         with open(sound_file, "wb") as f:
@@ -149,63 +159,3 @@ class TTS(_Basic_class):
         self._speed = speed
         self._gap   = gap
         self._pitch = pitch
-
-def test_polly(self):
-    import urllib.request as request
-    import json, ast, base64
-    sound_file = "/opt/ezblock/output.mp3"
-    data = {
-        "text": "hello",
-        "language": "zh-CN",
-    }
-    header = {
-        "Content-Type": "application/json",
-    }
-
-    data = json.dumps(data)
-    data = bytes(data, 'utf8')
-    for i in range(5):
-        url = 'http://192.168.6.223:11000/api/web/v2/ezblock/aws/tts'
-        req = request.Request(url, data=data, headers=header, method='POST')
-        r = request.urlopen(req)
-        print(r.status)
-        result = r.read()
-        result = result.decode("utf-8")
-        # print('"%s"'%result)
-        if result != "":
-            break
-        else:
-            print("Empty result")
-    # result = ast.literal_eval(result)
-    result = self.json.loads(result)
-    data = result["data"]
-    data = base64.b64decode(data)
-    # print(data)
-    with open(sound_file, "wb") as f:
-        f.write(data)
-
-    music = Music()
-    music.sound_play(sound_file)
-
-def test():
-    # tts = TTS(engine="espeak")
-    # tts.lang("en-US")
-    # tts.say('Hallo')
-
-    tts = TTS(engine="polly")
-    tts.lang("zh-CN")
-    # tts.say('你好, 我是小爱同学')
-    count = 0
-    while True:
-        tts.say('你好')
-        count +=1
-        print(count)
-
-    # tts.speaker_volume(100)
-    # tts.espeak_params(amp=50, speed=80, gap=0, pitch=10)
-    # tts.say('Ich liebe dich')
-    # tts.say('hello nice to meet you')
-
-
-if __name__ == "__main__":
-    test()
