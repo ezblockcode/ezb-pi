@@ -16,7 +16,6 @@ from .i2c import I2C
 from ezblock import Pin,Servo,PWM
 from .version import VERSION
 
-
 # select LED lights foe websockets status
 # according to the Robot-Hat expansion board
 check_io = Pin('D13')
@@ -101,10 +100,12 @@ class Ezb_Service(object):
             from picarx import Picarx
             ws.px = Picarx()       
 
-
     @staticmethod
     def ezb_service_start():
         log("Ezb_Service.ezb_service_start")
+        # Service startup Sound
+        run_command('sudo mplayer /home/pi/Music/boot.mp3')
+        # Music().sound_play('/home/pi/Music/boot.mp3')
         ws.user_service_start()
         worker_2 = Process(name='worker 2',target=ws.__start_ws__)
         worker_2.start()
@@ -215,6 +216,7 @@ class WS():
 
     def user_service_start(self):
         log("WS.user_service_start")
+        self.user_service_close()
         if self.ws_battery_status == True:
             self.ws_battery_process_close()
         self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
@@ -223,8 +225,9 @@ class WS():
         self.user_service_status = True
 
     def user_service_close(self):
-        self.user_service_process.terminate()
-        self.user_service_status = False
+        if self.user_service_status == True:
+            self.user_service_process.terminate()
+            self.user_service_status = False
 
     def flash(self, name):
         file_dir = '/opt/ezblock/'
@@ -380,9 +383,7 @@ class WS():
             # Run user service
             elif "RU" in self.recv_dict.keys() and self.recv_dict["RU"]:
                 try:     
-                    if self.user_service_status:
-                        self.user_service_close()
-
+                    self.user_service_close()
                     if not self.user_service_status:
                         if '0x14' in i2c_adress_list:
                             Ezb_Service.reset_mcu_func()
@@ -441,7 +442,7 @@ class WS():
 
     async def main_logic(self, websocket,path):
         # conneted flag
-        run_command('sudo aplay /home/pi/Sound/mi.wav')
+        run_command('sudo mplayer /home/pi/Music/connected.mp3')
         log('client conneted')
         self.is_client_conneted.value = True
         # battery 
@@ -449,6 +450,7 @@ class WS():
             self.ws_battery_process_start()
 
         while True:
+            self.is_client_conneted.value = True
             try: #  to catch websockets.exceptions.ConnectionClosed 
                 # recv
                 try:
@@ -512,7 +514,8 @@ class WS():
                 self.is_client_conneted.value = False
                 log('client disconneted')
                 Ezb_Service.clear_val()
-                run_command('sudo aplay /home/pi/Sound/mi.wav')
+                run_command('sudo mplayer /home/pi/Music/disconnected.mp3')
+                # Music().sound_play('/home/pi/Music/disconnected.mp3')
                 break   
             await asyncio.sleep(0.01)
 
@@ -576,8 +579,6 @@ class WS():
         else:
             ble = BLE('ezb-Raspberry')
             log("BLE start: ezb-Raspberry")
-        # Service startup Sound
-        run_command('sudo aplay /home/pi/Sound/mi2.wav')
         # Service status LED
         ws_led_t = threading.Thread(name='bl_led',target=self._ws_status_led,args=())
         ws_led_t.setDaemon(True)
