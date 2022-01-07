@@ -1,5 +1,9 @@
 # Change Log 
 
+## [Unreleased]
+-
+
+
 ## [1.1.0_Beta] - 2022-1-7
 
 ### Changed
@@ -51,5 +55,6 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi
+[1.1.0_Beta]: https://github.com/ezblockcode/ezb-pi/tree/1.1.0_Beta
 [1.0.3]: https://github.com/ezblockcode/ezb-pi/compare/1.0.2...1.0.3
 [1.0.2]: https://github.com/ezblockcode/ezb-pi/compare/1.0.1...1.0.2
