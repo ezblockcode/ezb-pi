@@ -89,11 +89,13 @@ class Music(_Basic_class):
 
     def sound_play(self, file_name):
         self.music_set_volume(80)
-        self.pygame.mixer.music.load(file_name)
+        self.pygame.mixer.music.load(str(file_name))
         self.pygame.mixer.music.play()
 
+        
+
     def sound_effect_play(self, file_name):
-        file_name = self.SOUND_DIR + file_name
+        # file_name = self.SOUND_DIR + file_name
         music = self.pygame.mixer.Sound(str(file_name))
         time_delay = round(music.get_length(), 2)
         music.play()
@@ -161,3 +163,5 @@ class MyThreading(threading.Thread):
 
     def run(self):
         self.func(**self.arg)
+
+
