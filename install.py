@@ -36,6 +36,7 @@ APT_INSTALL_LIST = [
     "bluez-firmware",  # Update bluez firmware
     #"libttspico-utils",
     "lsof",
+    "mplayer",
 ]
 
 PIP_INSTALL_LIST = [
