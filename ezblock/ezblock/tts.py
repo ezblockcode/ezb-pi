@@ -1,10 +1,13 @@
-from io import SEEK_END
-from ssl import RAND_pseudo_bytes
 from .basic import _Basic_class
 from .utils import log
 from .music import Music
 from distutils.spawn import find_executable
 import json
+
+def debug_2_app(msg): 
+    from .websockets import Ezb_Service    
+    Ezb_Service.set_share_val('debug', "%s"%msg)
+
 
 class TTS(_Basic_class):
     _class_name = 'TTS'
@@ -42,8 +45,7 @@ class TTS(_Basic_class):
                 self.requests = requests
                 self.base64 = base64
         except Exception as e:
-            from .websockets import Ezb_Service
-            Ezb_Service().set_share_val('debug', "%s"%e)
+            debug_2_app(e)
             raise (e)
 
     def _check_executable(self, executable):
@@ -52,9 +54,8 @@ class TTS(_Basic_class):
         return found
 
     def say(self, words:str):           # 输入的文字 
-        if  words.strip() == '':
-            from .websockets import Ezb_Service
-            Ezb_Service().set_share_val('debug', "tts.say is missing parameters")
+        if  str(words).strip() == '':
+            debug_2_app('tts.say is missing parameters')
             log("tts.say is missing parameters")
         eval(f"self.{self.engine}(words)")
 
