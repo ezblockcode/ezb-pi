@@ -141,7 +141,7 @@ class Spider(Robot):
             if israise == True:
                 raise ValueError('\033[1;35mCoordinates out of controllable range.\033[0m')
             else:
-                print('\033[1;35mCoordinates out of controllable range.\033[0m')
+                print('\033[1;35mCoordinates out of controllable range.\033[0m', end='\r', flush=True)
                 coords = []
                 # Calculate coordinates 
                 for i in range(4):
@@ -289,7 +289,7 @@ class Spider(Robot):
             r2 = math.sqrt(pow(self.X_DEFAULT+ self.LENGTH_SIDE/2, 2)+ pow(self.Y_DEFAULT+ self.LENGTH_SIDE,2))
             x3 = r2*math.sin((angle2-angle)* math.pi/180) - self.LENGTH_SIDE/2
             y3 = r2*math.cos((angle2-angle)*math.pi/180)- self.LENGTH_SIDE
-           
+
             x3 += 10
             # print(x3,y3)
             return [x1,y1,x2,y2,x3,y3]
@@ -370,7 +370,7 @@ class Spider(Robot):
             
         def is_stand(self):
             tmp = self.z_current == self.Z_DEFAULT
-            print("is stand? %s"%tmp)
+            # print("is stand? %s"%tmp)
             return tmp
         
         @property
