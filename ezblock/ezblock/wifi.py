@@ -1,12 +1,7 @@
 from .basic import _Basic_class
-# __print__ = print
 from .utils import getIP
 import time
-from os import system
-# from .ble import BLE
 
-# ble = BLE()
-# re-正则表达式
 class WiFi(_Basic_class):
     message = """
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
@@ -90,17 +85,7 @@ update_config=1 """
         
 
     def write(self, country, ssid, psk):
-        # if commition failed   sudo systemctl enable wpa_supplicant.service  and reboot
+        # if commition failed  sudo systemctl enable wpa_supplicant.service  and reboot
         self.set_country(country)
         return self.connect(ssid, psk)
-
-def test():
-    # WiFi()
-    a = WiFi()
-    a.write("CN", "MakerStarsHall_5G", "sunfounder")
-    status, result = WiFi().run_command("iwgetid")
-    result = result.split(":")[1].strip().strip('"')
-    print(result)
-if __name__ == "__main__":
-    test()
 
