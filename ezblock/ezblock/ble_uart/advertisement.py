@@ -4,9 +4,8 @@ from __future__ import print_function
 
 import dbus
 import dbus.exceptions
-import dbus.mainloop.glib
 import dbus.service
-
+import dbus.mainloop.glib
 import array
 
 try:
@@ -48,7 +47,6 @@ class FailedException(dbus.exceptions.DBusException):
 
 class Advertisement(dbus.service.Object):
     PATH_BASE = '/org/bluez/example/advertisement'
-    #PATH_BASE = '/home/pi/ezb-pi'
 
     def __init__(self, bus, index, advertising_type):
         self.path = self.PATH_BASE + str(index)
@@ -61,6 +59,7 @@ class Advertisement(dbus.service.Object):
         self.local_name = None
         self.include_tx_power = None
         self.data = None
+        # self.discoverable = True
         dbus.service.Object.__init__(self, bus, self.path)
 
     def get_properties(self):
@@ -80,6 +79,8 @@ class Advertisement(dbus.service.Object):
                                                         signature='sv')
         if self.local_name is not None:
             properties['LocalName'] = dbus.String(self.local_name)
+        # if self.discoverable is not None and self.discoverable == True:
+        #     properties['Discoverable'] = dbus.Boolean(self.discoverable)
         if self.include_tx_power is not None:
             properties['IncludeTxPower'] = dbus.Boolean(self.include_tx_power)
 
@@ -137,41 +138,41 @@ class Advertisement(dbus.service.Object):
     def Release(self):
         print('%s: Released!' % self.path)
 
-class TestAdvertisement(Advertisement):
-
-    def __init__(self, bus, index):
-        Advertisement.__init__(self, bus, index, 'peripheral')
-        self.add_service_uuid('180D')
-        self.add_service_uuid('180F')
-        self.add_manufacturer_data(0xffff, [0x00, 0x01, 0x02, 0x03, 0x04])
-        self.add_service_data('9999', [0x00, 0x01, 0x02, 0x03, 0x04])
-        self.add_local_name('TestAdvertisement')
-        self.include_tx_power = True
-        self.add_data(0x26, [0x01, 0x01, 0x00])
 
 
-def register_ad_cb():
-    print('Advertisement registered')
 
+def test():
+    
+    class TestAdvertisement(Advertisement):
 
-def register_ad_error_cb(error):
-    print('Failed to register advertisement: ' + str(error))
-    mainloop.quit()
+        def __init__(self, bus, index):
+            Advertisement.__init__(self, bus, index, 'peripheral')
+            self.add_service_uuid('180D')
+            self.add_service_uuid('180F')
+            self.add_manufacturer_data(0xffff, [0x00, 0x01, 0x02, 0x03, 0x04])
+            self.add_service_data('9999', [0x00, 0x01, 0x02, 0x03, 0x04])
+            self.add_local_name('TestAdvertisement')
+            self.include_tx_power = True
+            self.add_data(0x26, [0x01, 0x01, 0x00])
 
+    def register_ad_cb():
+        print('Advertisement registered')
 
-def find_adapter(bus):
-    remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, '/'),
-                               DBUS_OM_IFACE)
-    objects = remote_om.GetManagedObjects()
+    def register_ad_error_cb(error):
+        print('Failed to register advertisement: ' + str(error))
+        mainloop.quit()
 
-    for o, props in objects.items():
-        if LE_ADVERTISING_MANAGER_IFACE in props:
-            return o
+    def find_adapter(bus):
+        remote_om = dbus.Interface(bus.get_object(BLUEZ_SERVICE_NAME, '/'),
+                                DBUS_OM_IFACE)
+        objects = remote_om.GetManagedObjects()
 
-    return None
-
-
-def main():
+        for o, props in objects.items():
+            if LE_ADVERTISING_MANAGER_IFACE in props:
+                return o
+        return None
+        
+  
     global mainloop
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -202,4 +203,4 @@ def main():
     mainloop.run()
 
 if __name__ == '__main__':
-    main()
+    test()
