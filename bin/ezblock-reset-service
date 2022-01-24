@@ -20,7 +20,7 @@ is_user = None
 # close external bluetooth
 def close_ex_ble():
     # close external bluetooth
-    ble_reset = Pin("BLERST")
+    ble_reset = Pin("D20")
     ble_reset.off()
 
 def log(msg):
@@ -66,7 +66,10 @@ def user_released_callback(ev):
     is_user = False
     #status_led.value(0)
 
-
+reset_switch.when_pressed = reset_pressed_callback
+reset_switch.when_released = reset_released_callback
+user_switch.when_pressed = user_pressed_callback
+user_switch.when_released = user_released_callback
 
 log("Check resize script")
 output = run_command("ls {}".format(resize_script))
@@ -79,11 +82,6 @@ else:
     log("Skip")
 log('Start')
 log('Setup irq')
-reset_switch.when_pressed = reset_pressed_callback
-reset_switch.when_released = reset_released_callback
-user_switch.when_pressed = user_pressed_callback
-user_switch.when_released = user_released_callback
-
 log('Finished')
 
 def main():
