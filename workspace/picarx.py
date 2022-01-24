@@ -84,7 +84,7 @@ class Picarx(object):
     def dir_servo_angle_calibration(self,value):
         # global dir_cal_value
         self.dir_cal_value = value
-        print("calibrationdir_cal_value:",self.dir_cal_value)
+        # print("calibrationdir_cal_value:",self.dir_cal_value)
         self.config_flie.set("picarx_dir_servo", "%s"%value)
         self.dir_servo_pin.angle(value)
 
@@ -92,8 +92,8 @@ class Picarx(object):
         # global dir_cal_value
         self.dir_current_angle = value
         angle_value  = value + self.dir_cal_value
-        if angle_value != 0:
-            print("angle_value:",round(angle_value,2))
+        # if angle_value != 0:
+            # print("angle_value:",round(angle_value,2))
         # print("set_dir_servo_angle_1:",angle_value)
         # print("set_dir_servo_angle_2:",dir_cal_value)
         self.dir_servo_pin.angle(angle_value)
@@ -102,7 +102,7 @@ class Picarx(object):
         # global cam_cal_value_1
         self.cam_cal_value_1 = value
         self.config_flie.set("picarx_cam1_servo", "%s"%value)
-        print("cam_cal_value_1:",self.cam_cal_value_1)
+        # print("cam_cal_value_1:",self.cam_cal_value_1)
         self.camera_servo_pin1.angle(value)
 
     def camera_servo2_angle_calibration(self,value):
@@ -116,13 +116,13 @@ class Picarx(object):
         # global cam_cal_value_1
         self.camera_servo_pin1.angle(-1*(value + -1*self.cam_cal_value_1))
         # print("self.cam_cal_value_1:",self.cam_cal_value_1)
-        print((value + self.cam_cal_value_1))
+        # print((value + self.cam_cal_value_1))
 
     def set_camera_servo2_angle(self,value):
         # global cam_cal_value_2
         self.camera_servo_pin2.angle(-1*(value + -1*self.cam_cal_value_2))
         # print("self.cam_cal_value_2:",self.cam_cal_value_2)
-        print((value + self.cam_cal_value_2))
+        # print((value + self.cam_cal_value_2))
 
     def get_adc_value(self):
         adc_value_list = []
@@ -142,7 +142,7 @@ class Picarx(object):
             if abs_current_angle > 40:
                 abs_current_angle = 40
             power_scale = (100 - abs_current_angle) / 100.0 
-            print("power_scale:",round(power_scale,2))
+            # print("power_scale:",round(power_scale,2))
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -1*speed)
                 self.set_motor_speed(2, speed * power_scale)
@@ -160,7 +160,7 @@ class Picarx(object):
             if abs_current_angle > 40:
                 abs_current_angle = 30
             power_scale = (100 - abs_current_angle) / 100.0 
-            print("power_scale:",round(power_scale,2))
+            # print("power_scale:",round(power_scale,2))
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, speed)
                 self.set_motor_speed(2, -1*speed * power_scale)
