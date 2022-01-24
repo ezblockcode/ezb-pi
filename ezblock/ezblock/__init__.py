@@ -38,7 +38,6 @@ def __reset_mcu__():
 
 def __main__():
     import sys
-    from .utils import __PRINT__
 
     usage = '''
 Usage:
@@ -50,17 +49,17 @@ Options:
 '''
     option = ""
     if len(sys.argv) <= 1:
-        __PRINT__(usage)
+        print(usage)
         quit()
     elif len(sys.argv) > 1:
         option = sys.argv[1]
 
     if "-h" == option:
-        __PRINT__(usage)
+        print(usage)
         quit()
     elif option == "reset-mcu":
-        __PRINT__("MCU Reset.")
+        print("MCU Reset.")
         __reset_mcu__()
     else:
-        __PRINT__(usage)
+        print(usage)
         quit()
