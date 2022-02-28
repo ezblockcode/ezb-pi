@@ -1,33 +1,45 @@
+#!/usr/bin/env python3
+import sys
+from .version import VERSION
+# io operations
 from .pin import Pin
 from .led import LED
 from .pwm import PWM
 from .servo import Servo
-from .filedb import fileDB
-from .signal import Signal
-from .spi import SPI
-from .switch import Switch
 from .uart import UART
 from .i2c import I2C
 from .adc import ADC
-from .websockets import Remote
-from .websockets import ws_print as print
+from .spi import SPI
+from .switch import Switch
+# block modules
+from .modules import *
+from .rgb_matrix import RGB_Matrix
+from .oled import SSD1306_128_64 as SSD1306
+from .lcd1602_i2c import LCD
+from .serial_sound import Serial_Sound
+from .nrf24 import NRF24
 from .music import Music
 from .color import Color
 from .camera import Camera
 from .iot import IOT
 from .tts import TTS
 from .irq import IRQ
+# utility functions
+from .send_email import SendMail
+from .info import Info
+from .filedb import fileDB
+from .signal import Signal
 from .wifi import WiFi
 from .utils import *
 from .taskmgr import Taskmgr
-from .modules import *
-from .send_email import SendMail
-from .info import Info
-from .rgb_matrix import RGB_Matrix
-from .oled import SSD1306_128_64 as SSD1306
-from .lcd1602_i2c import LCD
-from .serial_sound import Serial_Sound
-from .nrf24 import NRF24
+# websockets
+from .websockets import Remote
+from .websockets import ws_print as print
+from .websockets import log
+
+
+def _print(msg:str, end='\n'):
+    sys.stdout.write(msg + end)
 
 
 def __reset_mcu__():
@@ -36,8 +48,10 @@ def __reset_mcu__():
     delay(1)
     mcurst.on()
 
+
 def __main__():
-    import sys
+   
+    _print('ezblock version: %s'%VERSION)
 
     usage = '''
 Usage:
@@ -49,17 +63,19 @@ Options:
 '''
     option = ""
     if len(sys.argv) <= 1:
-        print(usage)
+        _print(usage)
         quit()
     elif len(sys.argv) > 1:
         option = sys.argv[1]
 
     if "-h" == option:
-        print(usage)
+        _print(usage)
         quit()
     elif option == "reset-mcu":
-        print("MCU Reset.")
+        _print("MCU Reset.")
         __reset_mcu__()
     else:
-        print(usage)
+        _print(usage)
         quit()
+
+
