@@ -1,11 +1,21 @@
 import math
+from re import L
 from robot import Robot
 from ezblock import Servo,PWM
 import time
 from os import path
 import json
 import math
-from ezblock.utils import log,run_command
+from ezblock.utils import log, run_command
+import time
+from os import path
+import json
+import math
+
+def debug_2_app(msg): 
+    from ezblock.websockets import Ezb_Service    
+    Ezb_Service.set_share_val('debug', "%s"%msg)
+
 
 class Arm(Robot):
     A = 80
@@ -25,7 +35,7 @@ class Arm(Robot):
         self.record_data = []
         self.data_index = 0
         self.record_init(self.path)
-  
+        
     def record_init(self,_path):
         if not path.exists(_path):
             log('Steps record file does not exist.Create now...')
@@ -58,19 +68,19 @@ class Arm(Robot):
         self.speed = speed 
     
     def bucket_init(self, pin):
-        self.bucket = Servo(PWM(pin))
+        self.bucket = Servo(pin)
         self.bucket_angle = 0
         self.component = 'bucket'
         self.data_index = 1
 
     def hanging_clip_init(self, pin):
-        self.hanging_clip = Servo(PWM(pin))
+        self.hanging_clip = Servo(pin)
         self.hanging_clip_angle = 0
         self.component = 'hanging_clip'
         self.data_index = 2
 
     def electromagnet_init(self, pin):
-        self.elecma = PWM(pin)
+        self.elecma = pin
         self.elecma.pulse_width_percent(0)
         self.component = 'electromagnet'
         self.data_index = 3
@@ -81,7 +91,7 @@ class Arm(Robot):
             if israise == True:
                 raise ValueError('Coordinates out of controllable range.')
             else:
-                print('\033[1;35mCoordinates out of controllable range.\033[0m')
+                print('\033[1;35mCoordinates out of controllable range.\033[0m', end='\r', flush=True)
                 # Calculate coordinates 
                 coord = self.polar2coord(angles)
                 self.current_coord = coord
@@ -89,7 +99,7 @@ class Arm(Robot):
             self.current_coord = self.coord_temp
 
         self.servo_move(angles, self.speed)
-
+        
     def coord2polar(self, coord):
         x, y, z = coord
         y = max(0,y)
@@ -183,10 +193,9 @@ class Arm(Robot):
         # return
         return limit_flag,[alpha,beta,gamma]
 
-    
-    def do_by_coord(self, coord):
+    def do_by_coord(self, coord,israise=False): 
         temp = self.coord2polar(coord)
-        self.set_angle(temp)
+        self.set_angle(temp)              
     
     def set_bucket(self, angle):
         angle = self.limit(-50,90,angle)
@@ -194,9 +203,10 @@ class Arm(Robot):
         self.component_staus = angle
     
     def set_hanging_clip(self, angle):
+        # angle = self.limit(-50,90,angle)
         self.hanging_clip.angle(angle)
         self.component_staus = angle
-
+    
     def set_electromagnet(self, status):
         if status == "on":
             self.elecma.pulse_width_percent(100)
@@ -217,7 +227,7 @@ class Arm(Robot):
             'steps':self.steps_buff,
         }
         self.record_data[self.data_index] = msg
-
+ 
         try:
             with open(self.path,'w')as f:
                 json.dump(self.record_data,f)
@@ -237,22 +247,27 @@ class Arm(Robot):
         except Exception as e:
             log(e)
 
-        if _data[self.data_index]['component'] != self.component:
-            log('Component mismatch.This record corresponds to the %s component.' % _data[self.data_index]['component'])
+        _data = dict(_data[self.data_index])
+        if _data['component'] != self.component:
+            log('Component mismatch.This record corresponds to the %s component.' %_data[self.data_index]['component'])
         else:
-            steps = _data[self.data_index]['steps']   
-            for i in range(0,len(steps),2):      
-                angles = steps[i]
-                status = steps[i+1]
-                log('step %s: %s,%s '%(int(i/2),angles,status))
-                self.set_angle(angles)  
-                if self.component == 'bucket':
-                    self.set_bucket(status)
-                if self.component == 'hanging_clip':
-                    self.set_hanging_clip(status)
-                if self.component == 'electromagnet':
-                    self.set_electromagnet(status) 
-                time.sleep(delay)   
+            if 'steps' in  _data.keys() and len(_data['steps']) > 0: 
+                steps = _data['steps']   
+                for i in range(0,len(steps),2):      
+                    angles = steps[i]
+                    status = steps[i+1]
+                    log('step %s: %s,%s '%(int(i/2),angles,status))
+                    self.set_angle(angles)  
+                    if self.component == 'bucket':
+                        self.set_bucket(status)
+                    if self.component == 'hanging_clip':
+                        self.set_hanging_clip(status)
+                    if self.component == 'electromagnet':
+                        self.set_electromagnet(status) 
+                    time.sleep(delay)   
+            else:
+                debug_2_app('steps is null')
+                log('steps is null')
 
 
 if __name__ == "__main__":
