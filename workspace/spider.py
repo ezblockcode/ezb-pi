@@ -1,4 +1,4 @@
-from robot import Robot, time
+from robot import Robot
 import math
 
 class Spider(Robot):
@@ -581,7 +581,7 @@ class Spider(Robot):
             return deg * math.pi / 180
         
         @property
-        def dance(self):
+        def twist(self):
             _dance = []
             if not self.is_sit():
                 _dance += self.sit
