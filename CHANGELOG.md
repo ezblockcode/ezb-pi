@@ -1,7 +1,19 @@
 # Change Log 
 
 ## [Unreleased]
-    -
+
+### Changed
+- Use Raspberry Pi's onboard Bluetooth to communicate 
+  with the app 
+
+
+## [1.0.4] - 2022-2-8
+
+### Added
+- Add servos limit for spider
+
+### Fixed
+- Fix some bugs of spider
 
 ## [1.0.3] - 2021-11-29
 
