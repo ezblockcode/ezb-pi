@@ -3,6 +3,30 @@
 ## [Unreleased]
 -
 
+## [1.1.0] - 2022-2-28
+
+### Changed
+- To avoid conflicts with sunfounder-controller, change the websocket port to 7852
+
+### Added
+- Add only one device is allowed to connect at the same time,
+- Add bluetooth advertisement  will be turned off when connecting to websockets
+
+
+## [1.0.5] - 2022-2-15 - based on 1.0.4
+
+### Fixed
+- Fix some bugs of piarm
+
+
+## [1.0.4] - 2022-2-8 - based on 1.0.3
+
+### Added
+- Add servos limit for spider
+
+### Fixed
+- Fix some bugs of spider
+
 
 ## [1.1.0_Beta] - 2022-1-7
 
@@ -19,7 +43,7 @@
 
 ### Fixed
 - Fix data blocking in remote control
-
+- Fix bugs for piarm
 
 ## [1.0.3] - 2021-11-29
 

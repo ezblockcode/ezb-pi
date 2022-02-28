@@ -1,4 +1,3 @@
-import re
 import requests
 import json
 from configparser import ConfigParser
