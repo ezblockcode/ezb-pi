@@ -2,17 +2,20 @@ import websockets
 import asyncio
 from multiprocessing import Process, Manager, Value
 import threading
-from configparser import ConfigParser, Error
+from configparser import ConfigParser 
 import json
 import time
 import sys,os
 import RPi.GPIO as GPIO
 from .utils import delay, getIP, run_command, log
 from .ble import BLE
-from .adc import ADC
-from .i2c import I2C
-from ezblock import Pin,Servo,PWM
-from .version import VERSION
+from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
+
+
+
+def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True):
+    log(msg, location, end='\n', flush=False, timestamp=True)
+
 
 # select LED lights foe websockets status
 # according to the Robot-Hat expansion board
@@ -25,23 +28,26 @@ if check_io.value() == 1:  # old board
     tx = Pin(14);rx = Pin(15)   
     tx.off();rx.off()
     ble_reset.off()
-    # log('old robot_hat')
+    # _log('old robot_hat')
 else: # new board
     ws_status_led = Pin("LED")
-    # log('new robot_hat')
+    # _log('new robot_hat')
  
+
 # tools
-def music_by_system(path:str):
+def music_by_system(path:str, is_background=False):
     def mp(path:str):
         try:
            run_command('sudo mplayer %s'%path)
         except Exception as e:
-            log(e,level='Sound effect')
+            _log(e, location='Sound effect')
     
-    mp(path)
-    # t =  threading.Thread(target=mp, args=(path,))
-    # # t.setDaemon(True)
-    # t.start()
+    if is_background == True:
+        t =  threading.Thread(target=mp, args=(path,))
+        t.setDaemon(True)
+        t.start()
+    else:
+        mp(path)
 
 # detect_i2c
 detect_i2c = I2C()
@@ -111,13 +117,13 @@ class Ezb_Service(object):
                 from picarx import Picarx
                 ws.px = Picarx()       
         except Exception as e:
-            log('%s:%s'%(ws.type, e),'Products')
+            _log('%s:%s'%(ws.type, e),'Products')
             Ezb_Service.set_share_val('debug',e)
 
 
     @staticmethod
     def ezb_service_start():
-        log("Ezb_Service.ezb_service_start")
+        _log("Ezb_Service.ezb_service_start")
         # Service startup Sound
         # Music().sound_play('/home/pi/Music/startup.mp3')
         music_by_system('/home/pi/Music/startup.mp3')
@@ -125,7 +131,7 @@ class Ezb_Service(object):
         ws.user_service_start()
         worker_2 = Process(name='worker 2',target=ws.__start_ws__)
         worker_2.start()
-        log("[Process] __start_ws__: %s" % worker_2.pid)
+        _log("[Process] __start_ws__: %s" % worker_2.pid)
         # this loop is necessary
         while True:
             time.sleep(1)
@@ -133,7 +139,7 @@ class Ezb_Service(object):
 
     @staticmethod
     def start_service():
-        log("Ezb_Service.start_service")
+        _log("Ezb_Service.start_service")
         global i2c_adress_list
         Ezb_Service.reset_mcu_func()
         detect_i2c = I2C()
@@ -191,7 +197,7 @@ class WS():
         self.ws_battery_status = False
         self.is_client_connected = Value('i',0)
         self.connect_num = 0
-
+        self.ble = None
 
     @staticmethod
     def get_battery(voltage,battery,id='user'):
@@ -201,7 +207,7 @@ class WS():
                 battery.value = round(min(max((voltage.value - 7.0) / 1.4, 0) * 100,100),2)
                 time.sleep(2)
 
-        log('start getting battery thread by %s process'%id)
+        _log('start getting battery thread by %s process'%id)
         t = threading.Thread(target=fuc)
         t.setDaemon(True)
         t.start()
@@ -210,12 +216,12 @@ class WS():
     def ws_battery_process_start(self):
         self.ws_battery_process = Process(name='ws battery',target=self.get_battery,args=(self.voltage,self.battery,'websocket'))
         self.ws_battery_process.start()
-        log("[Process] ws_battery_process_start: %s" % self.ws_battery_process.pid)
+        _log("[Process] ws_battery_process_start: %s" % self.ws_battery_process.pid)
         self.ws_battery_status = True
 
     def ws_battery_process_close(self):
         if self.ws_battery_status == True:
-            log("[Process] ws_battery_process_close: %s" % self.ws_battery_process.pid)
+            _log("[Process] ws_battery_process_close: %s" % self.ws_battery_process.pid)
             self.ws_battery_process.terminate()
             self.ws_battery_status = False
 
@@ -234,13 +240,13 @@ class WS():
 
 
     def user_service_start(self):
-        log("WS.user_service_start")
+        _log("WS.user_service_start")
         self.user_service_close()
         if self.ws_battery_status == True:
             self.ws_battery_process_close()
         self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
         self.user_service_process.start()
-        log("[Process] user_service_start: %s" % self.user_service_process.pid)
+        _log("[Process] user_service_start: %s" % self.user_service_process.pid)
         self.user_service_status = True
 
     def user_service_close(self):
@@ -312,10 +318,10 @@ class WS():
                     name_temp = self.str_limit(name_temp)
                     write_info("name", name_temp)
                     run_command('sudo hostnamectl set-hostname %s'%name_temp)
-                    log("change name to : %s"%name_temp)
+                    _log("change name to : %s"%name_temp)
                     self.send_dict["name"] = name_temp
                 except Exception as e:
-                    log('set-hostname failed: %s'%e)
+                    _log('set-hostname failed: %s'%e)
             # set device type
             elif "Type" in self.recv_dict.keys():
                 self.type = self.recv_dict["Type"]
@@ -324,6 +330,7 @@ class WS():
             # reboot       
             elif "RB" in self.recv_dict.keys():
                 if self.recv_dict["RB"]:
+                    log('RB==True, rebooting...')
                     run_command("sudo reboot")
             # calibration
             elif "OF" in self.recv_dict.keys():
@@ -353,7 +360,7 @@ class WS():
                     self.sloth.set_offset(self.recv_dict['OF'])
                     self.sloth.calibration()
                 else:
-                    log("Type Error: %s" % self.type)
+                    _log("Type Error: %s" % self.type)
                 self.ws_battery_process_start()
             # Download code
             elif "FL" in self.recv_dict.keys() and self.recv_dict['FL']:
@@ -414,7 +421,7 @@ class WS():
                         self.user_service_status = True
                         self.send_dict["RU"] = True
                 except Exception as e:
-                    log('RU : %s'%e)
+                    _log('RU : %s'%e)
             # Update Ezblock
             if "UE" in self.recv_dict.keys():
                 if self.recv_dict["UE"] and Ezb_Service.update_work == False:
@@ -422,12 +429,12 @@ class WS():
                 else:
                     self.send_dict["UE"] = 'Failed'
             if Ezb_Service.update_work == True:
-                log('Updating ...')
-                log('Ezb_Service.update_flag.value: %s'% Ezb_Service.update_flag.value)
+                _log('Updating ...')
+                _log('Ezb_Service.update_flag.value: %s'% Ezb_Service.update_flag.value)
                 if Ezb_Service.update_flag.value == 0: # 0:none 1:ING 2:OK 3:Failed
                     self.update_process = Process(name='update_process',target=self.update_ezblock,args=(Ezb_Service.update_flag,))
                     self.update_process.start()
-                    log('update_process start, pid = %s'% self.update_process.pid)
+                    _log('update_process start, pid = %s'% self.update_process.pid)
                     Ezb_Service.update_flag.value = 1
                 elif Ezb_Service.update_flag.value == 1: #  1:ING 
                     self.send_dict["UE"] = 'ING'
@@ -447,30 +454,32 @@ class WS():
             self.recv_dict = {} 
 
         except OSError as e:
-            log(e,level='ERROR')
+            _log(e, location='data_process')
             Ezb_Service.reset_mcu_func()
             time.sleep(1)
         except Exception as e:
-            log(e,level='ERROR')
+            _log(e, location='data_process')
 
 
     async def main_logic(self, websocket,path):
-        # check connection
-        # self.connect_num += 1
-        # if self.connect_num  > 1:
-        #     await websocket.close(code=4000, reason='Connection is occupied')
-        #     # raise('Connection is occupied')
-        #     log('Connection is occupied')
-        #     return
+        # check connection 
+        # only one connection is allowed at the same time
+        self.connect_num += 1
+        if self.connect_num  > 1:
+            await websocket.close(code=4000, reason='Connection is occupied')
+            _log('Connection is occupied')
+            return
             
-
         # connected flag
         self.is_client_connected.value = True
         self.recv_dict = {}
         self.send_dict = {}
         music_by_system('/home/pi/Music/connected.mp3')
-        log('client connected')
-        
+        _log('client connected')
+
+        # close BLE Advertisement 
+        self.ble.uart.stop_advertising()
+
         # battery 
         if self.user_service_status == False and self.ws_battery_status == False:
             self.ws_battery_process_start()
@@ -487,11 +496,13 @@ class WS():
                     if 'PF' in dict(tmp).keys():
                         tmp.pop('PF')
                     if tmp != {}:
-                        log("recv_data_load:%s"%tmp,'websockets')
+                        _log("recv_data_load:%s"%tmp,'websockets')
                 except asyncio.TimeoutError as e:
-                    # log('asyncio.TimeoutError : %s'%e)
+                    # _log('asyncio.TimeoutError : %s'%e)
                     pass
-
+                except json.JSONDecodeError as e:
+                    _log('recv data JSONDecodeError: %s'%tmp)
+                    
                 # data processing
                 try:   
                     # heartbeat
@@ -516,7 +527,7 @@ class WS():
                                 self.remote_dict[key] = tmp[key]
                                 Ezb_Service.set_share_val(key,self.remote_dict[key])
                 except Exception as e:
-                    # log(e)
+                    # _log(e)
                     pass
 
                 # send 
@@ -538,7 +549,7 @@ class WS():
 
                     # websocket.send
                     if data != {} :  
-                        log('send data: %s'% data)
+                        _log('send data: %s'% data)
                         await websocket.send(json.dumps(data))
 
                     # TODO Unknown
@@ -558,30 +569,30 @@ class WS():
                     pass
             # disconnected exception
             except websockets.exceptions.ConnectionClosed as connection_code:
-                log('disconnected:%s'%connection_code)
+                _log('disconnected:%s'%connection_code)
                 break
-            # other exceptions
             except Exception as e:
-                log('error:%s'%e)
-                break    
+                _log('error:%s'%e)
+                # break    
 
             await asyncio.sleep(0.01)
 
         # end while processing
+        self.ble.uart.start_advertising()   # start BLE Advertisement 
         self.is_client_connected.value = False
         self.connect_num = 0
         self.recv_dict = {}
         self.send_dict = {}
-        log('client disconnected')
-        log('---------------------------------------------')
         Ezb_Service.clear_val()
         music_by_system('/home/pi/Music/disconnected.mp3')
         # Music().sound_play('/home/pi/Music/disconnected.mp3')
-              
+        _log('client disconnected')
+        _log('---------------------------------------------')
+      
 
 
     def print(self, msg, end='\n', tag='[DEBUG]'):
-        log(msg)
+        _log(msg)
         Ezb_Service.set_share_val('debug',[str(msg),True])
         time.sleep(0.02)
         while Ezb_Service.return_share_val()['debug'][1] == True:
@@ -591,28 +602,28 @@ class WS():
         # check port
         results = os.popen("sudo lsof -i:%s|grep %s|awk '{print $2}'"%(port,port)).readlines()
         if results == []:
-            log('no process occupies port %s'%port)
+            _log('no process occupies port %s'%port)
         else:
             # close related processes
-            log('port 7852 is already occupied,try to close related processes ...')
+            _log('port 7852 is already occupied,try to close related processes ...')
             for pid in results:
-                log('kill %s .... '%pid.replace('\n',''),end='')
+                _log('kill %s .... '%pid.replace('\n',''),end='')
                 status = os.system('sudo kill %s'%pid)
                 if status == 0:
-                    log('succeed',timestamp=False)
+                    _log('succeed',timestamp=False)
                 else:
-                    log('failed',timestamp=False)
+                    _log('failed',timestamp=False)
                     return False
         return True
 
 
     def start_loop(self, ip):
-        port = 7852
+        port = 7852  # SiTianJiChuang
         # check port
         while not self.close_tcp_port(port):
             time.sleep(0.01)
         # start websockets
-        log('open websockets server')
+        _log('open websockets server')
         start_server_1 = websockets.serve(self.main_logic, ip, port)
         tasks = [start_server_1]
         self.loop = asyncio.get_event_loop()
@@ -628,18 +639,19 @@ class WS():
         self.ws_process = Process(name='websocket service',target=self.start_loop,args=('0.0.0.0', )) # args=(ip, ) ：This is a tuple, the ',' is necessary !!!
         self.ws_process.start()
         self.websocket_service_pid = self.ws_process.pid
-        log("[Process] websocket_service_process: %s" % self.websocket_service_pid)
+        _log("[Process] websocket_service_process: %s" % self.websocket_service_pid)
+
 
     def __start_ws__(self):
-        log("WS.__start_ws__")
+        _log("WS.__start_ws__")
 
         run_command('sudo rfkill unblock bluetooth')  
         if read_info("name") != 'null':
-            ble = BLE(read_info("name"))
-            log("BLE start: %s"%read_info("name"))
+            self.ble = BLE(read_info("name"))
+            _log("BLE start: %s"%read_info("name"))
         else:
-            ble = BLE('ezb-Raspberry')
-            log("BLE start: ezb-Raspberry")
+            self.ble = BLE('ezb-Raspberry')
+            _log("BLE start: ezb-Raspberry")
         # Service status LED
         ws_led_t = threading.Thread(name='bl_led',target=self._ws_status_led,args=())
         ws_led_t.setDaemon(True)
@@ -649,31 +661,31 @@ class WS():
             try:
                 ip = getIP()
                 # start websocket_service once
-                # log("get ip: %s" % ip)
+                # _log("get ip: %s" % ip)
                 if ip and self.ws_process == None:
-                    log("got ip: %s " % ip)
+                    _log("got ip: %s " % ip)
                     self.websocket_service_process()
 
                 # wait app connect the bluetooth  
                 value = ""
-                value = ble.readline()
+                value = self.ble.readline()
                 if value == "":
                     time.sleep(0.05)
                     continue
                 # send ip to app so that the app can connect to the WebSocket
                 if value == "get":
                     if ip:
-                        ble.write(ip)
+                        self.ble.write(ip)
                     else:
-                        ble.write("No IP")
+                        self.ble.write("No IP")
                 # reconfigure wifi
                 elif value and "#*#" in value:
                     if self.ws_process != None:
                         self.ws_process.terminate()
-                        log("ws_process.terminate(), kill pid：%s"%self.ws_process.pid)
+                        _log("ws_process.terminate(), kill pid：%s"%self.ws_process.pid)
                         delay(500)
                         
-                    log("Connecting to wifi")
+                    _log("Connecting to wifi")
                     data_list = value.split("#*#")
                     from .wifi import WiFi
                     wifi = WiFi()
@@ -682,18 +694,18 @@ class WS():
                     for _ in range(3):
                         ip = getIP()
                         if ip: 
-                            log("IP Address: %s" % ip)
+                            _log("IP Address: %s" % ip)
                             self.websocket_service_process()
-                            log("self.websocket_service_process()")
-                            ble.write(ip)
+                            _log("self.websocket_service_process()")
+                            self.ble.write(ip)
                             break
                         time.sleep(1)
                     else:
-                        ble.write("Connect Failed!")
+                        self.ble.write("Connect Failed!")
 
                 # close advertisement when 
             except Exception as e:
-                log("WS.__start_ws__ failed: %s" % e)
+                _log("WS.__start_ws__ failed: %s" % e)
    
 
     def update_ezblock(self,update_flag):
@@ -705,19 +717,19 @@ class WS():
             update_flag.value = 3 # 3:Failed
 
     def _ws_status_led(self):
-        log("bluetooth_status_led thread start")
+        _log("bluetooth_status_led thread start")
         while True:
-            # log(self.is_client_connected.value)
+            # _log(self.is_client_connected.value)
             if self.is_client_connected.value == True:
                 ws_status_led.value(1)
                 time.sleep(2)
             else:
                 ws_status_led.value(1)
-                time.sleep(0.25)
+                time.sleep(1)
                 ws_status_led.value(0)
-                time.sleep(0.25)
+                time.sleep(1)
                 
-            time.sleep(0.5)
+            
 
 
 
