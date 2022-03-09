@@ -11,6 +11,8 @@ from .utils import delay, getIP, run_command, log
 from .ble import BLE
 from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
 
+# port = 8765  # <= 1.0.5
+port = 7852    # SiTianJiChuang, >= 1.1.0
 
 
 def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True):
@@ -99,26 +101,44 @@ class Ezb_Service(object):
         mcu_reset.off()
         time.sleep(0.001)
         mcu_reset.on() 
-        time.sleep(0.01)  
+        time.sleep(0.2)  
 
     @staticmethod
     def reset_servo():
         Ezb_Service.reset_mcu_func()
         ws.type = read_info("type")
+        log('Products type: %s'%ws.type, location='reset_servo')
         try:
+            # delete i2c
+            for _ in range(3):
+                i2c_adress_list = list(map(hex, detect_i2c.scan()))
+                log('i2c_adress_list: %s'%i2c_adress_list, location='reset_servo')
+                if '0x14' in i2c_adress_list:
+                    break
+                time.sleep(0.2)
+            else:
+                log("I2C 0x14 not found", location='reset_servo')
+                return False
+            # Products init
             if ws.type == "SpiderForPi":
+                log("spider init", location='reset_servo')
                 from spider import Spider
                 ws.sp = Spider([10,11,12,4,5,6,1,2,3,7,8,9])
                 ws.sp.servo_positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             elif ws.type == "SlothForPi":
+                log("sloth init", location='reset_servo')
                 from sloth import Sloth
                 ws.sloth = Sloth([1,2,3,4])
             elif ws.type in ["PiCarMini","PaKe"]:
+                log("picarx init", location='reset_servo')
                 from picarx import Picarx
-                ws.px = Picarx()       
+                ws.px = Picarx()   
+            return True
+
         except Exception as e:
             _log('%s:%s'%(ws.type, e),'Products')
             Ezb_Service.set_share_val('debug',e)
+            return False
 
 
     @staticmethod
@@ -140,12 +160,8 @@ class Ezb_Service(object):
     @staticmethod
     def start_service():
         _log("Ezb_Service.start_service")
-        global i2c_adress_list
         Ezb_Service.reset_mcu_func()
-        detect_i2c = I2C()
-        i2c_adress_list = list(map(hex,detect_i2c.scan()))
-        if '0x14' in i2c_adress_list:
-            Ezb_Service.reset_servo()
+        Ezb_Service.reset_servo()
         Ezb_Service.ezb_service_start()
 
     @staticmethod
@@ -307,9 +323,9 @@ class WS():
                 elif self.recv_dict['RE'] == "battery":
                     self.send_dict['voltage'] = '%.2f'%self.voltage.value
                     self.send_dict['battery'] = self.battery.value
-                elif self.recv_dict['RE'] == "offset":
-                    if read_info("type") in ["PiCarMini","PaKe"]:
-                        self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
+                # elif self.recv_dict['RE'] == "offset":
+                #     if read_info("type") in ["PiCarMini","PaKe"]:
+                #         self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
             # set name
             elif "NA" in self.recv_dict.keys():
                 try:
@@ -478,7 +494,7 @@ class WS():
         _log('client connected')
 
         # close BLE Advertisement 
-        self.ble.uart.stop_advertising()
+        # self.ble.uart.stop_advertising()
 
         # battery 
         if self.user_service_status == False and self.ws_battery_status == False:
@@ -578,14 +594,13 @@ class WS():
             await asyncio.sleep(0.01)
 
         # end while processing
-        self.ble.uart.start_advertising()   # start BLE Advertisement 
+        # self.ble.uart.start_advertising()   # start BLE Advertisement 
         self.is_client_connected.value = False
         self.connect_num = 0
         self.recv_dict = {}
         self.send_dict = {}
         Ezb_Service.clear_val()
         music_by_system('/home/pi/Music/disconnected.mp3')
-        # Music().sound_play('/home/pi/Music/disconnected.mp3')
         _log('client disconnected')
         _log('---------------------------------------------')
       
@@ -598,14 +613,14 @@ class WS():
         while Ezb_Service.return_share_val()['debug'][1] == True:
             time.sleep(0.1)
 
-    def close_tcp_port(self,port=7852):
+    def close_tcp_port(self,port=port):
         # check port
         results = os.popen("sudo lsof -i:%s|grep %s|awk '{print $2}'"%(port,port)).readlines()
         if results == []:
             _log('no process occupies port %s'%port)
         else:
             # close related processes
-            _log('port 7852 is already occupied,try to close related processes ...')
+            _log('port %s is already occupied,try to close related processes ...'%port)
             for pid in results:
                 _log('kill %s .... '%pid.replace('\n',''),end='')
                 status = os.system('sudo kill %s'%pid)
@@ -618,7 +633,6 @@ class WS():
 
 
     def start_loop(self, ip):
-        port = 7852  # SiTianJiChuang
         # check port
         while not self.close_tcp_port(port):
             time.sleep(0.01)
