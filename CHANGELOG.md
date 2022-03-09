@@ -5,8 +5,13 @@
 
 ## [1.1.0] - 2022-2-28
 
+### Fixed
+- Fix some bugs of some sensor modules
+- Fix som bugs of product initialization
+
 ### Changed
 - To avoid conflicts with sunfounder-controller, change the websocket port to 7852
+
 
 ### Added
 - Add only one device is allowed to connect at the same time,
