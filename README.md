@@ -22,8 +22,7 @@ https://github.com/sunfounder-ezblock/ezb-pi/tree/master/doc
 
 <a id="update"></a>
 ### Update:
-2019-09-16:
- - compatible for RaspberryPi 4B
+https://github.com/ezblockcode/ezb-pi/blob/master/CHANGELOG.md
 
 ### Usage
 Trun on ezblock service:
