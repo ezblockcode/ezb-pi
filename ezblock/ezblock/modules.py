@@ -83,34 +83,54 @@ class ADXL345():
     X = 0
     Y = 1
     Z = 2
+
+    _ADDRESS = 0x53
+    _REG_DEVID = 0x00 # Device ID == 0xE5
+
     _REG_DATA_X       = 0x32 # X-axis data 0 (6 bytes for X/Y/Z)
     _REG_DATA_Y       = 0x34 # Y-axis data 0 (6 bytes for X/Y/Z)
     _REG_DATA_Z       = 0x36 # Z-axis data 0 (6 bytes for X/Y/Z)
     _REG_POWER_CTL    = 0x2D # Power-saving features control
-    _AXISES = [_REG_DATA_X, _REG_DATA_Y, _REG_DATA_Z]
+    _REG_DATA_FORMAT = 0x31
+    _REG_OFSX = 0x1E
+    _REG_OFSY = 0x1F
+    _REG_OFSZ = 0x20
 
-    def __init__(self, address=0x53):  
+    _AXISES = [_REG_DATA_X, _REG_DATA_Y, _REG_DATA_Z]
+    _OFFSET = [_REG_OFSX, _REG_OFSY, _REG_OFSZ]
+
+    def __init__(self, address=None):  
         self.i2c = I2C()
-        self.address = address
+        if address is None:
+            self.address = self._ADDRESS
+        else :
+            self.address = address
+        self._is_ready()
+
+    def _is_ready(self):
+        dev_id = self.i2c._i2c_read_word_data(self.address, self._REG_DEVID)
+        # print('dev_id:%s'%hex(dev_id))
+        if dev_id == 0xE5:
+            # print('ADXL345 is ready')
+            self.i2c._i2c_write_byte_data(self.address, self._REG_POWER_CTL, 0x08)
+        else:
+            raise IOError('ADXL345 is not ready: Failed to read the expected device ID')
+
 
     def read(self, axis):
-        result = self.i2c._i2c_read_byte(self.address)
-        send = (0x08<< 8) + self._REG_POWER_CTL
-        if result:
-            self.i2c.send(send, self.address)
-        self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
-        self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
-        raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
-        # 第一次读的值总是为0，所以多读取一次
-        self.i2c.mem_write(0, 0x53, 0x31, timeout=1000)
-        self.i2c.mem_write(8, 0x53, 0x2D, timeout=1000)
-        raw = self.i2c.mem_read(2, self.address, self._AXISES[axis])
+        raw = self.i2c._i2c_read_i2c_block_data(self.address, self._AXISES[axis],2)
         if raw[1]>>7 == 1:
             raw[1] = -((((raw[1]^128)^127)+1))
         g = raw[1]<< 8 | raw[0]
-        value = g / 256.0
+        value = round(g / 256.0, 2)
         return value
 
+
+    def _read_offset(self,axis):
+        offset = self.i2c._i2c_read_i2c_block_data(self.address, self._OFFSET[0],6)
+        print('offset:%s'%offset)
+
+        
 class RGB_LED():
     def __init__(self, Rpin, Gpin, Bpin, common=1):
         self.Rpin = Rpin
@@ -147,7 +167,7 @@ class Buzzer():
         self.pwm.pulse_width_percent(50)
     
     def off(self):
-        self.pwm.pulse_width_percent(0)
+        self.pwm.pulse_width_percent(100)
     
     def freq(self, freq):
         self.pwm.freq(freq)
@@ -171,7 +191,7 @@ class Buzzer():
         return freq
 
 class Sound():
-    def __init__(self, pin):
+    def __init__(self, pin) :# adc
         self.pin = pin
     
     def read_raw(self):
