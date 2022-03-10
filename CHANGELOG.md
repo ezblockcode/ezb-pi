@@ -3,7 +3,7 @@
 ## [Unreleased]
 -
 
-## [1.1.0] - 2022-2-28
+## [1.1.0] - 2022-3-10 - based on 1.1.0_Beta
 
 ### Fixed
 - Fix some bugs of some sensor modules
