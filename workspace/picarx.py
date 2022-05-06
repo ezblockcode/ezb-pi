@@ -158,7 +158,7 @@ class Picarx(object):
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
             if abs_current_angle > 40:
-                abs_current_angle = 30
+                abs_current_angle = 40
             power_scale = (100 - abs_current_angle) / 100.0 
             # print("power_scale:",round(power_scale,2))
             if (current_angle / abs_current_angle) > 0:
