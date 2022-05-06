@@ -3,7 +3,16 @@
 ## [Unreleased]
 -
 
-## [1.1.0] - 2022-3-10 - based on 1.1.0_Beta
+## [1.1.0] - 2022-5-6 - based on 1.1.0 - Unreleased
+
+### Fixed
+- Fix bug of speed limit of picar-x 
+
+### Changed
+- Remove the limitation of connecting multiple devices at the same time
+
+
+## [1.1.0] - 2022-3-10 - based on 1.1.0_Beta - Unreleased
 
 ### Fixed
 - Fix some bugs of some sensor modules
