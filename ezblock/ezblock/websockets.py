@@ -481,10 +481,10 @@ class WS():
         # check connection 
         # only one connection is allowed at the same time
         self.connect_num += 1
-        if self.connect_num  > 1:
-            await websocket.close(code=4000, reason='Connection is occupied')
-            _log('Connection is occupied')
-            return
+        # if self.connect_num  > 1:
+        #     await websocket.close(code=4000, reason='Connection is occupied')
+        #     _log('Connection is occupied')
+        #     return
             
         # connected flag
         self.is_client_connected.value = True
