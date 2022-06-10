@@ -1,10 +1,17 @@
 # Change Log 
 
-## [Unreleased]
+## [1.0.7] - 2022-04-12 - based on 1.0.6
 
-### Changed
-- Use Raspberry Pi's onboard Bluetooth to communicate 
-  with the app 
+### Fixed
+- Replaced the startup file in the /boot directory, to fixed the problem that 
+the new batch of Raspberry Pi could not be started
+
+
+## [1.0.6] - 2022-3-9 - based on 1.0.5
+
+### Fixed
+- Fix some bugs of some sensor modules
+
 
 ## [1.0.5] - 2022-2-15 - based on 1.0.4
 
@@ -54,6 +61,7 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi
+[1.0.6]: https://github.com/ezblockcode/ezb-pi/tree/1.0.6
 [1.0.5]: https://github.com/ezblockcode/ezb-pi/tree/1.0.5
 [1.0.4]: https://github.com/ezblockcode/ezb-pi/tree/1.0.4
 [1.0.3]: https://github.com/ezblockcode/ezb-pi/compare/1.0.2...1.0.3

@@ -1,3 +1,16 @@
+## Ezblock 1.0.7 for Raspberry Pi
+
+### Fixed
+- Replaced the startup file in the /boot directory, to fixed the problem that 
+the new batch of Raspberry Pi could not be started
+
+### Usge
+- Just replace the files in the compressed package "start_elf_based_on_2022-01-28-raspios-buster-armhf-lite.zip"
+with the files in the /boot directory of the EzBlock image
+- Or you can directly download the EzBlock 1.0.7 image:
+https://public.dm.files.1drv.com/y4m-wBX8TwTb_nYg-LJdyAOOGTuGbkOVb2jiFPP5dK9A5Ua9nUh_QazC7akGv499jBOUpp6bR1IlrRofQd0zJLMP6upKXX612-eKMISgko774NUZMlgNaSVB15wL64MN98_OLi-wQsBHUbbGtBC4wtoynSS9xkAgjjRRnkb6tNluCGxrX4JsXyuVCojKmWKULWelaPFgnSZ8CoXWpY9RaBAiSoZ8v3AApC86GLK1JKPsJM
+
+
 ## Ezblock for Raspberry Pi
 Ezblock for **RaspberryPi 3B+**, compatible for **Rev 4 Module B**
 
