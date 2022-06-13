@@ -1,10 +1,11 @@
 # Change Log 
 
 ## [Unreleased]
--
 
-## [1.1.0] - 2022-5-6 - based on 1.1.0 - Unreleased
 
+
+
+## [1.1.1] - 2022-5-31  - based on 1.1.0 
 ### Fixed
 - Fix bug of speed limit of picar-x 
 
@@ -92,7 +93,11 @@
     - 
 
 
-[Unreleased]: https://github.com/ezblockcode/ezb-pi
+[Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.1.1]: https://github.com/ezblockcode/ezb-pi/tree/1.1.1
+[1.1.0]: https://github.com/ezblockcode/ezb-pi/tree/1.1.0
+[1.0.5]: https://github.com/ezblockcode/ezb-pi/tree/1.0.5
+[1.0.4]: https://github.com/ezblockcode/ezb-pi/tree/1.0.4
 [1.1.0_Beta]: https://github.com/ezblockcode/ezb-pi/tree/1.1.0_Beta
-[1.0.3]: https://github.com/ezblockcode/ezb-pi/compare/1.0.2...1.0.3
-[1.0.2]: https://github.com/ezblockcode/ezb-pi/compare/1.0.1...1.0.2
+[1.0.3]: https://github.com/ezblockcode/ezb-pi/tree/1.0.3
+[1.0.2]: https://github.com/ezblockcode/ezb-pi/tree/1.0.2
