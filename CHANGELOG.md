@@ -3,8 +3,6 @@
 ## [Unreleased]
 
 
-
-
 ## [1.1.1] - 2022-5-31  - based on 1.1.0 
 ### Fixed
 - Fix bug of speed limit of picar-x 
