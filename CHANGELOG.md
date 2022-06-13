@@ -71,7 +71,7 @@ the new batch of Raspberry Pi could not be started
     - 
 
 
-[Unreleased]: https://github.com/ezblockcode/ezb-pi
+[Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.0
 [1.0.8]: https://github.com/ezblockcode/ezb-pi/tree/1.0.8
 [1.0.7]: https://github.com/ezblockcode/ezb-pi/tree/1.0.7
 [1.0.6]: https://github.com/ezblockcode/ezb-pi/tree/1.0.6
