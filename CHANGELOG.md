@@ -2,9 +2,21 @@
 
 ## [Unreleased]
 
-### Changed
-- Use Raspberry Pi's onboard Bluetooth to communicate 
-  with the app 
+## [1.0.8] - 2022-6-13 - based on 1.0.6
+
+### Fixed
+- Fixed the IO conflict between ADC battery reading and ADC joystick
+
+### Optinized
+- some optimizations 
+
+
+## [1.0.7] - 2022-4-12 - based on 1.0.6
+
+### Fixed
+- Replaced the startup file in the /boot directory, to fixed the problem that 
+the new batch of Raspberry Pi could not be started
+
 
 ## [1.0.6] - 2022-3-9 - based on 1.0.5
 
@@ -60,6 +72,8 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi
+[1.0.8]: https://github.com/ezblockcode/ezb-pi/tree/1.0.8
+[1.0.7]: https://github.com/ezblockcode/ezb-pi/tree/1.0.7
 [1.0.6]: https://github.com/ezblockcode/ezb-pi/tree/1.0.6
 [1.0.5]: https://github.com/ezblockcode/ezb-pi/tree/1.0.5
 [1.0.4]: https://github.com/ezblockcode/ezb-pi/tree/1.0.4
