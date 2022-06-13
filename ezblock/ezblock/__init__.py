@@ -11,6 +11,7 @@ from .i2c import I2C
 from .adc import ADC
 from .ble import BLE
 # from .ble import Remote
+from .version import VERSION
 from .websockets import Remote
 from .websockets import ws_print as print
 from .music import Music

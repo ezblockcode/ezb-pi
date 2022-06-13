@@ -214,7 +214,7 @@ class WS():
             start_time = time.time()
             while True:
                 if (time.time() - start_time) > 5:
-                    self.get_battery()
+                    self.get_battery(voltage,battery)
                     start_time = time.time()
                 forever()
                 time.sleep(0.01)
