@@ -11,8 +11,8 @@ from .utils import delay, getIP, run_command, log
 from .ble import BLE
 from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
 
-# port = 8765  # <= 1.0.5
-port = 7852    # SiTianJiChuang, >= 1.1.0
+# port = 8765  # = 1.0.x
+port = 7852    # SiTianJiChuang, >= 1.1.x
 
 
 def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True):
@@ -62,7 +62,7 @@ mcu_reset = Pin("MCURST")
 db_local ='/opt/ezblock/.uspid_init_config'
 
 config = ConfigParser()
-ezb = Ezbupdate()
+ezb_update = Ezbupdate()
 
 message = """
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
@@ -215,11 +215,18 @@ class WS():
         self.connect_num = 0
         self.ble = None
 
+
     @staticmethod
-    def get_battery(voltage,battery,id='user'):
+    def get_battery(voltage,battery):
+        voltage.value = round(ADC('A4').read() / 4095.0 * 3.3 * 3,2)
+        battery.value = round(min(max((voltage.value - 7.0) / 1.4, 0) * 100,100),2)
+
+
+    @staticmethod
+    def get_battery_thread(voltage,battery,id='user'):
         def fuc():
             while True:
-                voltage.value = round(ADC('A4').read() / 4095.0 * 3.3 * 3,2)          
+                voltage.value = round(ADC('A4').read() / 4095.0 * 3.3 * 3,2)
                 battery.value = round(min(max((voltage.value - 7.0) / 1.4, 0) * 100,100),2)
                 time.sleep(2)
 
@@ -243,11 +250,15 @@ class WS():
 
     def main_process(self,voltage,battery):
         # battery    
-        self.get_battery(voltage,battery,'user')
+        # self.get_battery(voltage,battery,'user')
         # 
         try:
             from main import forever
+            start_time = time.time()
             while True:
+                if (time.time() - start_time) > 5:
+                    self.get_battery(voltage,battery)
+                    start_time = time.time()
                 forever()
                 time.sleep(0.01)
         except Exception as e:
@@ -278,7 +289,7 @@ class WS():
 
     def have_update(self):
         def fuc():
-            self.send_dict['update'] = ezb.get_status()
+            self.send_dict['update'] = ezb_update.get_status()
         t = threading.Thread(target=fuc)
         t.setDaemon(True)
         t.start()
@@ -346,7 +357,7 @@ class WS():
             # reboot       
             elif "RB" in self.recv_dict.keys():
                 if self.recv_dict["RB"]:
-                    log('RB==True, rebooting...')
+                    _log('RB==True, rebooting...')
                     run_command("sudo reboot")
             # calibration
             elif "OF" in self.recv_dict.keys():
@@ -480,7 +491,7 @@ class WS():
     async def main_logic(self, websocket,path):
         # check connection 
         # only one connection is allowed at the same time
-        self.connect_num += 1
+        # self.connect_num += 1
         # if self.connect_num  > 1:
         #     await websocket.close(code=4000, reason='Connection is occupied')
         #     _log('Connection is occupied')
@@ -596,7 +607,7 @@ class WS():
         # end while processing
         # self.ble.uart.start_advertising()   # start BLE Advertisement 
         self.is_client_connected.value = False
-        self.connect_num = 0
+        # self.connect_num = 0
         self.recv_dict = {}
         self.send_dict = {}
         Ezb_Service.clear_val()
@@ -696,7 +707,7 @@ class WS():
                 elif value and "#*#" in value:
                     if self.ws_process != None:
                         self.ws_process.terminate()
-                        _log("ws_process.terminate(), kill pid：%s"%self.ws_process.pid)
+                        _log("ws_process.terminate(), kill pid: %s"%self.ws_process.pid)
                         delay(500)
                         
                     _log("Connecting to wifi")
@@ -709,6 +720,7 @@ class WS():
                         ip = getIP()
                         if ip: 
                             _log("IP Address: %s" % ip)
+                            # start websocket_service
                             self.websocket_service_process()
                             _log("self.websocket_service_process()")
                             self.ble.write(ip)
@@ -717,14 +729,13 @@ class WS():
                     else:
                         self.ble.write("Connect Failed!")
 
-                # close advertisement when 
             except Exception as e:
                 _log("WS.__start_ws__ failed: %s" % e)
    
 
     def update_ezblock(self,update_flag):
         update_flag.value = 1  # 1:ING
-        flag = ezb.update()
+        flag = ezb_update.update()
         if flag == True:
             update_flag.value = 2 # 2:OK
         else:

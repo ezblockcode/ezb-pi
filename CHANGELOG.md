@@ -2,8 +2,17 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2022-6-13 - Official release
+
+### Fixed
+- Fix the IO conflict between ADC battery reading and ADC joystick
+
+### Changed
+- Change the address of update package detection and download 
+
 
 ## [1.1.1] - 2022-5-31  - based on 1.1.0 
+
 ### Fixed
 - Fix bug of speed limit of picar-x 
 
@@ -92,6 +101,7 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.1.2]: https://github.com/ezblockcode/ezb-pi/tree/1.1.2
 [1.1.1]: https://github.com/ezblockcode/ezb-pi/tree/1.1.1
 [1.1.0]: https://github.com/ezblockcode/ezb-pi/tree/1.1.0
 [1.0.5]: https://github.com/ezblockcode/ezb-pi/tree/1.0.5

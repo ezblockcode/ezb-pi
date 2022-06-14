@@ -75,7 +75,7 @@ class BLE(_Basic_class):
             if line.startswith("current settings: "):
                 settings = line.replace("current settings: ", "").split(" ")
                 if "br/edr" in settings or "le" not in settings:
-                    _log('BLE： settings： %s'%settings)
+                    _log('BLE: settings: %s'%settings)
                     return False
                 else:
                     return True

@@ -53,7 +53,7 @@ class Ezbupdate(object):
         # Get information from the server
         for i in range(1,6,1):
             try:               
-                r = requests.get(self.url+'/version.json',timeout=5)               
+                r = requests.get(self.url+'/version31.json',timeout=5)               
                 if r.status_code != 200:
                     log('Failed to connect server.Reconnect ... %s'% i)
                 else:
