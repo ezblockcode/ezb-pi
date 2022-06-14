@@ -194,7 +194,7 @@ class WS():
 
     # battery
     def ws_battery_process_start(self):
-        self.ws_battery_process = Process(name='ws battery',target=self.get_battery,args=(self.voltage,self.battery,'websocket'))
+        self.ws_battery_process = Process(name='ws battery',target=self.get_battery_thread,args=(self.voltage,self.battery,'websocket'))
         self.ws_battery_process.start()
         _log("[Process] ws_battery_process_start: %s" % self.ws_battery_process.pid)
         self.ws_battery_status = True
