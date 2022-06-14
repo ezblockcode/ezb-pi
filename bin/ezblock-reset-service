@@ -36,14 +36,16 @@ def run_command(cmd):
         return output.decode()
 
 
-def reset_servo():
+def reset_servos():
     PINS = ["P0","P1","P2","P3","P4","P5","P6","P7","P8","P9","P10","P11"]
     for pin in PINS:
-        print(pin)
+        print(pin, end=" ")
         pwm = PWM(pin)
         servo = Servo(pwm)
         servo.angle(0)
-    time.sleep(0.5)    
+        time.sleep(0.05)    
+    print(' ... done')
+    
 
     
 def reset_pressed_callback(ev):
@@ -90,39 +92,39 @@ def main():
     count = 0
     user_flag = False
     while True:
-        if is_reset == True:
-            count += 1
-            if count > 6:
-                #log("Led On")
-                status_led.value(1) 
-                if is_user == True:
-                    if user_flag == False:
-                        user_flag = True
-                        reset_servo()
-                        log("servo  reset") 
-                        time.sleep(0.01)                  
-        elif is_reset == False and user_flag == False:
-            log("soft reset")
-            close_ex_ble()
-            mcu_reset.off()
-            time.sleep(0.001)
-            mcu_reset.on()
-            time.sleep(0.01)
-            log("restart ezblock service")
-            run_command("sudo service ezblock restart")
-            count = 0
-            is_reset = None
-        elif is_reset == False:
-            is_reset = None
-            user_flag = False
-            count = 0
-            status_led.value(0)   
-            
-        delay(500)
+        try:
+            if is_reset:
+                if is_user:
+                    log("servos  reset")
+                    run_command("sudo service ezblock stop") 
+                    status_led.value(0)
+                    reset_servos()
+                    time.sleep(0.01)
+
+                else:
+                    log("soft reset")
+                    # mcu_reset.off()
+                    # time.sleep(0.001)
+                    # mcu_reset.on()
+                    # time.sleep(0.01)
+                    log("restart ezblock service")
+                    run_command("sudo service ezblock restart")
+                time.sleep(2)
+        except OSError:
+            log("OSError")
+            time.sleep(1)
+        except Exception as e:
+            log("error: %s"%e)
+            time.sleep(1)
+
+        time.sleep(0.5)
+
 
 if __name__ == "__main__":
     try:
         close_ex_ble()
         main()
     finally:
-        close_ex_ble
+        close_ex_ble()
+
+        
