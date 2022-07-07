@@ -1,10 +1,12 @@
 from robot import Robot
 import math
+from ezblock import fileDB
 
 class Spider(Robot):
     A = 48
     B = 78
     C = 33
+    config_file='/opt/ezblock/.config'
     
     def __init__(self, pin_list):
         
@@ -24,10 +26,23 @@ class Spider(Robot):
             1,1,-1,
             1,1,1,
         ]
+        self.db = fileDB(db=self.config_file)
+        temp = self.db.get("spider_coord_offset", default_value=str([[0]*3]*4))
+        temp = [ a.replace("[",'').replace("]",'').replace(" ",'').split(',') for a in temp.split('],')]
+        temp = [[ float(x) for x in temp[i] ] for i in range(len(temp))]
+        if len(temp) == 4:
+            self.cali_coord = temp
+        else:
+            print('\033[35m Incorrect number of elements in offset list \033[0m')
+            self.cali_coord = [[0]*3]*4  
 
-        self.current_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
-        self.coord_temp = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
+        print("cali_coord: %s"%self.cali_coord)
+        # print(type(self.cali_coord))
 
+        self.default_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
+        self.current_coord = list.copy(self.default_coord)
+        self.coord_temp = list.copy(self.default_coord)
+        
     def coord2polar(self, coord):
         # print(coord)
         x,y,z = coord
@@ -155,11 +170,10 @@ class Spider(Robot):
 
 
     def do_step(self, _step, speed=50,israise=False):
-        
         step_temp = []
         if isinstance(_step,str):
             if _step in self.step_list.keys():
-                step_temp  = list(self.step_list[_step])
+                step_temp  = list.copy(self.step_list[_step])
             else:
                 print("The name of gait is not in the default gait dictionary")
         elif isinstance(_step,list):
@@ -186,52 +200,66 @@ class Spider(Robot):
     def cali_helper_web(self, leg, pos, enter):
         step=0.2
         cali_position = []
-        cali_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
+        _cali_coord = self.cali_coord
 
-        for coord in cali_coord: # each servo motion
+        for coord in self.default_coord: # each servo motion
             alpha, beta, gamma = self.coord2polar(coord)
             cali_position += [beta, alpha, gamma]
-
         cali_position = [cali_position[i] + self.offset[i] for i in range(12)]
-        # print("cali_position:",cali_position)
 
+        # positive_list = [
+        #     [1, -1, -1, 1, -1, 1],
+        #     [1, -1, 1, -1, -1, 1],
+        #     [-1, 1, 1, -1, -1, 1],
+        #     [-1, 1, -1, 1, -1, 1],
+        # ]
         positive_list = [
             [1, -1, -1, 1, 1, -1],
-            [1, -1, 1, -1, 1, -1],
-            [-1, 1, 1, -1, 1, -1],
-            [-1, 1, -1, 1, 1, -1],
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, -1, 1, 1, -1],
         ]
-        
+
         offset = list(self.offset)
         leg = leg - 1
+        def adjust_coord(coord_index, positive_index):
+            _cali_coord[leg][coord_index] += step * positive_list[leg][positive_index]
+            if _cali_coord[leg][coord_index] > 20:
+                _cali_coord[leg][coord_index] = 20
+            elif _cali_coord[leg][coord_index] < -20:
+                _cali_coord[leg][coord_index] = -20
+            self.current_coord[leg][coord_index] = self.default_coord[leg][coord_index] + _cali_coord[leg][coord_index]
+
         if pos == 'up':
-            self.current_coord[leg][1] += step * positive_list[leg][0]
+            adjust_coord(1, 0)
         elif pos == 'down':
-            self.current_coord[leg][1] += step * positive_list[leg][1]
+            adjust_coord(1, 1)
         elif pos == 'left':
-            self.current_coord[leg][0] += step * positive_list[leg][2]
+            adjust_coord(0, 2)
         elif pos == 'right':
-            self.current_coord[leg][0] += step * positive_list[leg][3]
+            adjust_coord(0, 3)
         elif pos == 'high':
-            self.current_coord[leg][2] += step * positive_list[leg][4]
+            adjust_coord(2, 4)
         elif pos == 'low':
-            self.current_coord[leg][2] += step * positive_list[leg][5]
+            adjust_coord(2, 5)
         
         for coord in self.current_coord:
             coord[0] = max(40, min(80, coord[0]))
             coord[1] = max(-20, min(20, coord[1]))
             coord[2] = max(-50, min(-10, coord[2]))
-        # print("coord:%s"%self.current_coord)
+
         self.do_step(self.current_coord, speed=100)
         current_position = list.copy(self.do_step(self.current_coord, speed=100))
         if enter == 1:
             tmp = [current_position[i] - cali_position[i] + offset[i] for i in range(len(current_position))]
             offset[leg*3:(leg + 1)*3] = tmp[leg*3:(leg + 1)*3]
-            self.current_coord[leg] = [60, 0, -30]
             self.set_offset(offset)
-            self.do_step(self.current_coord, speed=100)
+            self.cali_coord = _cali_coord
+            self.db.set("spider_coord_offset", _cali_coord)
+            print("set_offset: %s"%offset)
+            print("set_cali_coord: %s"%_cali_coord)
+            self.do_step(self.default_coord, speed=100)
             
-    
 
     class MoveList(dict):
         

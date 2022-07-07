@@ -41,7 +41,14 @@ class Robot():
         self.db = fileDB(db=db)
         temp = self.db.get(self.list_name, default_value=str(self.new_list(0)))
         temp = [float(i.strip()) for i in temp.strip("[]").split(",")]
-        self.offset = temp
+        # check
+        if len(temp) == self.pin_num:
+            self.offset = temp
+        else:
+            print('\033[35m Incorrect number of elements in offset list \033[0m')
+            self.offset = self.new_list(0)
+  
+        
 
         # parameter init 
         self.servo_positions = self.new_list(0)
