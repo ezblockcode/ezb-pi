@@ -1,6 +1,17 @@
 # Change Log 
 
 ## [Unreleased]
+...
+
+## [1.1.3] - 2022-7-7 
+
+### Optimized
+- Optimize the calibration of picar-x, picrawler, and pisloth 
+- Debug printing increased text color
+
+### Fixed
+- Fix the camera's ability to save high-resolution images
+
 
 ## [1.1.2] - 2022-6-13 - Official release
 
@@ -101,6 +112,7 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.1.3]: https://github.com/ezblockcode/ezb-pi/tree/1.1.3
 [1.1.2]: https://github.com/ezblockcode/ezb-pi/tree/1.1.2
 [1.1.1]: https://github.com/ezblockcode/ezb-pi/tree/1.1.1
 [1.1.0]: https://github.com/ezblockcode/ezb-pi/tree/1.1.0
