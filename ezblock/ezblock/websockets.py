@@ -11,12 +11,12 @@ from .utils import delay, getIP, run_command, log
 from .ble import BLE
 from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
 
-# port = 8765  # = 1.0.x
-port = 7852    # SiTianJiChuang, >= 1.1.x
+# port = 8765  # version == 1.0.x
+port = 7852    # SiTianJiChuang, version >= 1.1.x
 
 
-def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True):
-    log(msg, location, end='\n', flush=False, timestamp=True)
+def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True, color=''):
+    log(msg, location, end='\n', flush=False, timestamp=True, color=color)
 
 
 # select LED lights foe websockets status
@@ -117,7 +117,7 @@ class Ezb_Service(object):
                     break
                 time.sleep(0.2)
             else:
-                log("I2C 0x14 not found", location='reset_servo')
+                log("I2C 0x14 not found", location='reset_servo', color='31')
                 return False
             # Products init
             if ws.type == "SpiderForPi":
@@ -136,7 +136,7 @@ class Ezb_Service(object):
             return True
 
         except Exception as e:
-            _log('%s:%s'%(ws.type, e),'Products')
+            _log('reset_servo error for %s:%s'%(ws.type, e), location='reset_servo', color='31')
             Ezb_Service.set_share_val('debug',e)
             return False
 
@@ -262,7 +262,7 @@ class WS():
                 forever()
                 time.sleep(0.01)
         except Exception as e:
-            self.print("Error :%s"%e)
+            self.print("Error :%s"%e, color='31')
             return False
 
 
@@ -334,9 +334,24 @@ class WS():
                 elif self.recv_dict['RE'] == "battery":
                     self.send_dict['voltage'] = '%.2f'%self.voltage.value
                     self.send_dict['battery'] = self.battery.value
-                # elif self.recv_dict['RE'] == "offset":
-                #     if read_info("type") in ["PiCarMini","PaKe"]:
-                #         self.send_dict['offset'] = [dir_cal_value, cam_cal_value_1, cam_cal_value_2]
+                elif self.recv_dict['RE'] == "offset":
+                    self.user_service_close()
+                    self.ws_battery_process_close()
+                    if self.type in ["PiCarMini","PaKe"]:
+                        self.px.set_dir_servo_angle(0)
+                        self.px.set_camera_servo1_angle(0)
+                        self.px.set_camera_servo2_angle(0)
+                        self.send_dict['offset'] = [self.px.dir_cali_value, self.px.cam_cali_value_1, self.px.cam_cali_value_2]
+                    elif self.type in ["SpiderForPi"]:
+                        # _init_coord = [ [a+b for a,b in zip(self.sp.default_coord[i],self.sp.cali_coord[i])] for i in range(4)]
+                        _init_coord = list.copy(self.sp.default_coord)
+                        # print(_init_coord)
+                        print(self.sp.cali_coord)
+                        self.sp.do_step(_init_coord, 80)
+                        self.send_dict['offset'] = list(self.sp.cali_coord)
+                    elif self.type in ["SlothForPi"]:
+                        self.sloth.servo_move([0, 0, 0, 0])
+                        self.send_dict['offset'] = list(self.sloth.offset)
             # set name
             elif "NA" in self.recv_dict.keys():
                 try:
@@ -354,6 +369,7 @@ class WS():
                 self.type = self.recv_dict["Type"]
                 write_info("type", self.type)
                 self.send_dict["type"] = self.type
+                Ezb_Service.reset_servo()
             # reboot       
             elif "RB" in self.recv_dict.keys():
                 if self.recv_dict["RB"]:
@@ -361,12 +377,9 @@ class WS():
                     run_command("sudo reboot")
             # calibration
             elif "OF" in self.recv_dict.keys():
-                self.user_service_close()
-                self.ws_battery_process_close()
+                # self.user_service_close()
+                # self.ws_battery_process_close()
                 if self.type in ["PiCarMini","PaKe"]:
-                    dir_servo_pin = Servo(PWM('P2'))
-                    camera_servo_pin1 = Servo(PWM('P0'))
-                    camera_servo_pin2 = Servo(PWM('P1'))
                     if "DO" in self.recv_dict["OF"].keys():
                         if self.recv_dict["OF"]["DO"] == "test":
                             self.px.set_dir_servo_angle(-30)
@@ -381,14 +394,22 @@ class WS():
                         self.px.camera_servo1_angle_calibration(int(self.recv_dict["OF"]["PO"]))
                     elif "TO" in self.recv_dict["OF"].keys():
                         self.px.camera_servo2_angle_calibration(int(self.recv_dict["OF"]["TO"]))
+                    elif "enter" in self.recv_dict["OF"].keys():
+                        self.px.save_calibration()
                 elif self.type == "SpiderForPi":
-                    self.sp.cali_helper_web(int(self.recv_dict['OF'][0]), self.recv_dict['OF'][1], int(self.recv_dict['OF'][2]))
+                    if isinstance(self.recv_dict["OF"], dict) and "enter" in self.recv_dict["OF"].keys():  
+                        self.sloth.save_calibration()
+                    elif isinstance(self.recv_dict["OF"], list):
+                        self.sp.cali_helper_web(int(self.recv_dict['OF'][0]), self.recv_dict['OF'][1], int(self.recv_dict['OF'][2]))
                 elif self.type == "SlothForPi":
-                    self.sloth.set_offset(self.recv_dict['OF'])
-                    self.sloth.calibration()
+                    if isinstance(self.recv_dict["OF"], dict) and "enter" in self.recv_dict["OF"].keys():  
+                        self.sloth.save_calibration()
+                    elif isinstance(self.recv_dict["OF"], list):
+                        self.sloth.cali_temp = [ min(max(x, -20), 20) for x in self.recv_dict["OF"]]
+                        self.sloth.angle_list(self.sloth.cali_temp)
                 else:
-                    _log("Type Error: %s" % self.type)
-                self.ws_battery_process_start()
+                    _log("Type Error: %s" % self.type, color='31')
+                # self.ws_battery_process_start()
             # Download code
             elif "FL" in self.recv_dict.keys() and self.recv_dict['FL']:
                 # Stop User service
@@ -485,7 +506,7 @@ class WS():
             Ezb_Service.reset_mcu_func()
             time.sleep(1)
         except Exception as e:
-            _log(e, location='data_process')
+            _log(e, location='data_process', color='31')
 
 
     async def main_logic(self, websocket,path):
@@ -511,6 +532,7 @@ class WS():
         if self.user_service_status == False and self.ws_battery_status == False:
             self.ws_battery_process_start()
 
+        tmp = {}
         while True:
             self.is_client_connected.value = True
             try: #  to catch websockets.exceptions.ConnectionClosed 
@@ -519,7 +541,6 @@ class WS():
                     tmp = await asyncio.wait_for(websocket.recv(), timeout=0.001)
                     tmp = json.loads(str(tmp))                    
                     self.recv_dict = dict.copy(tmp) 
-                    # do not print 'PF' (heartbeat)  
                     if 'PF' in dict(tmp).keys():
                         tmp.pop('PF')
                     if tmp != {}:
@@ -528,8 +549,8 @@ class WS():
                     # _log('asyncio.TimeoutError : %s'%e)
                     pass
                 except json.JSONDecodeError as e:
-                    _log('recv data JSONDecodeError: %s'%tmp)
-                    
+                    _log('recv data JSONDecodeError: %s'%tmp, color='31')
+
                 # data processing
                 try:   
                     # heartbeat
@@ -554,8 +575,7 @@ class WS():
                                 self.remote_dict[key] = tmp[key]
                                 Ezb_Service.set_share_val(key,self.remote_dict[key])
                 except Exception as e:
-                    # _log(e)
-                    pass
+                    _log('process data error: %s'%e, color='31')
 
                 # send 
                 try:
@@ -564,7 +584,6 @@ class WS():
                         data = dict(self.send_dict)           
                     else:
                         data = dict(Ezb_Service.return_share_val())
-
                         if 'debug' in data.keys() :
                             if data['debug'][1] == False:
                                 data = {}
@@ -573,35 +592,32 @@ class WS():
                                 Ezb_Service.set_share_val('debug',[data['debug'][0],False])
                         else:
                             data = {}
-
                     # websocket.send
                     if data != {} :  
                         _log('send data: %s'% data)
                         await websocket.send(json.dumps(data))
-
                     # TODO Unknown
-                    if 'LC' in data.keys():
-                        LC_list = list(data['LC'].keys())
-                        if  LC_list != []:
-                            for i in LC_list:
-                                if data['LC'][i][-1] == True:
-                                    data['LC'][i][-1] = False
-                                    Ezb_Service.set_share_val('LC',data['LC'])
-                                    
+                    try:
+                        if 'LC' in data.keys():
+                            LC_list = list(data['LC'].keys())
+                            if  LC_list != []:
+                                for i in LC_list:
+                                    if data['LC'][i][-1] == True:
+                                        data['LC'][i][-1] = False
+                                        Ezb_Service.set_share_val('LC',data['LC'])
+                    except Exception as e:
+                        _log('send data error: %s'%e)
+
                     # clear send buff    
                     if self.send_dict != {} and data == self.send_dict:
                         self.send_dict = {} 
-
                 except KeyboardInterrupt:
                     pass
+
             # disconnected exception
             except websockets.exceptions.ConnectionClosed as connection_code:
                 _log('disconnected:%s'%connection_code)
                 break
-            except Exception as e:
-                _log('error:%s'%e)
-                # break    
-
             await asyncio.sleep(0.01)
 
         # end while processing
@@ -616,9 +632,8 @@ class WS():
         _log('---------------------------------------------')
       
 
-
-    def print(self, msg, end='\n', tag='[DEBUG]'):
-        _log(msg)
+    def print(self, msg, end='\n', tag='[DEBUG]', color=''):
+        _log(msg, color=color)
         Ezb_Service.set_share_val('debug',[str(msg),True])
         time.sleep(0.02)
         while Ezb_Service.return_share_val()['debug'][1] == True:
@@ -730,7 +745,7 @@ class WS():
                         self.ble.write("Connect Failed!")
 
             except Exception as e:
-                _log("WS.__start_ws__ failed: %s" % e)
+                _log("WS.__start_ws__ failed: %s" %e, color='31')
    
 
     def update_ezblock(self,update_flag):
