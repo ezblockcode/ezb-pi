@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from distutils.log import debug
 import os
 from sys import flags
 import time
@@ -29,6 +28,7 @@ UserHome = os.popen('getent passwd %s | cut -d: -f 6'%User).readline().strip()
 # Default path for pictures and videos
 Default_Pictures_Path = '%s/picture_file/'%UserHome
 Default_Videos_Path = '%s/video_file/'%UserHome
+raspistill_path = "/opt/ezblock/raspistill_out.jpg"
 
 # utils
 def run_command(cmd):
@@ -108,6 +108,14 @@ def get_qrcode_pictrue():
 def get_png_frame():
     return cv2.imencode('.png', Vilib.img_array[0])[1].tobytes()
 
+def get_raspistill_picture():
+    try:
+        img = cv2.imread(raspistill_path)
+        return cv2.imencode('.jpg', img)[1].tobytes()
+    except Exception as e:
+        print(e)
+        return None
+
 def gen():
     """Video streaming generator function."""
     while True:  
@@ -118,6 +126,14 @@ def gen():
         time.sleep(0.03)
         # end_time = time.time() - start_time
         # print('flask fps:%s'%int(1/end_time))
+
+@app.route('/still.jpg')  # high_quality_pic
+def video_still_jpg():
+    # from camera import Camera
+    """Video Still image route. Put this in the src attribute of an img tag."""
+    response = Response(get_raspistill_picture(), mimetype="image/jpeg")
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 @app.route('/mjpg')   ## video
 def video_feed():
@@ -555,25 +571,9 @@ class Vilib(object):
     @staticmethod
     def camera():
         global effect
-        camera = PiCamera()
-        camera.resolution = (640, 480)
-        camera.image_effect = EFFECTS[Vilib.detect_obj_parameter['eff']]
-        camera.framerate = 24
-        camera.rotation = 0
-        # camera.rotation = 180   
-        camera.brightness = 50    #(0 to 100)
-        camera.sharpness = 0      #(-100 to 100)
-        camera.contrast = 0       #(-100 to 100)
-        camera.saturation = 0     #(-100 to 100)
-        camera.iso = 0            #(automatic)(100 to 800)
-        camera.exposure_compensation = 0   #(-25 to 25)
-        camera.exposure_mode = 'auto'
-        camera.meter_mode = 'average'
-        camera.awb_mode = 'auto'
-        camera.hflip = False
-        camera.vflip = Vilib.detect_obj_parameter['camera_flip']
-        camera.crop = (0.0, 0.0, 1.0, 1.0)
-        rawCapture = PiRGBArray(camera, size=camera.resolution)  
+
+        camera = None
+        rawCapture = None
         last_e ='none'
         camera_val = 0
         last_show_content_list = []
@@ -581,14 +581,37 @@ class Vilib(object):
         change_type_val  = []
         change_type_dict = {"shutter_speed":0,"resolution":[2592,1944], "brightness":50, "contrast":0, "sharpness":0, "saturation":0, "iso":0, "exposure_compensation":0, "exposure_mode":'auto', \
             "meter_mode":'average' ,"rotation":0 ,"awb_mode":'auto',"drc_strength":'off',"hflip":False,"vflip":True}
+        
+        def camera_init():
+            nonlocal camera, rawCapture  # Note the addition of a <nonlocal> statement
+            camera = PiCamera()
+            camera.resolution = (640, 480)
+            camera.image_effect = EFFECTS[Vilib.detect_obj_parameter['eff']]
+            camera.framerate = 24
+            camera.rotation = 0
+            # camera.rotation = 180   
+            camera.brightness = 50    #(0 to 100)
+            camera.sharpness = 0      #(-100 to 100)
+            camera.contrast = 0       #(-100 to 100)
+            camera.saturation = 0     #(-100 to 100)
+            camera.iso = 0            #(automatic)(100 to 800)
+            camera.exposure_compensation = 0   #(-25 to 25)
+            camera.exposure_mode = 'auto'
+            camera.meter_mode = 'average'
+            camera.awb_mode = 'auto'
+            camera.hflip = False
+            camera.vflip = Vilib.detect_obj_parameter['camera_flip']
+            camera.crop = (0.0, 0.0, 1.0, 1.0)
+            rawCapture = PiRGBArray(camera, size=camera.resolution)  
+            # camera.framerate = 10
+        # 
+        camera_init()
         start_time = 0
         end_time = 0
-        # camera.framerate = 10
-        # 
         try:
             while True:
+                # for, loop , until there is no data
                 for frame in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):# use_video_port=True
-                    
                     start_time = time.time()
                     img = frame.array
                     bak_img = img.copy()
@@ -637,12 +660,8 @@ class Vilib(object):
                     end_time = time.time()
                     end_time = end_time - start_time
 
-                    if Vilib.detect_obj_parameter['photo_button_flag'] == True:
-                        camera.close()
-                        break
-
                     # take photo
-                    if Vilib.detect_obj_parameter['picture_flag'] == True:
+                    if Vilib.detect_obj_parameter['picture_flag'] == True or Vilib.detect_obj_parameter['photo_button_flag'] == True:
                         picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                         Vilib.detect_obj_parameter['picture_path'] = Default_Pictures_Path + picture_time + '.jpg'
 
@@ -655,23 +674,36 @@ class Vilib(object):
                             add_text_to_image(Vilib.detect_obj_parameter['picture_path'],Vilib.detect_obj_parameter['watermark'])
 
                         print('photo saved as: %s'%Vilib.detect_obj_parameter['picture_path'])
-                # a_t = "sudo raspistill -t 250  -w 2592 -h 1944 -vf  -rot %s -ifx %s -o %s " %( 
-                #     str(change_type_dict['rotation']),
-                #     str(EFFECTS[Vilib.detect_obj_parameter['eff']]),
-                #     Vilib.detect_obj_parameter['picture_path'],
-                #     ) 
-                # run_command(a_t)
 
+                        break  
 
-                #init again
-                camera = PiCamera()
-                camera.resolution = (640,480)
-                camera.vflip = Vilib.detect_obj_parameter['camera_flip']
-                # camera.rotation = Vilib.detect_obj_parameter['camera_rot']
-                camera.image_effect = e
-                rawCapture = PiRGBArray(camera, size=camera.resolution) 
+                # The picamera needs to be closed before using raspistill
+                # cannot run camera.close() in  camera.capture_continuous()
+                camera.close()
+                picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+                vf = ''
+                if Vilib.detect_obj_parameter['camera_flip']:
+                    vf = '-vf'
+                a_t = "sudo raspistill -t 250  -w 2592 -h 1944 %s -rot %s -ifx %s -o %s " %(
+                    vf,
+                    str(change_type_dict['rotation']),
+                    str(EFFECTS[Vilib.detect_obj_parameter['eff']]),
+                    Default_Pictures_Path + picture_time + '_HQ.jpg',
+                    ) 
+                status, _ = run_command(a_t)
+                if status == 0:
+                    print('photo saved as: %s'%(Default_Pictures_Path + picture_time + '_HQ.jpg'))
+                    run_command("sudo cp -pf %s %s"%(Default_Pictures_Path + picture_time + '_HQ.jpg', raspistill_path))
+                else:
+                    raise Exception('raspistill failed')
+
+                Vilib.detect_obj_parameter['picture_flag'] = False
                 Vilib.detect_obj_parameter['photo_button_flag'] = False
-                   
+
+                # restart picamera
+                camera_init()
+
         finally:
             camera.close()
 
