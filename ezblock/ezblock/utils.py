@@ -4,17 +4,17 @@ import os
 import re
 import math
 
-def log(msg:str, location='DEBUG', end='\n', flush=False, timestamp=True):
+def log(msg:str, location='DEBUG', end='\n', flush=False, timestamp=True, color=''):
     with open('/opt/ezblock/log','a+') as log_file:
         if timestamp == True:
             _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
             ct = time.time()
             _msecs = '%03d '%((ct - int(ct)) * 1000)
-            print('%s,%s[%s] %s'%(_time,_msecs,location,msg), end=end, flush=flush, file=log_file)
-            print('%s,%s[%s] %s'%(_time,_msecs,location,msg), end=end, flush=flush, file=sys.stdout)
+            print('%s,%s[%s] %s'%(_time, _msecs, location, msg), end=end, flush=flush, file=log_file)
+            print('\033[%sm%s,%s[%s] %s\033[0m'%(color, _time, _msecs, location, msg), end=end, flush=flush, file=sys.stdout)
         else:
             print('%s'%msg, end=end, flush=flush, file=log_file)
-            print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
+            print('\033[%sm%s\033[0m'%(color, msg), end=end, flush=flush, file=sys.stdout) 
 
 def delay(ms):
     time.sleep(ms/1000)
