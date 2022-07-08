@@ -3,8 +3,8 @@ import os
 from sys import flags
 import time
 import datetime
-
-print('Launching vilib ...')
+from ezblock.utils import log
+log('Launching vilib ...')
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -20,10 +20,14 @@ from multiprocessing import Process, Manager
 from flask import Flask, render_template, Response
 
 # user and User home directory
-User = os.popen('echo ${SUDO_USER:-$LOGNAME}').readline().strip()
-UserHome = os.popen('getent passwd %s | cut -d: -f 6'%User).readline().strip()
-# print(User)  # pi
-# print(UserHome) # /home/pi
+# User = os.popen('echo ${SUDO_USER:-$LOGNAME}').readline().strip()
+# UserHome = os.popen('getent passwd %s | cut -d: -f 6'%User).readline().strip()
+# User = os.getlogin()
+# UserHome = os.popen('getent passwd %s | cut -d: -f 6'%User).readline().strip()
+User = "pi"
+UserHome = "/home/pi"
+# log(User)  # pi
+# log(UserHome) # /home/pi
 
 # Default path for pictures and videos
 Default_Pictures_Path = '%s/picture_file/'%UserHome
@@ -113,7 +117,7 @@ def get_raspistill_picture():
         img = cv2.imread(raspistill_path)
         return cv2.imencode('.jpg', img)[1].tobytes()
     except Exception as e:
-        print(e)
+        log(e)
         return None
 
 def gen():
@@ -165,7 +169,7 @@ def web_camera_start():
     try:
         app.run(host='0.0.0.0', port=9000, threaded=True, debug=False)
     except Exception as e:
-        print(e)
+        log(e)
 # endregion : flask
 
 # 滤镜
@@ -673,15 +677,15 @@ class Vilib(object):
                         if Vilib.detect_obj_parameter['watermark_flag'] == True:
                             add_text_to_image(Vilib.detect_obj_parameter['picture_path'],Vilib.detect_obj_parameter['watermark'])
 
-                        print('photo saved as: %s'%Vilib.detect_obj_parameter['picture_path'])
+                        log('photo saved as: %s'%Vilib.detect_obj_parameter['picture_path'])
 
                         break  
 
                 # The picamera needs to be closed before using raspistill
                 # cannot run camera.close() in  camera.capture_continuous()
                 camera.close()
+                # raspistill
                 picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-
                 vf = ''
                 if Vilib.detect_obj_parameter['camera_flip']:
                     vf = '-vf'
@@ -693,11 +697,11 @@ class Vilib(object):
                     ) 
                 status, _ = run_command(a_t)
                 if status == 0:
-                    print('photo saved as: %s'%(Default_Pictures_Path + picture_time + '_HQ.jpg'))
+                    log('photo saved as: %s'%(Default_Pictures_Path + picture_time + '_HQ.jpg'))
                     run_command("sudo cp -pf %s %s"%(Default_Pictures_Path + picture_time + '_HQ.jpg', raspistill_path))
                 else:
                     raise Exception('raspistill failed')
-
+                # clear Flag
                 Vilib.detect_obj_parameter['picture_flag'] = False
                 Vilib.detect_obj_parameter['photo_button_flag'] = False
 
