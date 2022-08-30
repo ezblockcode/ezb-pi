@@ -68,6 +68,22 @@ class TTS(_Basic_class):
         self.run_command(cmd)
         self._debug('command: %s' %cmd)
 
+
+    def pico2wave(self, words):
+        output_file = "/opt/ezblock/output.wav" 
+        self._debug('pico2wave:\n [%s]' % (words))
+        if not self._check_executable('pico2wave'):
+            self._debug('pico2wave is busy. Pass')
+
+        cmd = 'pico2wave -l \"%s\" -w \"%s\" \"%s\" ' % (self._lang, output_file, words)
+        self.run_command(cmd)
+        self._debug('command: %s' %cmd)
+
+        # music = Music()
+        # music.sound_effect_play(output_file)
+        self.run_command("sudo aplay %s"%output_file)
+
+
     def gtts(self, words):
         sound_file = "/opt/ezblock/output.mp3"
         data = {
@@ -96,7 +112,7 @@ class TTS(_Basic_class):
 
 
     def polly(self, words):
-        sound_file = "/opt/ezblock/output.mp3"
+        sound_file = "/opt/ezblock/output.mp3" 
         send_data = {
             "text": words,
             "language": self._lang,
@@ -126,6 +142,7 @@ class TTS(_Basic_class):
 
         music = Music()
         music.sound_play(sound_file)
+
 
     def lang(self, *value):     # 切换语言，可识别5种语言
         if len(value) == 0:

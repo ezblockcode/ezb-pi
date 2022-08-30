@@ -68,12 +68,21 @@ def install():
     if "--no-dep" not in options:
         do(msg="update apt-get",
             cmd='run_command("sudo apt-get update")')
+        do(msg="dpkg --configure -a",
+            cmd='run_command(" sudo dpkg --configure -a")')
+       
+
         for dep in APT_INSTALL_LIST:
             do(msg="install %s"%dep,
                 cmd='run_command("sudo apt-get install %s -y")'%dep)
         for dep in PIP_INSTALL_LIST:
             do(msg="install %s"%dep,
                 cmd='run_command("sudo pip3 install %s")'%dep)
+
+        do(msg="install pico2wave",
+        cmd='run_command(" wget http://ftp.us.debian.org/debian/pool/non-free/s/svox/libttspico0_1.0+git20130326-9_armhf.deb'
+            +' && wget http://ftp.us.debian.org/debian/pool/non-free/s/svox/libttspico-utils_1.0+git20130326-9_armhf.deb'
+            +' && sudo apt-get install -f ./libttspico0_1.0+git20130326-9_armhf.deb ./libttspico-utils_1.0+git20130326-9_armhf.deb -y")')
 
     # do(msg="unpackaging swift",
     #     cmd='run_command("tar zxvf ./lib/swift-4.1.3-RPi23-RaspbianStretch.tgz")')
@@ -330,5 +339,3 @@ if __name__ == "__main__":
         print("Canceled.")
         cleanup()
 
-# if __name__ == "__main__":
-#     test()
