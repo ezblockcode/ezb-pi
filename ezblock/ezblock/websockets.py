@@ -78,7 +78,8 @@ def read_info(key):
         config['DEFAULT'] ={'version':VERSION,
                             'name':"null",
                             'type':"null",
-                            'mac':"null"}
+                            'mac':"null",
+                            'auto-run':"False",}
         config['message'] ={'version':VERSION}
         with open("/opt/ezblock/ezb-info.ini", 'w') as f:
             config.write(f)
@@ -267,14 +268,19 @@ class WS():
 
 
     def user_service_start(self):
-        _log("WS.user_service_start")
-        self.user_service_close()
-        if self.ws_battery_status == True:
-            self.ws_battery_process_close()
-        self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
-        self.user_service_process.start()
-        _log("[Process] user_service_start: %s" % self.user_service_process.pid)
-        self.user_service_status = True
+        if read_info("auto-run") in ["True", "true", "TRUE", "1", "on", "ON"]:
+            _log("WS.user_service_start auto-run")
+            self.user_service_close()
+            if self.ws_battery_status == True:
+                self.ws_battery_process_close()
+            self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
+            self.user_service_process.start()
+            _log("[Process] user_service_start: %s" % self.user_service_process.pid)
+            self.user_service_status = True
+        else:
+            _log("WS.user_service_start does not auto-run")
+            self.user_service_close()
+
 
     def user_service_close(self):
         if self.user_service_status == True:
@@ -320,10 +326,13 @@ class WS():
                         addr = addr[1].split("BD Address: ")[1].split(" ")[0].strip()
                         write_info("mac", addr)
                     self.send_dict['mac'] = read_info("mac")
+                    self.send_dict['auto-run'] = read_info("auto-run")
+
                     self.send_dict['ip'] = getIP()
                     self.have_update()  # have_update thread
                     self.send_dict['voltage'] = '%.2f'%self.voltage.value
                     self.send_dict['battery'] = self.battery.value
+                    
                 elif self.recv_dict['RE'] == "name":
                     self.send_dict['name'] = read_info("name")
                 elif self.recv_dict['RE'] == "type":
@@ -369,6 +378,12 @@ class WS():
                 self.type = self.recv_dict["Type"]
                 write_info("type", self.type)
                 self.send_dict["type"] = self.type
+                Ezb_Service.reset_servo()
+            # set user block auto-run
+            elif "Auto-run" in self.recv_dict.keys():
+                reslut = self.recv_dict["Type"]
+                write_info("auto-run", reslut)
+                self.send_dict["auto-run"] = reslut
                 Ezb_Service.reset_servo()
             # reboot       
             elif "RB" in self.recv_dict.keys():
