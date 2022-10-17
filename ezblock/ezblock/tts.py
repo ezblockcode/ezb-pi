@@ -8,143 +8,63 @@ def debug_2_app(msg):
     from .websockets import Ezb_Service    
     Ezb_Service.set_share_val('debug', "%s"%msg)
 
-
 class TTS(_Basic_class):
     _class_name = 'TTS'
     SUPPORTED_LANGUAUE = [
-        'zh-CN', # 普通话(中国)
-        'en-US', # 英语(美国)English-United States
-        'en-GB', # 英语(英国)English-United Kingdom
-        'de-DE', # 德语(德国)Germany-Deutsch
-        'es-ES', # 西班牙语(西班牙)España-Español
-        'fr-FR', #  法语(法国)France-Le français
-        'it-IT', # 意大利语(意大利)Italia-lingua italiana
+        'en-US', # 英语(美国) English-United States
+        'en-GB', # 英语(英国) English-United Kingdom
+        'de-DE', # 德语(德国) Germany-Deutsch
+        'es-ES', # 西班牙语(西班牙) España-Español
+        'fr-FR', # 法语(法国) France-Le français
+        'it-IT', # 意大利语(意大利) Italia-lingua italiana
     ]
 
     def __init__(self, data):
         super().__init__()
         if  isinstance(data, dict) is not True:
-            from .websockets import Ezb_Service
-            Ezb_Service().set_share_val('debug', "data parameter is incorrect")
-            raise ValueError('data parameter is incorrect')
+            debug_2_app("TTS data parameter is incorrect")
+            raise ValueError("TTS data parameter is incorrect")
         try: 
-            self._lang = "en-US"            # 默认语言:英语 default language:English
-            self.engine = data['engine']
-            self.url = data['url'] 
-            self.token = data['token'] 
+            self._lang = "en-US"    # 默认语言:英语(美国) default language: English-United States
+            self.engine = "pico2wave"   # default tts engine: pico2wave 
+            self.url = None
+            self.token = None
+
+            if 'engine' in data:
+                self.engine = data['engine']
+            if 'url' in data:
+                self.url = data['url'] 
+            if 'token' in data:
+                self.token = data['token'] 
+
             if self.engine == "espeak":
                 self._amp   = 100 
                 self._speed = 175
                 self._gap   = 5
                 self._pitch = 50
             elif self.engine == "gtts" or self.engine == "polly":
-                # import urllib.request as request
                 import requests
                 import base64
-                # self.request = request
                 self.requests = requests
                 self.base64 = base64
         except Exception as e:
             debug_2_app(e)
-            raise (e)
 
     def _check_executable(self, executable):
         executable_path = find_executable(executable)
         found = executable_path is not None
         return found
 
-    def say(self, words:str):           # 输入的文字 
+    def say(self, words:str):          
         if  str(words).strip() == '':
             debug_2_app('tts.say is missing parameters')
             log("tts.say is missing parameters")
         eval(f"self.{self.engine}(words)")
 
-    def espeak(self, words):
-        self._debug('espeak:\n [%s]' % (words))
-        if not self._check_executable('espeak'):
-            self._debug('espeak is busy. Pass')
-
-        cmd = 'espeak -a%d -s%d -g%d -p%d \"%s\" --stdout | aplay 2>/dev/null & ' % (self._amp, self._speed, self._gap, self._pitch, words)
-        self.run_command(cmd)
-        self._debug('command: %s' %cmd)
-
-
-    def pico2wave(self, words):
-        output_file = "/opt/ezblock/output.wav" 
-        self._debug('pico2wave:\n [%s]' % (words))
-        if not self._check_executable('pico2wave'):
-            self._debug('pico2wave is busy. Pass')
-
-        cmd = 'pico2wave -l \"%s\" -w \"%s\" \"%s\" ' % (self._lang, output_file, words)
-        self.run_command(cmd)
-        self._debug('command: %s' %cmd)
-
-        # music = Music()
-        # music.sound_effect_play(output_file)
-        self.run_command("sudo aplay %s"%output_file)
-
-
-    def gtts(self, words):
-        sound_file = "/opt/ezblock/output.mp3"
-        data = {
-            "text": words,
-            "language": self.lang(),
-        }
-        header = {
-            "Content-Type": "application/json",
-        }
-
-        data =json.dumps(data)
-        data = bytes(data, 'utf8')
-        req = self.requests.Request(self.url, data=data, headers=header, method='POST')
-        r = self.requests.urlopen(req)
-        result = r.read()
-        result = result.decode("utf-8")
-        result = self.ast.literal_eval(result)
-        data = result["data"]
-        data = self.base64.b64decode(data)
-        # print(data)
-        with open(sound_file, "wb") as f:
-            f.write(data)
-
-        music = Music()
-        music.sound_play(sound_file)
-
-
-    def polly(self, words):
-        sound_file = "/opt/ezblock/output.mp3" 
-        send_data = {
-            "text": words,
-            "language": self._lang,
-            "token": self.token
-        }
-        header = {
-            "Content-Type": "application/json",
-        }
-        # print(send_data)
-        for i in range(5):
-            r = self.requests.post(url=self.url, headers=header, json=send_data)
-            result = r.json()
-            # print('result: %s'%result)
-            if result != "":
-                break
-            else:
-                print("Empty result")
-        else:
-            raise IOError("Network Error")
-
-        data = result["data"]
-        # print(data)
-        data = self.base64.b64decode(data)
-        # print(data)
-        with open(sound_file, "wb") as f:
-            f.write(data)
-
-        music = Music()
-        music.sound_play(sound_file)
-
-
-    def lang(self, *value):     # 切换语言，可识别5种语言
+    def lang(self, *value): 
+        '''
+        Set language
+        '''   
         if len(value) == 0:
             return self._lang
         elif len(value) == 1:
@@ -154,7 +74,10 @@ class TTS(_Basic_class):
                 return self._lang
         raise ValueError("Arguement \"%s\" is not supported. run tts.supported_lang to get supported language type."%value)
 
-    def supported_lang(self):           # 返回支持的语言类型
+    def supported_lang(self):
+        '''
+        Return supported languages
+        '''          
         return self.SUPPORTED_LANGUAUE
 
     def espeak_params(self, amp=None, speed=None, gap=None, pitch=None):
@@ -177,3 +100,78 @@ class TTS(_Basic_class):
         self._speed = speed
         self._gap   = gap
         self._pitch = pitch
+
+    def espeak(self, words):
+        log('espeak: [%s]' % (words))
+        if not self._check_executable('espeak'):
+            log('espeak is busy. Pass')
+
+        cmd = 'espeak -a%d -s%d -g%d -p%d \"%s\" --stdout | aplay 2>/dev/null & ' % (self._amp, self._speed, self._gap, self._pitch, words)
+        self.run_command(cmd)
+        # log('command: %s' %cmd)
+
+    def pico2wave(self, words):
+        output_file = "/opt/ezblock/tts_output.wav" 
+        log('pico2wave: [%s]' % (words))
+        if not self._check_executable('pico2wave'):
+            debug_2_app('pico2wave is busy. Pass')
+            log('pico2wave is busy. Pass')
+
+        cmd = 'pico2wave -l \"%s\" -w \"%s\" \"%s\" '% (self._lang, output_file, words)
+        self.run_command(cmd)
+        # log('command: %s' %cmd)
+        self.run_command("sudo aplay %s  2>/dev/null &"%output_file)
+
+    def gtts(self, words):
+        sound_file = "/opt/ezblock/output.mp3"
+        data = {
+            "text": words,
+            "language": self.lang(),
+        }
+        header = {
+            "Content-Type": "application/json",
+        }
+
+        data =json.dumps(data)
+        data = bytes(data, 'utf8')
+        req = self.requests.Request(self.url, data=data, headers=header, method='POST')
+        r = self.requests.urlopen(req)
+        result = r.read()
+        result = result.decode("utf-8")
+        result = self.ast.literal_eval(result)
+        data = result["data"]
+        data = self.base64.b64decode(data)
+        with open(sound_file, "wb") as f:
+            f.write(data)
+
+        music = Music()
+        music.sound_play(sound_file)
+
+    def polly(self, words):
+        sound_file = "/opt/ezblock/output.mp3" 
+        send_data = {
+            "text": words,
+            "language": self._lang,
+            "token": self.token
+        }
+        header = {
+            "Content-Type": "application/json",
+        }
+        for i in range(5):
+            r = self.requests.post(url=self.url, headers=header, json=send_data)
+            result = r.json()
+            # print('result: %s'%result)
+            if result != "":
+                break
+            else:
+                print("Empty result")
+        else:
+            raise IOError("Network Error")
+
+        data = result["data"]
+        data = self.base64.b64decode(data)
+        with open(sound_file, "wb") as f:
+            f.write(data)
+
+        music = Music()
+        music.sound_play(sound_file)
