@@ -14,10 +14,8 @@ from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
 # port = 8765  # version == 1.0.x
 port = 7852    # SiTianJiChuang, version >= 1.1.x
 
-
 def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True, color=''):
     log(msg, location, end='\n', flush=False, timestamp=True, color=color)
-
 
 # select LED lights foe websockets status
 # according to the Robot-Hat expansion board
@@ -35,7 +33,6 @@ else: # new board
     ws_status_led = Pin("LED")
     # _log('new robot_hat')
  
-
 # tools
 def music_by_system(path:str, is_background=False):
     def mp(path:str):
@@ -90,7 +87,6 @@ def write_info(key, value):
     with open("/opt/ezblock/ezb-info.ini", "w") as f:
         config.write(f)
 
-
 class Ezb_Service(object):
     update_flag = Value('d',0) # 0:none 1:ING 2:OK 3:Failed
     update_work = False 
@@ -135,7 +131,6 @@ class Ezb_Service(object):
                 from picarx import Picarx
                 ws.px = Picarx()   
             return True
-
         except Exception as e:
             _log('reset_servo error for %s:%s'%(ws.type, e), location='reset_servo', color='31')
             Ezb_Service.set_share_val('debug',e)
@@ -146,10 +141,13 @@ class Ezb_Service(object):
     def ezb_service_start():
         _log("Ezb_Service.ezb_service_start")
         # Service startup Sound
-        # Music().sound_play('/home/pi/Music/startup.mp3')
         music_by_system('/home/pi/Music/startup.mp3')
-         
-        ws.user_service_start()
+        # whether auto-run main.py
+        if read_info("auto-run") in ["True", "true", "TRUE", "1", "on", "ON"]:
+            _log("WS.user_service_start auto-run")
+            ws.user_service_start()
+        else:
+            _log("WS.user_service_start does not auto-run")
         worker_2 = Process(name='worker 2',target=ws.__start_ws__)
         worker_2.start()
         _log("[Process] __start_ws__: %s" % worker_2.pid)
@@ -191,7 +189,6 @@ class Ezb_Service(object):
         else:
             Ezb_Service.share_dict[item] = value
 
-    
 class WS():
 
     def __init__(self):
@@ -238,7 +235,7 @@ class WS():
 
     # battery
     def ws_battery_process_start(self):
-        self.ws_battery_process = Process(name='ws battery',target=self.get_battery_thread,args=(self.voltage,self.battery,'websocket'))
+        self.ws_battery_process = Process(name='ws battery',target=self.get_battery_thread,args=(self.voltage, self.battery, 'websocket'))
         self.ws_battery_process.start()
         _log("[Process] ws_battery_process_start: %s" % self.ws_battery_process.pid)
         self.ws_battery_status = True
@@ -249,37 +246,31 @@ class WS():
             self.ws_battery_process.terminate()
             self.ws_battery_status = False
 
-    def main_process(self,voltage,battery):
-        # battery    
-        # self.get_battery(voltage,battery,'user')
-        # 
+    def main_process(self, voltage, battery):
         try:
             from main import forever
             start_time = time.time()
             while True:
                 if (time.time() - start_time) > 5:
-                    self.get_battery(voltage,battery)
+                    self.get_battery(voltage, battery)
                     start_time = time.time()
                 forever()
                 time.sleep(0.01)
         except Exception as e:
+            Ezb_Service.reset_servo()
+            self.user_service_status = False
             self.print("Error :%s"%e, color='31')
             return False
 
 
     def user_service_start(self):
-        if read_info("auto-run") in ["True", "true", "TRUE", "1", "on", "ON"]:
-            _log("WS.user_service_start auto-run")
-            self.user_service_close()
-            if self.ws_battery_status == True:
-                self.ws_battery_process_close()
-            self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
-            self.user_service_process.start()
-            _log("[Process] user_service_start: %s" % self.user_service_process.pid)
-            self.user_service_status = True
-        else:
-            _log("WS.user_service_start does not auto-run")
-            self.user_service_close()
+        self.user_service_close()
+        if self.ws_battery_status == True:
+            self.ws_battery_process_close()
+        self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
+        self.user_service_process.start()
+        _log("[Process] user_service_start: %s" % self.user_service_process.pid)
+        self.user_service_status = True
 
 
     def user_service_close(self):
@@ -327,7 +318,6 @@ class WS():
                         write_info("mac", addr)
                     self.send_dict['mac'] = read_info("mac")
                     self.send_dict['auto-run'] = read_info("auto-run")
-
                     self.send_dict['ip'] = getIP()
                     self.have_update()  # have_update thread
                     self.send_dict['voltage'] = '%.2f'%self.voltage.value
@@ -458,9 +448,10 @@ class WS():
             elif "ST" in self.recv_dict.keys() and self.recv_dict["ST"]:
                 self.user_service_close()
                 self.ws_battery_process_close()
-                if '0x14' in i2c_adress_list:
-                    Ezb_Service.reset_servo()
-                elif '0x74'in i2c_adress_list:
+                Ezb_Service.reset_servo()
+                # if '0x14' in i2c_adress_list:
+                #     Ezb_Service.reset_servo()
+                if '0x74'in i2c_adress_list:
                     GPIO.setmode(GPIO.BCM)
                     GPIO.setup(24, GPIO.OUT)
                     GPIO.output(24,GPIO.LOW)
@@ -646,7 +637,6 @@ class WS():
         _log('client disconnected')
         _log('---------------------------------------------')
       
-
     def print(self, msg, end='\n', tag='[DEBUG]', color=''):
         _log(msg, color=color)
         Ezb_Service.set_share_val('debug',[str(msg),True])
@@ -672,7 +662,6 @@ class WS():
                     return False
         return True
 
-
     def start_loop(self, ip):
         # check port
         while not self.close_tcp_port(port):
@@ -685,7 +674,6 @@ class WS():
         self.loop.run_until_complete(asyncio.wait(tasks))
         self.loop.run_forever()
 
-
     # start websocket_service_process
     def websocket_service_process(self):
         if self.ws_battery_status == True:
@@ -695,7 +683,6 @@ class WS():
         self.ws_process.start()
         self.websocket_service_pid = self.ws_process.pid
         _log("[Process] websocket_service_process: %s" % self.websocket_service_pid)
-
 
     def __start_ws__(self):
         _log("WS.__start_ws__")
@@ -762,7 +749,6 @@ class WS():
             except Exception as e:
                 _log("WS.__start_ws__ failed: %s" %e, color='31')
    
-
     def update_ezblock(self,update_flag):
         update_flag.value = 1  # 1:ING
         flag = ezb_update.update()
@@ -784,12 +770,7 @@ class WS():
                 ws_status_led.value(0)
                 time.sleep(1)
                 
-            
-
-
-
 ws = WS()
-
 
 def ws_print(msg, end='\n', tag='[DEBUG]'):
     ws.print(msg, end, tag)
@@ -823,7 +804,6 @@ class Remote():
         else:
             return 0
         
-    
     def get_joystick_value(self, id, coord):
         _value = self.get_data("JS", id)
         if _value != None:
