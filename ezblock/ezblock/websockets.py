@@ -141,10 +141,13 @@ class Ezb_Service(object):
     def ezb_service_start():
         _log("Ezb_Service.ezb_service_start")
         # Service startup Sound
-        # Music().sound_play('/home/pi/Music/startup.mp3')
         music_by_system('/home/pi/Music/startup.mp3')
-         
-        ws.user_service_start()
+        # whether auto-run main.py
+        if read_info("auto-run") in ["True", "true", "TRUE", "1", "on", "ON"]:
+            _log("WS.user_service_start auto-run")
+            ws.user_service_start()
+        else:
+            _log("WS.user_service_start does not auto-run")
         worker_2 = Process(name='worker 2',target=ws.__start_ws__)
         worker_2.start()
         _log("[Process] __start_ws__: %s" % worker_2.pid)
@@ -262,18 +265,13 @@ class WS():
 
 
     def user_service_start(self):
-        if read_info("auto-run") in ["True", "true", "TRUE", "1", "on", "ON"]:
-            _log("WS.user_service_start auto-run")
-            self.user_service_close()
-            if self.ws_battery_status == True:
-                self.ws_battery_process_close()
-            self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
-            self.user_service_process.start()
-            _log("[Process] user_service_start: %s" % self.user_service_process.pid)
-            self.user_service_status = True
-        else:
-            _log("WS.user_service_start does not auto-run")
-            self.user_service_close()
+        self.user_service_close()
+        if self.ws_battery_status == True:
+            self.ws_battery_process_close()
+        self.user_service_process = Process(name='user service',target=self.main_process,args=(ws.voltage,ws.battery))
+        self.user_service_process.start()
+        _log("[Process] user_service_start: %s" % self.user_service_process.pid)
+        self.user_service_status = True
 
 
 
@@ -327,7 +325,6 @@ class WS():
                         write_info("mac", addr)
                     self.send_dict['mac'] = read_info("mac")
                     self.send_dict['auto-run'] = read_info("auto-run")
-
                     self.send_dict['ip'] = getIP()
                     self.have_update()  # have_update thread
                     self.send_dict['voltage'] = '%.2f'%self.voltage.value
@@ -457,9 +454,10 @@ class WS():
             elif "ST" in self.recv_dict.keys() and self.recv_dict["ST"]:
                 self.user_service_close()
                 self.ws_battery_process_close()
-                if '0x14' in i2c_adress_list:
-                    Ezb_Service.reset_servo()
-                elif '0x74'in i2c_adress_list:
+                Ezb_Service.reset_servo()
+                # if '0x14' in i2c_adress_list:
+                #     Ezb_Service.reset_servo()
+                if '0x74'in i2c_adress_list:
                     GPIO.setmode(GPIO.BCM)
                     GPIO.setup(24, GPIO.OUT)
                     GPIO.output(24,GPIO.LOW)
@@ -651,7 +649,6 @@ class WS():
         _log('client disconnected')
         _log('---------------------------------------------')
       
-
     def print(self, msg, end='\n', tag='[DEBUG]', color=''):
         _log(msg, color=color)
         Ezb_Service.set_share_val('debug',[str(msg),True])
@@ -677,7 +674,6 @@ class WS():
                     return False
         return True
 
-
     def start_loop(self, ip):
         # check port
         while not self.close_tcp_port(port):
@@ -690,7 +686,6 @@ class WS():
         self.loop.run_until_complete(asyncio.wait(tasks))
         self.loop.run_forever()
 
-
     # start websocket_service_process
     def websocket_service_process(self):
         if self.ws_battery_status == True:
@@ -700,7 +695,6 @@ class WS():
         self.ws_process.start()
         self.websocket_service_pid = self.ws_process.pid
         _log("[Process] websocket_service_process: %s" % self.websocket_service_pid)
-
 
     def __start_ws__(self):
         _log("WS.__start_ws__")
@@ -789,12 +783,7 @@ class WS():
                 ws_status_led.value(0)
                 time.sleep(1)
                 
-            
-
-
-
 ws = WS()
-
 
 def ws_print(msg, end='\n', tag='[DEBUG]'):
     ws.print(msg, end, tag)
