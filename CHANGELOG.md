@@ -3,6 +3,22 @@
 ## [Unreleased]
 ...
 
+## [1.1.5] - 2022-10-17
+
+### Added
+- Add congfigure parameter of auto-start user block program in /opt/ezblock/ezb-info.ini
+
+### Changed
+- Change tts engine to pico2wave. Note that the engine is offline and does not support Chinese
+- Remove auto-start user block program
+ 
+
+## [1.1.4] - 2022-7-14 (Note that this version does not modify any code)
+
+### Fixed
+- System apt full-update, fix the problem that the new batch of Raspberry Pi can't use Bluetooth properly
+  
+
 ## [1.1.3] - 2022-7-7 
 
 ### Optimized
@@ -39,7 +55,6 @@
 
 ### Changed
 - To avoid conflicts with sunfounder-controller, change the websocket port to 7852
-
 
 ### Added
 - Add only one device is allowed to connect at the same time,
@@ -112,6 +127,8 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.1.5]: https://github.com/ezblockcode/ezb-pi/tree/1.1.5
+[1.1.4]: https://github.com/ezblockcode/ezb-pi/tree/1.1.4
 [1.1.3]: https://github.com/ezblockcode/ezb-pi/tree/1.1.3
 [1.1.2]: https://github.com/ezblockcode/ezb-pi/tree/1.1.2
 [1.1.1]: https://github.com/ezblockcode/ezb-pi/tree/1.1.1
