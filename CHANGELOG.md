@@ -3,6 +3,16 @@
 ## [Unreleased]
 ...
 
+## [1.2.1] - 2022-11-30
+
+### Added
+- Add congfigure parameter of auto-start user block program in /opt/ezblock/ezb-info.ini
+
+### Changed
+- Change tts engine to pico2wave. Note that the engine is offline and does not support Chinese
+- Remove auto-start user block program
+
+
 ## [1.2.0] - 2022-11-30
 
 ### Changed
@@ -51,7 +61,6 @@
 
 ### Changed
 - To avoid conflicts with sunfounder-controller, change the websocket port to 7852
-
 
 ### Added
 - Add only one device is allowed to connect at the same time,
@@ -124,6 +133,7 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.2.1]: https://github.com/ezblockcode/ezb-pi/tree/1.2.1
 [1.2.0]: https://github.com/ezblockcode/ezb-pi/tree/1.2.0
 [1.1.4]: https://github.com/ezblockcode/ezb-pi/tree/1.1.4
 [1.1.3]: https://github.com/ezblockcode/ezb-pi/tree/1.1.3
