@@ -132,9 +132,9 @@ def Get_distance():
      
 def test():
     # dir_servo_angle_calibration(-10) 
-    set_dir_servo_angle(-40)
+    set_steering_angle(-40)
     # time.sleep(1)
-    # set_dir_servo_angle(0)
+    # set_steering_angle(0)
     # time.sleep(1)
     # set_motor_speed(1, 1)
     # set_motor_speed(2, 1)

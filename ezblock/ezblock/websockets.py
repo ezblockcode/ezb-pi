@@ -128,8 +128,8 @@ class Ezb_Service(object):
                 ws.sloth = Sloth([1,2,3,4])
             elif ws.type in ["PiCarMini","PaKe"]:
                 log("picarx init", location='reset_servo')
-                from picarx import Picarx
-                ws.px = Picarx()   
+                from picarx import PiCarX
+                ws.px = PiCarX()   
             return True
         except Exception as e:
             _log('reset_servo error for %s:%s'%(ws.type, e), location='reset_servo', color='31')
@@ -337,9 +337,9 @@ class WS():
                     self.user_service_close()
                     self.ws_battery_process_close()
                     if self.type in ["PiCarMini","PaKe"]:
-                        self.px.set_dir_servo_angle(0)
-                        self.px.set_camera_servo1_angle(0)
-                        self.px.set_camera_servo2_angle(0)
+                        self.px.set_steering_angle(0)
+                        self.px.set_camera_pan_angle(0)
+                        self.px.set_camera_tilt_angle(0)
                         self.send_dict['offset'] = [self.px.dir_cali_value, self.px.cam_cali_value_1, self.px.cam_cali_value_2]
                     elif self.type in ["SpiderForPi"]:
                         # _init_coord = [ [a+b for a,b in zip(self.sp.default_coord[i],self.sp.cali_coord[i])] for i in range(4)]
@@ -387,11 +387,11 @@ class WS():
                 if self.type in ["PiCarMini","PaKe"]:
                     if "DO" in self.recv_dict["OF"].keys():
                         if self.recv_dict["OF"]["DO"] == "test":
-                            self.px.set_dir_servo_angle(-30)
+                            self.px.set_steering_angle(-30)
                             time.sleep(0.5)
-                            self.px.set_dir_servo_angle(30)
+                            self.px.set_steering_angle(30)
                             time.sleep(0.5)
-                            self.px.set_dir_servo_angle(0)
+                            self.px.set_steering_angle(0)
                             time.sleep(0.5)
                         else:
                             self.px.dir_servo_angle_calibration(int(self.recv_dict["OF"]["DO"]))
