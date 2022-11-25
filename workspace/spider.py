@@ -1,6 +1,7 @@
 from robot import Robot
 import math
 from ezblock import fileDB
+import copy
 
 class Spider(Robot):
     A = 48
@@ -26,25 +27,38 @@ class Spider(Robot):
             1,1,-1,
             1,1,1,
         ]
+
+        # ------ record current coordinates ------
+        self.current_coord = [[0]*3]*4
+        self.coord_temp = [[0]*3]*4
+
+        # ------ calibration related ------
+        # angle_offset
+        self.angle_offset = self.offset # Robot Class built-in
+
+        # coord_offset
         self.db = fileDB(db=self.config_file)
         temp = self.db.get("spider_coord_offset", default_value=str([[0]*3]*4))
         temp = [ a.replace("[",'').replace("]",'').replace(" ",'').split(',') for a in temp.split('],')]
         temp = [[ float(x) for x in temp[i] ] for i in range(len(temp))]
         if len(temp) == 4:
-            self.cali_coord = temp
+            self.coord_offset = temp
         else:
             print('\033[35m Incorrect number of elements in offset list \033[0m')
-            self.cali_coord = [[0]*3]*4  
+            self.coord_offset = [[0]*3]*4  
 
-        print("cali_coord: %s"%self.cali_coord)
-        # print(type(self.cali_coord))
+        # coord_offset_temp
+        self.coord_offset_temp = copy.deepcopy(self.coord_offset) #Pay attention to the copying of two-dimensional arrays in python
 
-        self.default_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
-        self.current_coord = list.copy(self.default_coord)
-        self.coord_temp = list.copy(self.default_coord)
+        # Calibrated original coordinates
+        self.cali_default_coord = [[60, 0, -30], [60, 0, -30], [60, 0, -30], [60, 0, -30]]
+
+        self.cali_default_angle = []
+        for coord in self.cali_default_coord: # each servo motion
+            alpha, beta, gamma = self.coord2polar(coord)
+            self.cali_default_angle += [beta, alpha, gamma]
         
     def coord2polar(self, coord):
-        # print(coord)
         x,y,z = coord
         
         L = math.sqrt(x**2+y**2+z**2)
@@ -82,7 +96,6 @@ class Spider(Robot):
 
         return round(alpha,4), round(beta,4), round(gamma,4)
 
-        
     def polar2coord(self, angles):
         alpha, beta, gamma = angles
 
@@ -165,7 +178,7 @@ class Spider(Robot):
         else:
             self.current_coord = list.copy(self.coord_temp)
 
-        self.servo_move(translate_list,speed)
+        self.servo_move(translate_list, speed)
         return list.copy(translate_list)
 
 
@@ -199,36 +212,22 @@ class Spider(Robot):
         
     def cali_helper_web(self, leg, pos, enter):
         step=0.2
-        cali_position = []
-        _cali_coord = self.cali_coord
-
-        for coord in self.default_coord: # each servo motion
-            alpha, beta, gamma = self.coord2polar(coord)
-            cali_position += [beta, alpha, gamma]
-        cali_position = [cali_position[i] + self.offset[i] for i in range(12)]
 
         # positive_list = [
-        #     [1, -1, -1, 1, -1, 1],
-        #     [1, -1, 1, -1, -1, 1],
-        #     [-1, 1, 1, -1, -1, 1],
-        #     [-1, 1, -1, 1, -1, 1],
+        #     [1, -1, -1, 1, 1, -1],
+        #     [1, -1, -1, 1, 1, -1],
+        #     [1, -1, -1, 1, 1, -1],
+        #     [1, -1, -1, 1, 1, -1],
         # ]
-        positive_list = [
-            [1, -1, -1, 1, 1, -1],
-            [1, -1, -1, 1, 1, -1],
-            [1, -1, -1, 1, 1, -1],
-            [1, -1, -1, 1, 1, -1],
-        ]
 
-        offset = list(self.offset)
         leg = leg - 1
         def adjust_coord(coord_index, positive_index):
-            _cali_coord[leg][coord_index] += step * positive_list[leg][positive_index]
-            if _cali_coord[leg][coord_index] > 20:
-                _cali_coord[leg][coord_index] = 20
-            elif _cali_coord[leg][coord_index] < -20:
-                _cali_coord[leg][coord_index] = -20
-            self.current_coord[leg][coord_index] = self.default_coord[leg][coord_index] + _cali_coord[leg][coord_index]
+            self.coord_offset_temp[leg][coord_index] += step * positive_list[leg][positive_index]
+            if self.coord_offset_temp[leg][coord_index] > 20:
+                self.coord_offset_temp[leg][coord_index] = 20
+            elif self.coord_offset_temp[leg][coord_index] < -20:
+                self.coord_offset_temp[leg][coord_index] = -20
+            self.current_coord[leg][coord_index] = self.cali_default_coord[leg][coord_index] - self.coord_offset[leg][coord_index] + self.coord_offset_temp[leg][coord_index]
 
         if pos == 'up':
             adjust_coord(1, 0)
@@ -249,17 +248,21 @@ class Spider(Robot):
             coord[2] = max(-50, min(-10, coord[2]))
 
         self.do_step(self.current_coord, speed=100)
-        current_position = list.copy(self.do_step(self.current_coord, speed=100))
+
         if enter == 1:
-            tmp = [current_position[i] - cali_position[i] + offset[i] for i in range(len(current_position))]
-            offset[leg*3:(leg + 1)*3] = tmp[leg*3:(leg + 1)*3]
-            self.set_offset(offset)
-            self.cali_coord = _cali_coord
-            self.db.set("spider_coord_offset", _cali_coord)
-            print("set_offset: %s"%offset)
-            print("set_cali_coord: %s"%_cali_coord)
-            self.do_step(self.default_coord, speed=100)
-            
+            self.angle_offset = self.offset
+            current_angle = self.servo_positions
+
+            # offset[leg*3:(leg + 1)*3] = tmp[leg*3:(leg + 1)*3]
+            tmp = [current_angle[i] - self.cali_default_angle[i] + self.angle_offset[i] for i in range(12)]
+            self.angle_offset = list.copy(tmp)
+            self.set_offset(self.angle_offset)
+
+            self.coord_offset = copy.deepcopy(self.coord_offset_temp)
+            self.db.set("spider_coord_offset", self.coord_offset_temp)
+            print("set_angle_offset: %s"%self.angle_offset)
+            print("set_coord_offset: %s"%self.coord_offset_temp)
+            self.do_step(self.cali_default_coord, speed=100)
 
     class MoveList(dict):
         
@@ -306,11 +309,9 @@ class Spider(Robot):
             r1 = math.sqrt(pow(self.Y_DEFAULT,2)+ pow(self.X_DEFAULT+ self.LENGTH_SIDE/2, 2))
             x1 = r1* math.cos((angle1-angle)* math.pi/180)- self.LENGTH_SIDE/2
             y1 = r1* math.sin((angle1-angle)* math.pi/180)
-            # print(x1,y1)
             
             x2 = (self.X_DEFAULT+ self.LENGTH_SIDE/2)* math.cos(angle*math.pi/180)- self.LENGTH_SIDE/2
             y2 = (self.X_DEFAULT+ self.LENGTH_SIDE/2)* math.sin(angle*math.pi/180)
-            # print(x2,y2)
             
             b = math.atan((self.X_DEFAULT+self.LENGTH_SIDE/2)/(self.Y_DEFAULT+ self.LENGTH_SIDE))
             angle2 = b/math.pi*180
@@ -319,7 +320,6 @@ class Spider(Robot):
             y3 = r2*math.cos((angle2-angle)*math.pi/180)- self.LENGTH_SIDE
 
             x3 += 10
-            # print(x3,y3)
             return [x1,y1,x2,y2,x3,y3]
         
         # 装饰器封装函数,判断是否站立
@@ -367,7 +367,6 @@ class Spider(Robot):
         @property
         @normal_action(0)
         def stand(self):
-            # print("get stand")
             _stand = []
             if self.ready_state ==  0:
                 _stand += self.ready
@@ -398,7 +397,6 @@ class Spider(Robot):
             
         def is_stand(self):
             tmp = self.z_current == self.Z_DEFAULT
-            # print("is stand? %s"%tmp)
             return tmp
         
         @property
@@ -596,8 +594,6 @@ class Spider(Robot):
             degree_y = degree_y * math.pi / 180
             dz = (self.LENGTH_SIDE / 2 + self.X_DEFAULT) * math.sin(degree_y)
             dx = (self.LENGTH_SIDE / 2 + self.X_DEFAULT) * (1 - math.cos(degree_y))
-            # print("dz = %d"%dz)
-            # print("dx = %d"%dx)
             return [[self.X_DEFAULT- dx, self.Y_DEFAULT, self.Z_DEFAULT + dz], [self.X_DEFAULT- dx, self.Y_DEFAULT, self.Z_DEFAULT + dz],[self.X_DEFAULT- dx, self.Y_DEFAULT, self.Z_DEFAULT - dz],[self.X_DEFAULT- dx, self.Y_DEFAULT, self.Z_DEFAULT - dz]]
         
         
@@ -655,7 +651,6 @@ class Spider(Robot):
 
     def do_single_leg(self,leg,coodinate=[50,50,-33],speed=50):
         leg_num = 0
-        # print(leg)
         if isinstance(leg,str):
             if leg == 'left_front':
                 leg_num = 1
