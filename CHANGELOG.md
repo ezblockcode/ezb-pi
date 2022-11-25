@@ -3,15 +3,19 @@
 ## [Unreleased]
 ...
 
-## [1.1.5] - 2022-10-17
+## [1.1.5] - 2022-11-25
 
 ### Added
 - Add congfigure parameter of auto-start user block program in /opt/ezblock/ezb-info.ini
+- Add Pake reference
 
 ### Changed
 - Change tts engine to pico2wave. Note that the engine is offline and does not support Chinese
-- Remove auto-start user block program
+- Disable auto-start user block program
  
+### Fixed
+- Fix bug of spider calibration
+
 
 ## [1.1.4] - 2022-7-14 (Note that this version does not modify any code)
 
