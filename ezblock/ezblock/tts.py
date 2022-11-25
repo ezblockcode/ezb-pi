@@ -19,34 +19,36 @@ class TTS(_Basic_class):
         'it-IT', # 意大利语(意大利) Italia-lingua italiana
     ]
 
-    def __init__(self, data):
+    def __init__(self, data=None):
         super().__init__()
-        if  isinstance(data, dict) is not True:
-            debug_2_app("TTS data parameter is incorrect")
-            raise ValueError("TTS data parameter is incorrect")
+        # if  isinstance(data, dict) is not True:
+        #     debug_2_app("TTS data parameter is incorrect")
+        #     raise ValueError("TTS data parameter is incorrect")
         try: 
             self._lang = "en-US"    # 默认语言:英语(美国) default language: English-United States
             self.engine = "pico2wave"   # default tts engine: pico2wave 
             self.url = None
             self.token = None
 
-            if 'engine' in data:
-                self.engine = data['engine']
-            if 'url' in data:
-                self.url = data['url'] 
-            if 'token' in data:
-                self.token = data['token'] 
+            if(isinstance(data, dict)):
+                if 'engine' in data:
+                    self.engine = data['engine']
+                if 'url' in data:
+                    self.url = data['url'] 
+                if 'token' in data:
+                    self.token = data['token'] 
 
-            if self.engine == "espeak":
-                self._amp   = 100 
-                self._speed = 175
-                self._gap   = 5
-                self._pitch = 50
-            elif self.engine == "gtts" or self.engine == "polly":
-                import requests
-                import base64
-                self.requests = requests
-                self.base64 = base64
+                if self.engine == "espeak":
+                    self._amp   = 100 
+                    self._speed = 175
+                    self._gap   = 5
+                    self._pitch = 50
+                elif self.engine == "gtts" or self.engine == "polly":
+                    import requests
+                    import base64
+                    self.requests = requests
+                    self.base64 = base64
+
         except Exception as e:
             debug_2_app(e)
 
