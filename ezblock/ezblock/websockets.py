@@ -349,11 +349,9 @@ class WS():
                         self.send_dict['offset'] = [self.px.dir_cali_value, self.px.cam_cali_value_1, self.px.cam_cali_value_2]
                     elif self.type in ["SpiderForPi"]:
                         # _init_coord = [ [a+b for a,b in zip(self.sp.default_coord[i],self.sp.cali_coord[i])] for i in range(4)]
-                        _init_coord = list.copy(self.sp.default_coord)
-                        # print(_init_coord)
-                        print(self.sp.cali_coord)
+                        _init_coord = list.copy(self.sp.cali_default_coord)
                         self.sp.do_step(_init_coord, 80)
-                        self.send_dict['offset'] = list(self.sp.cali_coord)
+                        self.send_dict['coord_offset'] = list(self.sp.coord_offset)
                     elif self.type in ["SlothForPi"]:
                         self.sloth.servo_move([0, 0, 0, 0])
                         self.send_dict['offset'] = list(self.sloth.offset)
@@ -410,7 +408,7 @@ class WS():
                 elif self.type == "SpiderForPi":
                     if isinstance(self.recv_dict["OF"], dict) and "enter" in self.recv_dict["OF"].keys():  
                         self.sp.cali_helper_web(0, 0, 1)
-                    elif isinstance(self.recv_dict["OF"], list):
+                    elif isinstance(self.recv_dict["OF"], list) and len(self.recv_dict["OF"]) == 3 and int(self.recv_dict["OF"][2]) == 0:
                         self.sp.cali_helper_web(int(self.recv_dict['OF'][0]), self.recv_dict['OF'][1], 0)
                 elif self.type == "SlothForPi":
                     if isinstance(self.recv_dict["OF"], dict) and "enter" in self.recv_dict["OF"].keys():  
