@@ -16,6 +16,9 @@
 ### Fixed
 - Fix bug of spider calibration
 
+### Optimized
+- Optimize update mechanism, solve that the update package list does not contain the image version
+
 
 ## [1.1.4] - 2022-7-14 (Note that this version does not modify any code)
 
