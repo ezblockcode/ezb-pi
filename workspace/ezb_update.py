@@ -70,7 +70,8 @@ class Ezbupdate(object):
         result = json.loads(r.text)
         version_list = result.get('version')
         latest_version = version_list[0]
-        log('latest version : %s'% latest_version)        
+        log("version_list: %s" % version_list)
+        log("latest version : %s"% latest_version)        
         # Read the local version information in flie '/opt/ezblock/ezb-info.ini'
         version_message = dict(self.config.items("message"))
         if version_message['version'] == None or version_message['version'] == '':
@@ -84,21 +85,58 @@ class Ezbupdate(object):
 
         # Determine how many versions are different based on the position of the version in the column
         try:
-            index = version_list.index(local_version)
+            index = 0
+            
+            if local_version in version_list:
+                index = version_list.index(local_version)
+            # If the local version is not in the version list, find out where the version should be in the list by numerical comparison
+            else:
+                # In python, you can directly use strings to compare the version size
+                for _compare_version in version_list:
+                    if _compare_version == local_version:
+                        pass
+                    elif _compare_version > local_version:
+                        index += 1
+                    else:
+                        break
+
+                # _local_version = local_version.split('.')
+                # print("local version : %s %s %s "%(_local_version[0], _local_version[1], _local_version[2]))
+                # for _compare_version in version_list:
+                #     _compare_version = _compare_version.split('.')
+                #     # comparee major version
+                #     if _compare_version[0] > _local_version[0]:
+                #         index += 1
+                #     elif _compare_version[0] < _local_version[0]:
+                #         break
+                #     # comparee minor version
+                #     else:
+                #         if _compare_version[1] > _local_version[1]:
+                #             index += 1
+                #         elif _compare_version[1] < _local_version[1]:
+                #             break
+                #         # comparee micro version
+                #         else:
+                #             if _compare_version[2] > _local_version[2]:
+                #                 index += 1
+                #             elif _compare_version[2] < _local_version[2]:
+                #                 break
         except Exception as e:
             log("Incorrect version information in the \'/opt/ezblock/ezb-info.ini\' file.")
-            log('\033[1;35mlog: \033[0m\n%s'% e)
+            log('\033[1;35merror: \033[0m\n\t%s'% e)
             return False
 
+        log("version differences: %s"%(index))
         if index == 0:
             log('\nAlready the latest version.')    
             return list([0]),index  
         else:
             return list(version_list),index
 
+
     def update(self):
         # check version return list of all versions and the index of local version in the list
-        version_list,index = self.check_version()
+        version_list, index = self.check_version()
 
         if index == 0:
             log('\nAlready the latest version.')    
