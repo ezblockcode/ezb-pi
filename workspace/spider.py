@@ -213,12 +213,12 @@ class Spider(Robot):
     def cali_helper_web(self, leg, pos, enter):
         step=0.2
 
-        # positive_list = [
-        #     [1, -1, -1, 1, 1, -1],
-        #     [1, -1, -1, 1, 1, -1],
-        #     [1, -1, -1, 1, 1, -1],
-        #     [1, -1, -1, 1, 1, -1],
-        # ]
+        positive_list = [
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, -1, 1, 1, -1],
+            [1, -1, -1, 1, 1, -1],
+        ]
 
         leg = leg - 1
         def adjust_coord(coord_index, positive_index):
