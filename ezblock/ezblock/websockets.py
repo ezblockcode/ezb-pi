@@ -14,10 +14,8 @@ from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
 # port = 8765  # version == 1.0.x
 port = 7852    # SiTianJiChuang, version >= 1.1.x
 
-
 def _log(msg:str, location='websokcets', end='\n', flush=False, timestamp=True, color=''):
     log(msg, location, end='\n', flush=False, timestamp=True, color=color)
-
 
 # select LED lights foe websockets status
 # according to the Robot-Hat expansion board
@@ -35,7 +33,6 @@ else: # new board
     ws_status_led = Pin("LED")
     # _log('new robot_hat')
  
-
 # tools
 def music_by_system(path:str, is_background=False):
     def mp(path:str):
@@ -89,7 +86,6 @@ def write_info(key, value):
     with open("/opt/ezblock/ezb-info.ini", "w") as f:
         config.write(f)
 
-
 class Ezb_Service(object):
     update_flag = Value('d',0) # 0:none 1:ING 2:OK 3:Failed
     update_work = False 
@@ -134,7 +130,6 @@ class Ezb_Service(object):
                 from picarx import Picarx
                 ws.px = Picarx()   
             return True
-
         except Exception as e:
             _log('reset_servo error for %s:%s'%(ws.type, e), location='reset_servo', color='31')
             Ezb_Service.set_share_val('debug',e)
@@ -190,7 +185,6 @@ class Ezb_Service(object):
         else:
             Ezb_Service.share_dict[item] = value
 
-    
 class WS():
 
     def __init__(self):
@@ -238,7 +232,7 @@ class WS():
 
     # battery
     def ws_battery_process_start(self):
-        self.ws_battery_process = Process(name='ws battery',target=self.get_battery_thread,args=(self.voltage,self.battery,'websocket'))
+        self.ws_battery_process = Process(name='ws battery',target=self.get_battery_thread,args=(self.voltage, self.battery, 'websocket'))
         self.ws_battery_process.start()
         _log("[Process] ws_battery_process_start: %s" % self.ws_battery_process.pid)
         self.ws_battery_status = True
@@ -249,20 +243,19 @@ class WS():
             self.ws_battery_process.terminate()
             self.ws_battery_status = False
 
-    def main_process(self,voltage,battery):
-        # battery    
-        # self.get_battery(voltage,battery,'user')
-        # 
+    def main_process(self, voltage, battery):
         try:
             from main import forever
             start_time = time.time()
             while True:
                 if (time.time() - start_time) > 5:
-                    self.get_battery(voltage,battery)
+                    self.get_battery(voltage, battery)
                     start_time = time.time()
                 forever()
                 time.sleep(0.01)
         except Exception as e:
+            Ezb_Service.reset_servo()
+            self.user_service_status = False
             self.print("Error :%s"%e, color='31')
             return False
 
@@ -276,6 +269,7 @@ class WS():
         self.user_service_process.start()
         _log("[Process] user_service_start: %s" % self.user_service_process.pid)
         self.user_service_status = True
+
 
     def user_service_close(self):
         if self.user_service_status == True:
@@ -330,6 +324,7 @@ class WS():
                     self.have_update()  # have_update thread
                     self.send_dict['voltage'] = '%.2f'%self.voltage.value
                     self.send_dict['battery'] = self.battery.value
+
                 elif self.recv_dict['RE'] == "name":
                     self.send_dict['name'] = read_info("name")
                 elif self.recv_dict['RE'] == "type":
@@ -404,9 +399,9 @@ class WS():
                         self.px.save_calibration()
                 elif self.type == "SpiderForPi":
                     if isinstance(self.recv_dict["OF"], dict) and "enter" in self.recv_dict["OF"].keys():  
-                        self.sloth.save_calibration()
+                        self.sp.cali_helper_web(0, 0, 1)
                     elif isinstance(self.recv_dict["OF"], list):
-                        self.sp.cali_helper_web(int(self.recv_dict['OF'][0]), self.recv_dict['OF'][1], int(self.recv_dict['OF'][2]))
+                        self.sp.cali_helper_web(int(self.recv_dict['OF'][0]), self.recv_dict['OF'][1], 0)
                 elif self.type == "SlothForPi":
                     if isinstance(self.recv_dict["OF"], dict) and "enter" in self.recv_dict["OF"].keys():  
                         self.sloth.save_calibration()
@@ -814,7 +809,6 @@ class Remote():
         else:
             return 0
         
-    
     def get_joystick_value(self, id, coord):
         _value = self.get_data("JS", id)
         if _value != None:
