@@ -285,7 +285,7 @@ class WS():
     def have_update(self):
         def fuc():
             if self.app_version == None:
-                self.self.send_dict['update'] = False
+                self.send_dict['update'] = False
             else:
                 self.send_dict['update'] = ezb_update.get_status(self.app_version)
         t = threading.Thread(target=fuc)
