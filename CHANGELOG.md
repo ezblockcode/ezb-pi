@@ -3,6 +3,18 @@
 ## [Unreleased]
 ...
 
+## [1.2.0] - 2022-11-30
+
+### Changed
+- Change the update mechanism, increase the comparison of app version compatibility
+
+
+## [1.1.4] - 2022-7-14 (Note that this version does not modify any code)
+
+### Fixed
+- System apt full-update, fix the problem that the new batch of Raspberry Pi can't use Bluetooth properly
+  
+
 ## [1.1.3] - 2022-7-7 
 
 ### Optimized
@@ -112,6 +124,8 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.2.0]: https://github.com/ezblockcode/ezb-pi/tree/1.2.0
+[1.1.4]: https://github.com/ezblockcode/ezb-pi/tree/1.1.4
 [1.1.3]: https://github.com/ezblockcode/ezb-pi/tree/1.1.3
 [1.1.2]: https://github.com/ezblockcode/ezb-pi/tree/1.1.2
 [1.1.1]: https://github.com/ezblockcode/ezb-pi/tree/1.1.1

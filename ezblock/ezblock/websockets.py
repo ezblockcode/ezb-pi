@@ -203,6 +203,7 @@ class WS():
         self.ws_process = None
         self.user_service_status = False
         self.type = None
+        self.app_version = None
         self.sp = None
         self.sloth = None
         self.px = None
@@ -289,7 +290,10 @@ class WS():
 
     def have_update(self):
         def fuc():
-            self.send_dict['update'] = ezb_update.get_status()
+            if self.app_version == None:
+                self.self.send_dict['update'] = False
+            else:
+                self.send_dict['update'] = ezb_update.get_status(self.app_version)
         t = threading.Thread(target=fuc)
         t.setDaemon(True)
         t.start()
@@ -305,8 +309,10 @@ class WS():
 
     def data_process(self):
         global i2c_adress_list
-        try:  
+        try:
             # Read data
+            if "APP" in self.recv_dict.keys():
+                self.app_version = self.recv_dict["APP"]
             if "RE" in self.recv_dict.keys():
                 # info
                 if self.recv_dict['RE'] == "all":               
@@ -748,9 +754,9 @@ class WS():
                 _log("WS.__start_ws__ failed: %s" %e, color='31')
    
 
-    def update_ezblock(self,update_flag):
+    def update_ezblock(self, update_flag):
         update_flag.value = 1  # 1:ING
-        flag = ezb_update.update()
+        flag = ezb_update.update(self.app_version)
         if flag == True:
             update_flag.value = 2 # 2:OK
         else:
