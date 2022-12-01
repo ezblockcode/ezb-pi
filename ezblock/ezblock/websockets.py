@@ -474,13 +474,12 @@ class WS():
             # Update Ezblock
             if "UE" in self.recv_dict.keys():
                 if self.recv_dict["UE"] and Ezb_Service.update_work == False:
-                    Ezb_Service.update_work = True 
-                else:
-                    self.send_dict["UE"] = 'Failed'
+                    Ezb_Service.update_work = True
+
             if Ezb_Service.update_work == True:
-                _log('Updating ...')
-                _log('Ezb_Service.update_flag.value: %s'% Ezb_Service.update_flag.value)
+                # _log('Ezb_Service.update_flag.value: %s'% Ezb_Service.update_flag.value)
                 if Ezb_Service.update_flag.value == 0: # 0:none 1:ING 2:OK 3:Failed
+                    _log('Updating ...')
                     self.update_process = Process(name='update_process',target=self.update_ezblock,args=(Ezb_Service.update_flag,))
                     self.update_process.start()
                     _log('update_process start, pid = %s'% self.update_process.pid)
@@ -593,6 +592,13 @@ class WS():
                                 Ezb_Service.set_share_val('debug',[data['debug'][0],False])
                         else:
                             data = {}
+
+                    # updating no log (print)
+                    if 'UE' in data and data['UE'] == "ING":
+                        _UE_data = {'UE': data['UE']}
+                        data.pop('UE')             
+                        await websocket.send(json.dumps(_UE_data))
+
                     # websocket.send
                     if data != {} :  
                         _log('send data: %s'% data)
