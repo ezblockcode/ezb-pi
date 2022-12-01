@@ -22,7 +22,7 @@ from __future__ import division
 import logging
 import time
 
-from ezblock import Pin 
+from ezblock import Pin
 from ezblock import I2C
 #import Adafruit_GPIO.SPI as SPI
 

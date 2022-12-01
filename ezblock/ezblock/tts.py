@@ -4,8 +4,8 @@ from .music import Music
 from distutils.spawn import find_executable
 import json
 
-def debug_2_app(msg): 
-    from .websockets import Ezb_Service    
+def debug_2_app(msg):
+    from .websockets import Ezb_Service
     Ezb_Service.set_share_val('debug', "%s"%msg)
 
 class TTS(_Basic_class):
@@ -24,9 +24,9 @@ class TTS(_Basic_class):
         # if  isinstance(data, dict) is not True:
         #     debug_2_app("TTS data parameter is incorrect")
         #     raise ValueError("TTS data parameter is incorrect")
-        try: 
+        try:
             self._lang = "en-US"    # 默认语言:英语(美国) default language: English-United States
-            self.engine = "pico2wave"   # default tts engine: pico2wave 
+            self.engine = "pico2wave"   # default tts engine: pico2wave
             self.url = None
             self.token = None
 
@@ -34,12 +34,12 @@ class TTS(_Basic_class):
                 if 'engine' in data:
                     self.engine = data['engine']
                 if 'url' in data:
-                    self.url = data['url'] 
+                    self.url = data['url']
                 if 'token' in data:
-                    self.token = data['token'] 
+                    self.token = data['token']
 
                 if self.engine == "espeak":
-                    self._amp   = 100 
+                    self._amp   = 100
                     self._speed = 175
                     self._gap   = 5
                     self._pitch = 50
@@ -57,16 +57,16 @@ class TTS(_Basic_class):
         found = executable_path is not None
         return found
 
-    def say(self, words:str):          
+    def say(self, words:str):
         if  str(words).strip() == '':
             debug_2_app('tts.say is missing parameters')
             log("tts.say is missing parameters")
         eval(f"self.{self.engine}(words)")
 
-    def lang(self, *value): 
+    def lang(self, *value):
         '''
         Set language
-        '''   
+        '''
         if len(value) == 0:
             return self._lang
         elif len(value) == 1:
@@ -79,11 +79,11 @@ class TTS(_Basic_class):
     def supported_lang(self):
         '''
         Return supported languages
-        '''          
+        '''
         return self.SUPPORTED_LANGUAUE
 
     def espeak_params(self, amp=None, speed=None, gap=None, pitch=None):
-        if amp == None: 
+        if amp == None:
             amp=self._amp
         if speed == None:
             speed=self._speed
@@ -97,7 +97,7 @@ class TTS(_Basic_class):
         if speed not in range(80, 260):
             raise ValueError('speed should be in 80 to 260, not "{0}"'.format(speed))
         if pitch not in range(0, 99):
-            raise ValueError('pitch should be in 0 to 99, not "{0}"'.format(pitch)) 
+            raise ValueError('pitch should be in 0 to 99, not "{0}"'.format(pitch))
         self._amp   = amp
         self._speed = speed
         self._gap   = gap
@@ -113,7 +113,7 @@ class TTS(_Basic_class):
         # log('command: %s' %cmd)
 
     def pico2wave(self, words):
-        output_file = "/opt/ezblock/tts_output.wav" 
+        output_file = "/opt/ezblock/tts_output.wav"
         log('pico2wave: [%s]' % (words))
         if not self._check_executable('pico2wave'):
             debug_2_app('pico2wave is busy. Pass')
@@ -150,7 +150,7 @@ class TTS(_Basic_class):
         music.sound_play(sound_file)
 
     def polly(self, words):
-        sound_file = "/opt/ezblock/output.mp3" 
+        sound_file = "/opt/ezblock/output.mp3"
         send_data = {
             "text": words,
             "language": self._lang,

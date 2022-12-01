@@ -14,7 +14,7 @@ def log(msg:str, location='DEBUG', end='\n', flush=False, timestamp=True, color=
             print('\033[%sm%s,%s[%s] %s\033[0m'%(color, _time, _msecs, location, msg), end=end, flush=flush, file=sys.stdout)
         else:
             print('%s'%msg, end=end, flush=flush, file=log_file)
-            print('\033[%sm%s\033[0m'%(color, msg), end=end, flush=flush, file=sys.stdout) 
+            print('\033[%sm%s\033[0m'%(color, msg), end=end, flush=flush, file=sys.stdout)
 
 def delay(ms):
     time.sleep(ms/1000)

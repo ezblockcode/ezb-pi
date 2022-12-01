@@ -4,7 +4,7 @@ Usage:
 ```python
 from ezblock import *
 
-taskmgr = Taskmgr()                     # create an Taskmgr object 
+taskmgr = Taskmgr()                     # create an Taskmgr object
 temp_cpu_val = taskmgr.cpu_temperature()                    # read the temperature of CPU
 temp_gpu_val = taskmgr.gpu_temperature()                    # read the temperature of GPU
 cpu_usage_val = taskmgr.cpu_usage()                    # read the cpu_usage

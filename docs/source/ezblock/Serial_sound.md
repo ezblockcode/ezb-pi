@@ -1,7 +1,7 @@
 # class Serial_Sound - serial sound player
 
 Usage:
-```python 
+```python
 from ezblock import *
 
 ss = Serial_Sound(port="/dev/ttyS0")                     # create an sound player object from serial port and defaults to "/dev/ttyS0"
@@ -36,11 +36,11 @@ Serial_Sound.play(*num)  #File names are 8 bits high and 8 bits low
 ```
 - set_route - set play route
 ```python
-Serial_Sound.set_route(num) 
+Serial_Sound.set_route(num)
 ```
 - set_module - set play module
 ```python
-Serial_Sound.set_module(num) 
+Serial_Sound.set_module(num)
 ```
 - set_loop_time - set loop time
 ```python
@@ -48,7 +48,7 @@ Serial_Sound.set_loop_time(*num) #times are 8 bits high and 8 bits low
 ```
 - set_volume
 ```python
-Serial_Sound.set_volume(num) 
+Serial_Sound.set_volume(num)
 ```
 - play_route - appoint disc and route play
 ```python

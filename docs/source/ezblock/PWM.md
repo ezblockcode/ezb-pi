@@ -6,11 +6,11 @@ from ezblock import PWM
 
 pwm = PWM('P0')                    # create an pwm object from a pin
 pwm.freq(50)                       # set freq 50Hz
-pwm.prescaler(2)                   # set prescaler 
-pwm.period(100)                    # set period 
+pwm.prescaler(2)                   # set prescaler
+pwm.period(100)                    # set period
 
-pwm.pulse_width(10)                # set pulse_width 
-pwm.pulse_width_percent(50)        # set pulse_width_percent 
+pwm.pulse_width(10)                # set pulse_width
+pwm.pulse_width_percent(50)        # set pulse_width_percent
 ```
 ## Constructors
 ```class ezblock.PWM(channel)```

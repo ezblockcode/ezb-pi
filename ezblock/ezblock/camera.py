@@ -81,7 +81,7 @@ class Camera(_Basic_class):
         self.camera.rotation = rotation
         self.camera.start_recording(self.output, format='mjpeg')
 
-    def start(self): 
+    def start(self):
         self.ip = getIP()
         print("server starts at %s:%s" % (self.ip, self.port))
         self.address = (self.ip, self.port)

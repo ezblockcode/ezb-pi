@@ -10,7 +10,7 @@ irq = IRQ('D1',IRQ.IRQ_RISING,callback('D1'))
 ```
 ## Constructors
 ```class ezblock.IRQ(pin, trigger, callback)```
-Create an IRQ object associated with the given pin. 
+Create an IRQ object associated with the given pin.
 
 ## Methods
 - `disable` - Disable the interrupt associated with the ExtInt object. This could be useful for debouncing.
@@ -32,5 +32,5 @@ IRQ.swint()
 
 ## Constance
 - `IRQ_FALLING` - 0
-- `IRQ_FALLING` - 
-- `IRQ_FALLING` - 
+- `IRQ_FALLING` -
+- `IRQ_FALLING` -

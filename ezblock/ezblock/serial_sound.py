@@ -87,7 +87,7 @@ class Serial_Sound():
     def set_mode(self,num): #全盘循环(00)单曲循环(01)单曲停止(02)全盘随机(03)目录循环(04)目录随机(05)目录顺序播放(06)顺序播放(07)
         self.write(self.MODE, num)
 
-    def set_loop_time(self, *num): #次数为高8位 低8位 
+    def set_loop_time(self, *num): #次数为高8位 低8位
         self.write(self.SET_LOOP_TIME, *num)
 
     def set_volume(self,num):

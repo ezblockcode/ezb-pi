@@ -12,8 +12,8 @@ from os import path
 import json
 import math
 
-def debug_2_app(msg): 
-    from ezblock.websockets import Ezb_Service    
+def debug_2_app(msg):
+    from ezblock.websockets import Ezb_Service
     Ezb_Service.set_share_val('debug', "%s"%msg)
 
 
@@ -22,15 +22,15 @@ class Arm(Robot):
     B = 80
     
     def __init__(self, pin_list,steps_path='/opt/ezblock/steps_record.json'):
-        super().__init__(pin_list, group=3)     
+        super().__init__(pin_list, group=3)
         # define variables
         self.component = 'none'
         self.speed = 50
-        self.current_coord = [0, 80, 80] 
+        self.current_coord = [0, 80, 80]
         self.coord_temp = [0,0,0]
-        self.component_staus = 0    
-        # checking steps record file 
-        self.path = steps_path 
+        self.component_staus = 0
+        # checking steps record file
+        self.path = steps_path
         self.steps_buff = []
         self.record_data = []
         self.data_index = 0
@@ -53,7 +53,7 @@ class Arm(Robot):
                     time.sleep(0.1)
                     f.close()
             except Exception as e:
-                raise(e)    
+                raise(e)
 
         self.record_buff_clear()
         try:
@@ -65,7 +65,7 @@ class Arm(Robot):
             raise(e)
 
     def set_speed(self, speed):
-        self.speed = speed 
+        self.speed = speed
     
     def bucket_init(self, pin):
         self.bucket = Servo(pin)
@@ -92,7 +92,7 @@ class Arm(Robot):
                 raise ValueError('Coordinates out of controllable range.')
             else:
                 print('\033[1;35mCoordinates out of controllable range.\033[0m', end='\r', flush=True)
-                # Calculate coordinates 
+                # Calculate coordinates
                 coord = self.polar2coord(angles)
                 self.current_coord = coord
         else:
@@ -164,7 +164,7 @@ class Arm(Robot):
 
     def limit_angle(self,angles):
         alpha, beta, gamma = angles
-        # limit 
+        # limit
         limit_flag = False
         ## alpha
         temp = self.limit(-30,60,alpha)
@@ -193,9 +193,9 @@ class Arm(Robot):
         # return
         return limit_flag,[alpha,beta,gamma]
 
-    def do_by_coord(self, coord,israise=False): 
+    def do_by_coord(self, coord,israise=False):
         temp = self.coord2polar(coord)
-        self.set_angle(temp)              
+        self.set_angle(temp)
     
     def set_bucket(self, angle):
         angle = self.limit(-50,90,angle)
@@ -234,10 +234,10 @@ class Arm(Robot):
                 time.sleep(0.1)
                 f.close()
         except Exception as e:
-            log(e)   
+            log(e)
 
-    def record_reproduce(self,delay=0.01):    
-        _data = []          
+    def record_reproduce(self,delay=0.01):
+        _data = []
         # read data
         try:
             with open(self.path,'r')as f:
@@ -251,20 +251,20 @@ class Arm(Robot):
         if _data['component'] != self.component:
             log('Component mismatch.This record corresponds to the %s component.' %_data[self.data_index]['component'])
         else:
-            if 'steps' in  _data.keys() and len(_data['steps']) > 0: 
-                steps = _data['steps']   
-                for i in range(0,len(steps),2):      
+            if 'steps' in  _data.keys() and len(_data['steps']) > 0:
+                steps = _data['steps']
+                for i in range(0,len(steps),2):
                     angles = steps[i]
                     status = steps[i+1]
                     log('step %s: %s,%s '%(int(i/2),angles,status))
-                    self.set_angle(angles)  
+                    self.set_angle(angles)
                     if self.component == 'bucket':
                         self.set_bucket(status)
                     if self.component == 'hanging_clip':
                         self.set_hanging_clip(status)
                     if self.component == 'electromagnet':
-                        self.set_electromagnet(status) 
-                    time.sleep(delay)   
+                        self.set_electromagnet(status)
+                    time.sleep(delay)
             else:
                 debug_2_app('steps is null')
                 log('steps is null')

@@ -1,7 +1,7 @@
 # class RGB - RGB matrix screen by i2c
 
 Usage:
-```python 
+```python
 from ezblock import *
 from map import Alphabet, Icons
 
@@ -9,7 +9,7 @@ rr = RGB_Matrix(0X74)  #create an rgb matrix object,0X74 is screen device addres
 for pos in range(40):
     rr.show_string("helloworld", "#842154", pos=pos)  #Scroll display 'hello world','#842154' Corresponding R.G.B color and pos is display string position
     time.sleep(0.5)
-rr.show_icon("happy", "#F0F00F")  #display happy icon 
+rr.show_icon("happy", "#F0F00F")  #display happy icon
 ```
 
 ## Constructors
@@ -23,7 +23,7 @@ RGB_Matrix.init(addr)  #addr is screen device address
 ```
 - write_cmd
 ```python
-RGB_Matrix.write_cmd(reg, cmd)  
+RGB_Matrix.write_cmd(reg, cmd)
 ```
 - write_Ndata - Write multiple data
 ```python

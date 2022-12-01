@@ -1,7 +1,7 @@
 # class Serial_Servo - serial servo driver
 
 Usage:
-```python 
+```python
 from ezblock import *
 
 import time
@@ -93,7 +93,7 @@ Serial_Servo.set_mode(id, num)   #0X00为电机模式 0X01为舵机模式
 Serial_Servo.set_motor_dir(id, num) #0X00为逆时针 0X01为顺时针
 ```
 - set_motor_speed
-```python 
+```python
 Serial_Servo.set_motor_dir(id, num)  #speed rangle is 0-100
 ```
 - run - Write several angles to several ID

@@ -13,7 +13,7 @@ class Spider(Robot):
         
         # self.current_coord = self.step_list['stand']
         # init_angles = [-40, 55, 0]*4
-        # self.coord_temp = init_angles 
+        # self.coord_temp = init_angles
 
         super().__init__(pin_list, group=3,init_angles=None)
         self.move_list = self.MoveList()
@@ -45,7 +45,7 @@ class Spider(Robot):
             self.coord_offset = temp
         else:
             print('\033[35m Incorrect number of elements in offset list \033[0m')
-            self.coord_offset = [[0]*3]*4  
+            self.coord_offset = [[0]*3]*4
 
         # coord_offset_temp
         self.coord_offset_temp = copy.deepcopy(self.coord_offset) #Pay attention to the copying of two-dimensional arrays in python
@@ -68,12 +68,12 @@ class Spider(Robot):
             temp = self.C/L
             x = temp * x
             y = temp * y
-            z = temp * z           
+            z = temp * z
         elif L > (self.A+self.B+self.C):
             temp = (self.A+self.B+self.C)/L
             x = temp * x
             y = temp * y
-            z = temp * z   
+            z = temp * z
 
         self.coord_temp.append([x,y,z])
 
@@ -92,7 +92,7 @@ class Spider(Robot):
 
         alpha = 90 - alpha / math.pi * 180
         beta = beta / math.pi * 180 - 90
-        gamma = -(gamma / math.pi * 180 - 45) 
+        gamma = -(gamma / math.pi * 180 - 45)
 
         return round(alpha,4), round(beta,4), round(gamma,4)
 
@@ -120,7 +120,7 @@ class Spider(Robot):
 
     def limit_angle(self,angles):
         alpha, beta, gamma = angles
-        # limit 
+        # limit
         limit_flag = False
         ## alpha
         temp = self.limit(-90,90,alpha)
@@ -154,7 +154,7 @@ class Spider(Robot):
                 for _ in range(step):
                     action_add = self.move_list_add[motion_name]
                     for _step in action_add:
-                        self.do_step(_step, speed=speed) 
+                        self.do_step(_step, speed=speed)
             except KeyError:
                 print("No such action")
 
@@ -171,7 +171,7 @@ class Spider(Robot):
             else:
                 print('\033[1;35mCoordinates out of controllable range.\033[0m', end='\r', flush=True)
                 coords = []
-                # Calculate coordinates 
+                # Calculate coordinates
                 for i in range(4):
                     coords.append(self.polar2coord([translate_list[i*3],translate_list[i*3+1],translate_list[i*3+2]]))
                 self.current_coord = list.copy(coords)
@@ -197,7 +197,7 @@ class Spider(Robot):
 
         angles_temp = []
         self.coord_temp = [] # do not use list.clear()
-        for coord in step_temp: # each servo motion    
+        for coord in step_temp: # each servo motion
             alpha, beta, gamma = self.coord2polar(coord)
             angles_temp.append([beta, alpha, gamma])
 
@@ -273,7 +273,7 @@ class Spider(Robot):
         Y_DEFAULT = 45
         Y_TURN = 130
         Y_WAVE =120
-        Y_START = 0 
+        Y_START = 0
         Z_DEFAULT = -50
         Z_UP = -30
         Z_WAVE = 60
@@ -634,15 +634,15 @@ class Spider(Robot):
     step_list = {
 
         "stand":[
-            [45, 45, -50], 
-            [45, 45, -50], 
-            [45, 45, -50], 
+            [45, 45, -50],
+            [45, 45, -50],
+            [45, 45, -50],
             [45, 45, -50]
         ],
         "sit":[
-            [45, 45, -30], 
-            [45, 45, -30], 
-            [45, 45, -30], 
+            [45, 45, -30],
+            [45, 45, -30],
+            [45, 45, -30],
             [45, 45, -30]
         ],
               
@@ -659,12 +659,12 @@ class Spider(Robot):
             elif leg == 'left_rear':
                 leg_num = 2
             elif leg == 'right_rear':
-                leg_num = 3  
+                leg_num = 3
             else:
                 print('no this leg')
-                return  
+                return
         elif isinstance(leg,int):
-            leg_num = leg  
+            leg_num = leg
         else:
             print('parameter type error')
             return
@@ -684,9 +684,9 @@ class Spider(Robot):
             if leg == 'left_rear':
                 leg_num = 2
             if leg == 'right_rear':
-                leg_num = 3   
+                leg_num = 3
         elif isinstance(leg,int):
-            leg_num = leg                      
+            leg_num = leg
         return self.current_coord[leg_num]
 
 

@@ -4,7 +4,7 @@ Usage:
 ```python
 from ezblock import WiFi
 
-wifi = WiFi()                     # create an WiFi object 
+wifi = WiFi()                     # create an WiFi object
 wifi.write('CN','sunfounder','sunfounder')
 ```
 ## Constructors

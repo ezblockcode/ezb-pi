@@ -17,11 +17,11 @@ status = joystick.read_status()                    # read the status of joystick
 Create an Joystick object associated with the given pin. This allows you to then read values on that pin.
 
 ## Methods
-- read - Read the value on the given pin and return it. 
+- read - Read the value on the given pin and return it.
 ```python
 Joystick.read(Xpin, Ypin, Btpin)
 ```
-- read_status - Read the value on the given pin and return it. 
+- read_status - Read the value on the given pin and return it.
 ```python
 Joystick.read_status()
 ```

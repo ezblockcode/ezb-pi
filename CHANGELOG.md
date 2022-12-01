@@ -1,4 +1,4 @@
-# Change Log 
+# Change Log
 
 ## [Unreleased]
 ...
@@ -30,10 +30,10 @@
 - System apt full-update, fix the problem that the new batch of Raspberry Pi can't use Bluetooth properly
   
 
-## [1.1.3] - 2022-7-7 
+## [1.1.3] - 2022-7-7
 
 ### Optimized
-- Optimize the calibration of picar-x, picrawler, and pisloth 
+- Optimize the calibration of picar-x, picrawler, and pisloth
 - Debug printing increased text color
 
 ### Fixed
@@ -46,13 +46,13 @@
 - Fix the IO conflict between ADC battery reading and ADC joystick
 
 ### Changed
-- Change the address of update package detection and download 
+- Change the address of update package detection and download
 
 
-## [1.1.1] - 2022-5-31  - based on 1.1.0 
+## [1.1.1] - 2022-5-31  - based on 1.1.0
 
 ### Fixed
-- Fix bug of speed limit of picar-x 
+- Fix bug of speed limit of picar-x
 
 ### Changed
 - Remove the limitation of connecting multiple devices at the same time
@@ -90,15 +90,15 @@
 ## [1.1.0_Beta] - 2022-1-7
 
 ### Changed
-- Use Raspberry Pi's onboard Bluetooth to communicate 
-  with the app 
+- Use Raspberry Pi's onboard Bluetooth to communicate
+  with the app
 - Some changes related to app interaction
 
 ### Added
 - Add connection status sound effect and LED indicator
 - Add Bluetooth name and hosstname modification function
-- Add log dividing line 
-- Add servo limit for Picrawler 
+- Add log dividing line
+- Add servo limit for Picrawler
 
 ### Fixed
 - Fix data blocking in remote control
@@ -107,12 +107,12 @@
 ## [1.0.3] - 2021-11-29
 
 ### Added
-- Install lsof tool 
+- Install lsof tool
 - Add change log
-- Add servo limit for Piarm 
+- Add servo limit for Piarm
 - Add step memory function for piarm
-- Add battery display 
-- Add websockets connection status 
+- Add battery display
+- Add websockets connection status
 
 ### Fixed
 - Fix data blocking in remote control
@@ -121,7 +121,7 @@
 - Fix the issue of OSError occasionally when disconnected
 - Fix the issue of version update failure
 - Fix Remote I/O error caused by power reading
-- Fix conflicts between heartbeat and remote control 
+- Fix conflicts between heartbeat and remote control
 - Fix checking update causing program blockage
 - Fix calibration failure of PaKe products
 
@@ -134,7 +134,7 @@
 
 
 ## [1.0.2] - 2021-09-07
-    - 
+    -
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1

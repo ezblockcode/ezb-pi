@@ -9,7 +9,7 @@ pipes = [[0xe7, 0xe7, 0xe7, 0xe7, 0xe7], [0xc2, 0xc2, 0xc2, 0xc2, 0xc2]]
 radio = NRF24()
 radio.begin(0, 0, 25, 18)  #Initialize SPI bus and Set CE and IRQ pins
 radio.setRetries(15,15)  #set max retries
-radio.setPayloadSize(8)  #set send byte size max is 32 
+radio.setPayloadSize(8)  #set send byte size max is 32
 radio.setChannel(0x60)  #set nrf24 channel
 radio.setDataRate(NRF24.BR_250KBPS)  #set send data rate
 radio.setPALevel(NRF24.PA_MAX)  #set PA Levels

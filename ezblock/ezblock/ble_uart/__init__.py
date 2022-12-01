@@ -17,10 +17,10 @@ def _log(msg:str, location='BLE', end='\n', flush=False, timestamp=True):
     log(msg, location, end='\n', flush=False, timestamp=True)
 
 
-UART_SERVICE_UUID =            'FF00' # 'FF00' 
+UART_SERVICE_UUID =            'FF00' # 'FF00'
 UART_TXRX_CHARACTERISTIC_UUID ='FFF1'
 LOCAL_NAME =                   'ezb-Raspberry' # 'ezb-Raspberry'
-mainloop = None 
+mainloop = None
 
 
 class TxRxCharacteristic(Characteristic):
@@ -217,7 +217,7 @@ class BLE_UART():
 
     def start_advertising(self):
         try:
-            # we're only registering one advertisement object so index (arg2) is hard coded as 0 
+            # we're only registering one advertisement object so index (arg2) is hard coded as 0
             self.adv_manager.RegisterAdvertisement(self.adv.get_path(), {},
                                     reply_handler=self.register_ad_cb,
                                     error_handler=self.register_ad_error_cb)

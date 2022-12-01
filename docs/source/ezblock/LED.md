@@ -32,7 +32,7 @@ LED.on()
 ```python
 LED.pwm_off()
 ```
-- intensity - Get or set the LED intensity. Intensity ranges between 0 (off) and 255 (full on). If no argument is given, return the LED intensity. If an argument is given, set the LED intensity and return 
+- intensity - Get or set the LED intensity. Intensity ranges between 0 (off) and 255 (full on). If no argument is given, return the LED intensity. If an argument is given, set the LED intensity and return
 ```python
 LED.intensity(*value)
 ```

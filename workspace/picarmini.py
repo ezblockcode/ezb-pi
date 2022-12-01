@@ -106,7 +106,7 @@ def get_adc_value():
 
 def set_power(speed):
     set_motor_speed(1, speed)
-    set_motor_speed(2, speed) 
+    set_motor_speed(2, speed)
 
 def backward(speed):
     set_motor_speed(1, speed)
@@ -148,7 +148,7 @@ def Get_distance():
     return cm
      
 def test():
-    # dir_servo_angle_calibration(-10) 
+    # dir_servo_angle_calibration(-10)
     set_steering_angle(-40)
     # time.sleep(1)
     # set_steering_angle(0)
@@ -160,8 +160,8 @@ def test():
 
 # if __name__ == "__main__":
 #     try:
-#         # dir_servo_angle_calibration(-10) 
+#         # dir_servo_angle_calibration(-10)
 #         while 1:
 #             test()
-#     finally: 
+#     finally:
 #         stop()

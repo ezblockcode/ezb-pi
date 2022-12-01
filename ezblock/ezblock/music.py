@@ -135,7 +135,7 @@ class Music(_Basic_class):
         p = pyaudio.PyAudio()
         volume = 1 # range [0.0, 1.0]
         fs = 44100 # sampling rate, Hz, must be integer
-        duration /= 2000 # devide 2 for half tone up half rest, divide 1000 for ms to s 
+        duration /= 2000 # devide 2 for half tone up half rest, divide 1000 for ms to s
         _duration = duration * 4
         # generate samples, note conversion to float32 array
         samples = (np.sin(2*np.pi*np.arange(fs*_duration)*freq/fs)).astype(np.float32)
@@ -146,7 +146,7 @@ class Music(_Basic_class):
                         rate=fs,
                         output=True)
 
-        # play. May repeat with different volume values (if done interactively) 
+        # play. May repeat with different volume values (if done interactively)
         stream.write(volume*samples)
 
         # stream.stop_stream()

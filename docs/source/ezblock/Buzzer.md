@@ -20,15 +20,15 @@ Create an Buzzer object associated with the given pwm object. This allows you to
 ```python
 Buzzer.on()
 ```
-- `off` - Turn the buzzer off 
+- `off` - Turn the buzzer off
 ```python
 Buzzer.off()
 ```
-- `freq` - Set the square wave frequency 
+- `freq` - Set the square wave frequency
 ```python
 Buzzer.freq(frequency)
 ```
-- `play` - Play freq, set off if a ms delay arguement is provided. 
+- `play` - Play freq, set off if a ms delay arguement is provided.
 ```python
 Buzzer.play(freq, ms)
 Buzzer.play(freq)

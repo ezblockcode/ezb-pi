@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding utf-8 -*-
-import platform 
+import platform
 import os
 import sys
 import time
@@ -15,7 +15,7 @@ def log(msg:str=None,level='Entry',end='\n',flush=False,timestamp=True):
             print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
         else:
             print('%s'%msg, end=end, flush=flush, file=log_file)
-            print('%s'%msg, end=end, flush=flush, file=sys.stdout) 
+            print('%s'%msg, end=end, flush=flush, file=sys.stdout)
 
 line = '-'*24
 _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         from ezblock import websockets
         from ezblock import version
         log('ezblock-service start version: %s '%version.VERSION)
-        websockets.Ezb_Service.start_service()  
+        websockets.Ezb_Service.start_service()
     except KeyboardInterrupt:
         os.system('sudo killall ezblock-service')
     except Exception as e:

@@ -1,7 +1,7 @@
 # class LCD - LCD1602 by iic
 
 Usage:
-```python 
+```python
 from ezblock import *
 
 lcd = LCD(0X27)            #create an LCD object,0X27 is screen device address

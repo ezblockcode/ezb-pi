@@ -61,11 +61,11 @@ class Taskmgr(object):
 
     def read(self):
         result = {
-            "cpu_temperature": self.cpu_temperature(), 
+            "cpu_temperature": self.cpu_temperature(),
             "gpu_temperature": self.gpu_temperature(),
-            "cpu_usage": self.cpu_usage(), 
-            "disk_used": self.disk_used(), 
-            "ram_used": self.ram_used(), 
+            "cpu_usage": self.cpu_usage(),
+            "disk_used": self.disk_used(),
+            "ram_used": self.ram_used(),
         }
         
         return result

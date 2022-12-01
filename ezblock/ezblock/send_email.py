@@ -8,9 +8,9 @@ class SendMail(object):
     
     # mail_host = "smtp.xxx.com"
     # sender = "123@qq.com"
-    # mail_pass = "xxxx" 
+    # mail_pass = "xxxx"
     # subject = 'Ezblock Message'
-    def __init__(self, mail_host, sender, mail_pass): 
+    def __init__(self, mail_host, sender, mail_pass):
         self.mail_host = mail_host      # 邮箱的服务器名字
         self.sender = sender            # 发送者邮箱
         self.mail_pass = mail_pass      # 发送者邮箱的生成授码权（口令）（打开SMTP服务）
@@ -23,7 +23,7 @@ class SendMail(object):
         message = MIMEText(msg, 'plain', 'utf-8')               # 创建消息对象， utf-8：表示支持多种语言
         message['From']=formataddr([self.sender, self.sender])  # sender name
         try:
-            message['To']=formataddr([receivers,receivers]) 
+            message['To']=formataddr([receivers,receivers])
             message['Subject']= subject   # Email subject
         
             smtpObj = smtplib.SMTP()            # 开始SMTP服务

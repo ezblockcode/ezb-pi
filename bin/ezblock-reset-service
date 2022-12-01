@@ -43,7 +43,7 @@ def reset_servos():
         pwm = PWM(pin)
         servo = Servo(pwm)
         servo.angle(0)
-        time.sleep(0.05)    
+        time.sleep(0.05)
     print(' ... done')
     
 
@@ -96,7 +96,7 @@ def main():
             if is_reset:
                 if is_user:
                     log("servos  reset")
-                    run_command("sudo service ezblock stop") 
+                    run_command("sudo service ezblock stop")
                     status_led.value(0)
                     reset_servos()
                     time.sleep(0.01)

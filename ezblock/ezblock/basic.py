@@ -37,7 +37,7 @@ class _Basic_class(object):
         elif debug in self.DEBUG_NAMES:
             self._debug_level = debug
         else:
-            raise ValueError('Debug value must be 0(critical), 1(error), 2(warning), 3(info) or 4(debug), not \"{0}\".'.format(debug))  
+            raise ValueError('Debug value must be 0(critical), 1(error), 2(warning), 3(info) or 4(debug), not \"{0}\".'.format(debug))
         self.logger.setLevel(self.DEBUG_LEVELS[self._debug_level])
         self.ch.setLevel(self.DEBUG_LEVELS[self._debug_level])
         self._debug('Set logging level to [%s]' % self._debug_level)

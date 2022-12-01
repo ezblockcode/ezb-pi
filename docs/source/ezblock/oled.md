@@ -24,7 +24,7 @@ disp.display()
 
 ## Constructors
 ```class ezblock.SSD1306()```
-Create an OLED displays object.This screen size is 128x64 
+Create an OLED displays object.This screen size is 128x64
 
 ## Methods
 - write_command - Send command byte to display

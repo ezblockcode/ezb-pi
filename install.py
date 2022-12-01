@@ -193,7 +193,7 @@ def cleanup():
         cmd='run_command("sudo rm -rf usr ezblock.egg-info")')
 
 class Modules(object):
-    ''' 
+    '''
         To setup /etc/modules
     '''
 
@@ -235,7 +235,7 @@ class Modules(object):
             return -1, e
 
 class Config(object):
-    ''' 
+    '''
         To setup /boot/config.txt
     '''
 
@@ -281,7 +281,7 @@ class Config(object):
             return -1, e
 
 class Cmdline(object):
-    ''' 
+    '''
         To setup /boot/cmdline.txt
     '''
 

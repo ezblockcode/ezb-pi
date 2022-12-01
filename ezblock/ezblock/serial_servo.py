@@ -181,7 +181,7 @@ class Serial_Servo():
 
     # write_all_angle([id, angle, time], [id, angle, time])
     # write_all_angle(servo1, servo2)
-    def write_all_angle(self,*servos):  
+    def write_all_angle(self,*servos):
         cmd = [self.TARGET_POS,0X04]
         data = []
         for servo in servos:

@@ -5,12 +5,12 @@ Usage:
 from ezblock import UART
 
 # On Raspberry Pi and init later
-uart = UART("/dev/serial0")        # create an UART object 
+uart = UART("/dev/serial0")        # create an UART object
 uart.init(9600)                    # uart init
 uart.read(5)                       # read up 5 bytes
 
-# On Ezblock One and init 
-uart = UART(1, tx=25, rx=26, baudrate=115200)    # create an UART object 
+# On Ezblock One and init
+uart = UART(1, tx=25, rx=26, baudrate=115200)    # create an UART object
 buf = [1,3,5]
 buf = bytearray(buf)
 uart.write(buf)                                  # send a buf
@@ -20,7 +20,7 @@ uart.write(buf)                                  # send a buf
 Create an UART object.
 device: On Ezblock Pi, it's the serial path, like: /dev/xxx().
   On Ezblock One, it's the uart id: 0, 1, 2
-tx: pin of tx. 
+tx: pin of tx.
 rx: pin of rx
 
 ## Methods

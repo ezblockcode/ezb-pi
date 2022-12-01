@@ -1,4 +1,4 @@
-import paho.mqtt.client as mqtt 
+import paho.mqtt.client as mqtt
 import json
 import time
 import os
@@ -29,7 +29,7 @@ def run_command(cmd):
 
 class IOT():
     
-    MQTT_BROKER_HOST = '' 
+    MQTT_BROKER_HOST = ''
     MQTT_BROKER_PORT = 1883
     MQTT_KEEP_ALIVE_INTERVAL = 60
     
@@ -75,7 +75,7 @@ class IOT():
         log('t %s'%(topic))
         if ip:
             self.client.subscribe(topic)
-            self.client.on_message=self.on_message 
+            self.client.on_message=self.on_message
             self.client.loop_start()
             if topic in list(self.recv_date.keys()):
                 return self.recv_date[topic]

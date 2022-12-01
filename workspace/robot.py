@@ -20,7 +20,7 @@ class Robot():
     def __init__(self, pin_list, group=4, db='/opt/ezblock/.config',name=None, init_angles=None):
 
         self.servo_list = []
-        self.pin_num = len(pin_list)   
+        self.pin_num = len(pin_list)
         self.list_name = name
 
 
@@ -50,9 +50,9 @@ class Robot():
   
         
 
-        # parameter init 
+        # parameter init
         self.servo_positions = self.new_list(0)
-        self.origin_positions = self.new_list(0)   
+        self.origin_positions = self.new_list(0)
         self.calibrate_position = self.new_list(0)
         self.direction = self.new_list(1)
 

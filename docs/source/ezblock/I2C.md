@@ -32,7 +32,7 @@ I2C.is_ready(addr)
 ```python
 I2C.scan()
 ```
-- send - send several bytes to slave with address 
+- send - send several bytes to slave with address
 ```python
 I2C.send(send,addr,timeout)
 ```

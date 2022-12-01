@@ -4,7 +4,7 @@ Usage:
 ```python
 from ezblock import *
 
-sendmail = SendMail(mail_host, sender, mail_pass)                     # create an SendMail object 
+sendmail = SendMail(mail_host, sender, mail_pass)                     # create an SendMail object
 sendmail.send(receivers, msg, subject)                    # send a e-Mail
 ```
 ## Constructors

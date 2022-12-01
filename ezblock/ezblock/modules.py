@@ -99,7 +99,7 @@ class ADXL345():
     _AXISES = [_REG_DATA_X, _REG_DATA_Y, _REG_DATA_Z]
     _OFFSET = [_REG_OFSX, _REG_OFSY, _REG_OFSZ]
 
-    def __init__(self, address=None):  
+    def __init__(self, address=None):
         self.i2c = I2C()
         if address is None:
             self.address = self._ADDRESS
@@ -146,7 +146,7 @@ class RGB_LED():
         G_val = (color & 0x00ff00) >> 8
         B_val = (color & 0x0000ff) >> 0
 
-        if self.common == 1: # common anode 
+        if self.common == 1: # common anode
             R_val = 255-R_val
             G_val = 255-G_val
             B_val = 255-B_val

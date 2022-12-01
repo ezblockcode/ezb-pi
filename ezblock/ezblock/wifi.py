@@ -46,7 +46,7 @@ update_config=1 """
                 time_end = time.time()
                 if time_end-time_start > 10:
                     print('WiFi connect failed')
-                    break 
+                    break
                 time.sleep(0.1)
         return False
 

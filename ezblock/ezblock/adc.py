@@ -19,7 +19,7 @@ class ADC(I2C):
         self.reg = 0x40 + self.chn
         # self.bus = smbus.SMBus(1)
         
-    def read(self): 
+    def read(self):
 
         # adc通道读取数---写一次数据，读取两次数据 （读取的数据范围是0~4095）
         self._debug("Write 0x%02X to 0x%02X"%(self.chn, self.ADDR))
