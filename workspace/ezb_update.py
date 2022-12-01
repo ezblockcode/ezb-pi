@@ -186,7 +186,7 @@ class Ezbupdate(object):
 
                 # Clean up update package
                 log('Cleaning up the update package of version %s ...'% updatable_version_list[i])
-                clean_cmd = "sudo rm -rf /opt/ezblock/" + str(updatable_version_list[i]) + " " + "/opt/ezblock/"+ str(version_list[i]) + ".zip"
+                clean_cmd = "sudo rm -rf /opt/ezblock/" + str(updatable_version_list[i]) + " " + "/opt/ezblock/"+ str(updatable_version_list[i]) + ".zip"
                 try:
                     cmd_status, cmd_result = run_command(clean_cmd)
                     if cmd_status != 0:
