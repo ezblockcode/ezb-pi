@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import os, sys
 
-USER = os.getlogin() #
-if USER == 'root':
+USER = None
+try:
     USER = os.popen("ls -l /opt/ |grep ezblock | awk '{print $3}'").readline().strip()
+except:
+    USER = None
+if USER == None:
+    USER = os.getlogin()
 
 USER_HOME = os.popen(f'getent passwd {USER} | cut -d: -f 6').readline().strip()
 
