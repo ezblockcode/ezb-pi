@@ -19,19 +19,12 @@ from multiprocessing import Process, Manager
 
 from flask import Flask, render_template, Response
 
-# user and User home directory
-# User = os.popen('echo ${SUDO_USER:-$LOGNAME}').readline().strip()
-# UserHome = os.popen('getent passwd %s | cut -d: -f 6'%User).readline().strip()
-# User = os.getlogin()
-# UserHome = os.popen('getent passwd %s | cut -d: -f 6'%User).readline().strip()
-User = "pi"
-UserHome = "/home/pi"
-# log(User)  # pi
-# log(UserHome) # /home/pi
+from ezblock.user_info import USER, USER_HOME
+
 
 # Default path for pictures and videos
-Default_Pictures_Path = '%s/picture_file/'%UserHome
-Default_Videos_Path = '%s/video_file/'%UserHome
+Default_Pictures_Path = '%s/picture_file/'%USER_HOME
+Default_Videos_Path = '%s/video_file/'%USER_HOME
 raspistill_path = "/opt/ezblock/raspistill_out.jpg"
 
 # utils

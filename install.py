@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 import os, sys
 
+USER = os.popen("echo ${SUDO_USER:-$(who -m | awk '{ print $1 }')}").readline().strip()
+USER_HOME = os.popen(f'getent passwd {USER} | cut -d: -f 6').readline().strip()
+
+print(f"user: {USER}")
+print(f"userhome: {USER_HOME}")
+
 errors = []
 
 avaiable_options = ['-h', '--help', '--no-dep']
@@ -63,7 +69,7 @@ def install():
     if "-h" in options or "--help" in options:
         print(usage)
         quit()
-    print("EzBlock service install process starts")
+    print("EzBlock service install process starts:")
     print("Install dependency")
     if "--no-dep" not in options:
         do(msg="update apt-get",
@@ -160,8 +166,8 @@ def install():
     do(msg="add write permission to log file",
         cmd='run_command("sudo chmod 666 /opt/ezblock/log")')
 
-    do(msg="change owner to opt ezblock",
-        cmd='run_command("sudo chown -R pi:pi /opt/ezblock/")')
+    do(msg=f"change owner to opt ezblock",
+        cmd=f'run_command("sudo chown -R {USER}:{USER} /opt/ezblock/")')
 
     do(msg="create .uspid_init_config file",
         cmd='run_command("sudo touch /opt/ezblock/.uspid_init_config")')

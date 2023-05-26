@@ -10,6 +10,10 @@ import RPi.GPIO as GPIO
 from .utils import delay, getIP, run_command, log
 from .ble import BLE
 from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
+from .user_info import USER, USER_HOME
+
+log(f"user:{USER}")
+log(f"userhome:{USER_HOME}")
 
 # port = 8765  # version == 1.0.x
 port = 7852    # SiTianJiChuang, version >= 1.1.x
@@ -141,7 +145,7 @@ class Ezb_Service(object):
     def ezb_service_start():
         _log("Ezb_Service.ezb_service_start")
         # Service startup Sound
-        music_by_system('/home/pi/Music/startup.mp3')
+        music_by_system(f'{USER_HOME}/Music/startup.mp3')
         # whether auto-run main.py
         if read_info("auto-run") in ["True", "true", "TRUE", "1", "on", "ON"]:
             _log("WS.user_service_start auto-run")
@@ -531,7 +535,7 @@ class WS():
         self.is_client_connected.value = True
         self.recv_dict = {}
         self.send_dict = {}
-        music_by_system('/home/pi/Music/connected.mp3')
+        music_by_system(f'{USER_HOME}/Music/connected.mp3')
         _log('client connected')
 
         # close BLE Advertisement
@@ -643,7 +647,7 @@ class WS():
         self.recv_dict = {}
         self.send_dict = {}
         Ezb_Service.clear_val()
-        music_by_system('/home/pi/Music/disconnected.mp3')
+        music_by_system(f'{USER_HOME}/Music/disconnected.mp3')
         _log('client disconnected')
         _log('---------------------------------------------')
       

@@ -81,7 +81,7 @@ class Service(dbus.service.Object):
     org.bluez.GattService1 interface implementation
     """
     PATH_BASE = '/org/bluez/example/service'
-    #PATH_BASE = '/home/pi/ezb-pi/ezblock/ble_uart'
+    #PATH_BASE = f{USER_HOME}/ezb-pi/ezblock/ble_uart'
 
     def __init__(self, bus, index, uuid, primary):
         self.path = self.PATH_BASE + str(index)

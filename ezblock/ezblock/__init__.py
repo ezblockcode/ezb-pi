@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from .version import VERSION
+from .user_info import *
 # io operations
 from .pin import Pin
 from .led import LED

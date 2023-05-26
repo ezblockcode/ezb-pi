@@ -3,6 +3,7 @@ import time
 import os
 import re
 import math
+from .user_info import USER, USER_HOME
 
 def log(msg:str, location='DEBUG', end='\n', flush=False, timestamp=True, color=''):
     with open('/opt/ezblock/log','a+') as log_file:
@@ -41,22 +42,22 @@ def is_installed(cmd):
         return False
 
 def ezblock_update():
-    files = os.listdir("/home/pi/")
+    files = os.listdir(f"{USER_HOME}/")
     if "ezb-pi" in files:
-        os.chdir("/home/pi/ezb-pi")
+        os.chdir(f"{USER_HOME}/ezb-pi")
         status, error = run_command("git pull origin master")
         if status == 0:
             return True
         else:
             return error
     else:
-        os.chdir("/home/pi")
+        os.chdir(f"{USER_HOME}")
         status, error = run_command("git clone https://github.com/ezblockcode/ezb-pi.git")
         if status == 0:
             return True
         else:
             return error
-        os.chdir("/home/pi/ezb-pi")
+        os.chdir(f"{USER_HOME}/ezb-pi")
     status, error = run_command("sudo python3 install.py")
     if status == 0:
         return True

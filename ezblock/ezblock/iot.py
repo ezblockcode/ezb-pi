@@ -4,6 +4,7 @@ import time
 import os
 import re
 from .utils import log
+from .user_info import USER, USER_HOME
 
 def getIP(ifaces=['wlan0', 'eth0']):
     if isinstance(ifaces, str):
@@ -81,7 +82,7 @@ class IOT():
                 return self.recv_date[topic]
             return None
         else:
-            run_command("sudo touch /home/pi/noip")
+            run_command(f"sudo touch {USER_HOME}/noip")
 
 
 

@@ -3,6 +3,7 @@ import json
 from configparser import ConfigParser
 import time
 import sys
+from ezblock.user_info import USER, USER_HOME
 
 def run_command(cmd):
     import subprocess
@@ -172,7 +173,7 @@ class Ezbupdate(object):
 
                 # clean install egg-info
                 log("cleaning egg-info ...")
-                clean_cmd = "sudo rm -rf /home/pi/ezb-pi//ezblock/ezblock.egg-info"
+                clean_cmd = f"sudo rm -rf {USER_HOME}/ezb-pi//ezblock/ezblock.egg-info"
                     
                 # Update version information
                 self.config.set('message', 'version',updatable_version_list[i])

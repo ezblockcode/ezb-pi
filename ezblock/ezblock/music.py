@@ -3,11 +3,12 @@ import time
 import threading
 import pyaudio
 import numpy as np
+from .user_info import USER, USER_HOME
 
 class Music(_Basic_class):
     MUSIC_BEAT = 500
-    MUSIC_DIR = '/home/pi/Music/'
-    SOUND_DIR = '/home/pi/Sound/'
+    MUSIC_DIR = f'{USER_HOME}/Music/'
+    SOUND_DIR = f'{USER_HOME}/Sound/'
 
     NOTES = {
         "Low C": 261.63,
