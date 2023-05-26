@@ -4,12 +4,12 @@ import os, sys
 # ------- get username and userhome -------
 USER = None
 try:
-    USER = os.popen("ls -l /opt/ |grep ezblock | awk '{print $3}'").readline().strip()
+    USER = os.getlogin()
 except:
     USER = None
 
-if USER == None or USER == '':
-    USER = os.getlogin()
+if USER == None or USER == '' or USER == 'root':
+    USER = os.popen("ls -l /opt/ |grep ezblock | awk '{print $3}'").readline().strip()
 
 USER_HOME = os.popen(f'getent passwd {USER} | cut -d: -f 6').readline().strip()
 
