@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 import os, sys
 
+# ------- get username and userhome -------
 USER = None
 try:
     USER = os.popen("ls -l /opt/ |grep ezblock | awk '{print $3}'").readline().strip()
 except:
     USER = None
-if USER == None:
+
+if USER == None or USER == '':
     USER = os.getlogin()
 
 USER_HOME = os.popen(f'getent passwd {USER} | cut -d: -f 6').readline().strip()
 
 print(f"user: {USER}")
 print(f"userhome: {USER_HOME}")
+
+# ------- ------------ -------
 
 errors = []
 
