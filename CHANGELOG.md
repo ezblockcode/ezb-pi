@@ -3,6 +3,12 @@
 ## [Unreleased]
 ...
 
+## [1.2.2] - 2023-5-26
+
+### Optimized
+- Compatible with different username, userhome
+
+
 ## [1.2.1] - 2022-11-30
 
 ### Added
@@ -138,6 +144,7 @@
 
 
 [Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[1.2.2]: https://github.com/ezblockcode/ezb-pi/tree/1.2.2
 [1.2.1]: https://github.com/ezblockcode/ezb-pi/tree/1.2.1
 [1.2.0]: https://github.com/ezblockcode/ezb-pi/tree/1.2.0
 [1.1.4]: https://github.com/ezblockcode/ezb-pi/tree/1.1.4
