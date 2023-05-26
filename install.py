@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import os, sys
 
-USER = os.popen("echo ${SUDO_USER:-$(who -m | awk '{ print $1 }')}").readline().strip()
+USER = os.getlogin() #
+if USER == 'root':
+    USER = os.popen("ls -l /opt/ |grep ezblock | awk '{print $3}'").readline().strip()
+
 USER_HOME = os.popen(f'getent passwd {USER} | cut -d: -f 6').readline().strip()
 
 print(f"user: {USER}")
