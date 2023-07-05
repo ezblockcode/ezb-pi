@@ -6,7 +6,7 @@ import json
 
 def debug_2_app(msg):
     from .websockets import Ezb_Service
-    Ezb_Service.set_share_val('debug', "%s"%msg)
+    Ezb_Service.set_share_val('debug', [str(msg), True])
 
 class TTS(_Basic_class):
     _class_name = 'TTS'

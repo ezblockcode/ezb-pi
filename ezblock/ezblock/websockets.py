@@ -137,7 +137,7 @@ class Ezb_Service(object):
             return True
         except Exception as e:
             _log('reset_servo error for %s:%s'%(ws.type, e), location='reset_servo', color='31')
-            Ezb_Service.set_share_val('debug',e)
+            Ezb_Service.set_share_val('debug', [str(e), True])
             return False
 
 
@@ -276,7 +276,6 @@ class WS():
         self.user_service_process.start()
         _log("[Process] user_service_start: %s" % self.user_service_process.pid)
         self.user_service_status = True
-
 
 
     def user_service_close(self):
@@ -602,7 +601,7 @@ class WS():
                                 data = {}
                             else:
                                 # Ezb_Service.clear_val()
-                                Ezb_Service.set_share_val('debug',[data['debug'][0],False])
+                                Ezb_Service.set_share_val('debug',[data['debug'][0], False])
                         else:
                             data = {}
 
@@ -653,7 +652,7 @@ class WS():
       
     def print(self, msg, end='\n', tag='[DEBUG]', color=''):
         _log(msg, color=color)
-        Ezb_Service.set_share_val('debug',[str(msg),True])
+        Ezb_Service.set_share_val('debug', [str(msg), True])
         time.sleep(0.02)
         while Ezb_Service.return_share_val()['debug'][1] == True:
             time.sleep(0.1)

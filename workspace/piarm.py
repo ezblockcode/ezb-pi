@@ -14,7 +14,7 @@ import math
 
 def debug_2_app(msg):
     from ezblock.websockets import Ezb_Service
-    Ezb_Service.set_share_val('debug', "%s"%msg)
+    Ezb_Service.set_share_val('debug', [str(msg), True])
 
 
 class Arm(Robot):
