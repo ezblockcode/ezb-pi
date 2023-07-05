@@ -3,6 +3,12 @@
 ## [Unreleased]
 ...
 
+## [1.2.3] - 2023-7-5
+
+### Fixed
+- Fix bug of Ezb_Service send "debug"
+
+
 ## [1.2.2] - 2023-5-26
 
 ### Optimized
