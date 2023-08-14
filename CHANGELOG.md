@@ -3,6 +3,12 @@
 ## [Unreleased]
 ...
 
+## [1.2.4] - 2023-8-14
+
+### Optimized
+- Optimzie reset servos with USR key and RST key
+
+
 ## [1.2.3] - 2023-7-5
 
 ### Fixed
