@@ -5,11 +5,16 @@ import threading
 from configparser import ConfigParser
 import json
 import time
-import sys,os
+import sys, os
 import RPi.GPIO as GPIO
 from .utils import delay, getIP, run_command, log
 from .ble import BLE
-from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
+from .pin import Pin
+from .pwm import PWM
+from .servo import Servo
+from .i2c import I2C
+from .adc import ADC
+from .version import VERSION
 from .user_info import USER, USER_HOME
 
 log(f"user:{USER}")
