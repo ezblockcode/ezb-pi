@@ -1,7 +1,6 @@
 from .basic import _Basic_class
-from smbus import SMBus
+from smbus2 import SMBus
 from .utils import run_command
-import json
 import time
 from multiprocessing import Value
 
