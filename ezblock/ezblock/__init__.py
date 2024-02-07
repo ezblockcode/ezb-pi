@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from .version import VERSION
+from .version import VERSION, __version__
 from .user_info import *
 # io operations
 from .pin import Pin
