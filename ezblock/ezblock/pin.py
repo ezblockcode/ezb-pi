@@ -1,15 +1,27 @@
 from .basic import _Basic_class
-import RPi.GPIO as GPIO
+import gpiozero # https://gpiozero.readthedocs.io/en/latest/installing.html
 
 class Pin(_Basic_class):
-    OUT = GPIO.OUT
-    IN = GPIO.IN
-    IRQ_FALLING = GPIO.FALLING
-    IRQ_RISING = GPIO.RISING
-    IRQ_RISING_FALLING = GPIO.BOTH
-    PULL_UP = GPIO.PUD_UP
-    PULL_DOWN = GPIO.PUD_DOWN
+    """Pin manipulation class"""
+
+    OUT = 0x01
+    """Pin mode output"""
+    IN = 0x02
+    """Pin mode input"""
+
+    PULL_UP = 0x11
+    """Pin internal pull up"""
+    PULL_DOWN = 0x12
+    """Pin internal pull down"""
     PULL_NONE = None
+    """Pin internal pull none"""
+
+    IRQ_FALLING = 0x21
+    """Pin interrupt falling"""
+    IRQ_RISING = 0x22
+    """Pin interrupt falling"""
+    IRQ_RISING_FALLING = 0x23
+    """Pin interrupt both rising and falling"""
 
     _dict = {
         "BOARD_TYPE": 12,
@@ -73,8 +85,6 @@ class Pin(_Basic_class):
 
     def __init__(self, *value):
         super().__init__()
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
 
         self.check_board_type()
 
@@ -99,26 +109,53 @@ class Pin(_Basic_class):
             self._pin = pin
         else:
             self._error('Pin should be in %s, not %s' % (self._dict.keys(), pin))
+        # setup
         self._value = 0
+        self.gpio = None
         self.init(mode, pull=setup)
         self._info("Pin init finished.")
         
     def check_board_type(self):
         type_pin = self.dict()["BOARD_TYPE"]
-        GPIO.setup(type_pin, GPIO.IN)
-        if GPIO.input(type_pin) == 0:
+        _pin = gpiozero.Button(type_pin, pull_up=True)
+        if _pin.value == 0:
             self._dict = self._dict_1
         else:
             self._dict = self._dict_2
+        _pin.close()
+
+    def close(self):
+        self.gpio.close()
 
     def init(self, mode, pull=PULL_NONE):
+        # check mode
+        if mode in [None, self.OUT, self.IN]:
+            self._mode = mode
+        else:
+            raise ValueError(
+                f'mode param error, should be None, Pin.OUT, Pin.IN')
+        # check pull
+        if pull in [self.PULL_NONE, self.PULL_DOWN, self.PULL_UP]:
+            self._pull = pull
+        else:
+            raise ValueError(
+                f'pull param error, should be None, Pin.PULL_NONE, Pin.PULL_DOWN, Pin.PULL_UP')
+
         self._pull = pull
         self._mode = mode
-        if mode != None:
-            if pull != None:
-                GPIO.setup(self._pin, mode, pull_up_down=pull)
+
+        if self.gpio != None:
+            if self.gpio.pin != None:
+                self.gpio.close()
+
+        if mode in [None, self.OUT]:
+            self.gpio = gpiozero.OutputDevice(self._pin)
+        else:
+            if pull in [None, self.PULL_UP]:
+                self.gpio = gpiozero.Button(self._pin, pull_up=True)
             else:
-                GPIO.setup(self._pin, mode)
+                self.gpio = gpiozero.Button(self._pin, pull_up=False)
+
 
     def dict(self, *_dict):
         if len(_dict) == 0:
@@ -134,15 +171,21 @@ class Pin(_Basic_class):
         return self.value(value)
 
     def value(self, *value):
-        if len(value) == 0:
-            self.mode(self.IN)
-            result = GPIO.input(self._pin)
-            self._debug("read pin %s: %s" % (self._pin, result))
+        if value == None:
+            if self._mode in [None, self.OUT]:
+                self.init(self.IN)
+            result = self.gpio.value
+            self._debug(f"read pin {self.gpio.pin}: {result}")
             return result
         else:
-            value = value[0]
-            self.mode(self.OUT)
-            GPIO.output(self._pin, value)
+            if self._mode in [None, self.IN]:
+                self.init(self.OUT)
+            if bool(value):
+                value = 1
+                self.gpio.on()
+            else:
+                value = 0
+                self.gpio.off()
             return value
 
     def on(self):
@@ -163,14 +206,26 @@ class Pin(_Basic_class):
         else:
             mode = value[0]
             self._mode = mode
-            GPIO.setup(self._pin, mode)
+            self.init(mode)
 
     def pull(self, *value):
         return self._pull
 
-    def irq(self, handler=None, trigger=None, bouncetime=200):
-        self.mode(self.IN)
-        GPIO.add_event_detect(self._pin, trigger, callback=handler, bouncetime=bouncetime)
+    def irq(self, handler=None, trigger=None, bouncetime=200, pull=None):
+        # check trigger
+        if trigger not in [None, self.IRQ_FALLING, self.IRQ_RISING, self.IRQ_RISING_FALLING]:
+            raise ValueError(
+                f'trigger param error, should be None, Pin.IRQ_FALLING, Pin.IRQ_RISING, Pin.IRQ_RISING_FALLING')
+        #
+        self.init(self.IN, pull, bouncetime)
+        #
+        if trigger in [None, self.IRQ_FALLING]:
+            self.gpio.when_pressed = handler
+        elif trigger in [self.IRQ_RISING]:
+            self.gpio.when_released = handler
+        elif trigger in [self.IRQ_RISING_FALLING]:
+            self.gpio.when_pressed = handler
+            self.gpio.when_released = handler
 
     def name(self):
         return "GPIO%s"%self._pin
