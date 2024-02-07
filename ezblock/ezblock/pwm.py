@@ -1,4 +1,4 @@
-import smbus, math
+import math
 from .i2c import I2C
 
 timer = [
@@ -35,7 +35,6 @@ class PWM(I2C):
         self._debug("PWM address: {:02X}".format(self.ADDR))
         self.channel = channel
         self.timer = int(channel/4)
-        self.bus = smbus.SMBus(1)
         self._pulse_width = 0
         self._freq = 50
         self.freq(50)
