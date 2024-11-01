@@ -4,6 +4,8 @@ import threading
 import pyaudio
 import numpy as np
 from .user_info import USER, USER_HOME
+import os
+
 
 class Music(_Basic_class):
     MUSIC_BEAT = 500
@@ -53,6 +55,17 @@ class Music(_Basic_class):
         import pygame
         self.pygame = pygame
         self.pygame.mixer.init()
+
+        #
+        Music.enable_speaker()
+
+    @staticmethod
+    def enable_speaker():
+        os.popen("pinctrl set 20 op dh")
+
+    @staticmethod
+    def disable_speaker():
+        os.popen("pinctrl set 20 op dl")
 
     @property
     def MUSIC_LIST(self):
