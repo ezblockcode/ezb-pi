@@ -25,13 +25,20 @@ def set_volume(value):
     cmd = "sudo amixer -M sset 'PCM' %d%%" % value
     os.system(cmd)
 
-def run_command(cmd):
+def run_command(cmd, wait=True):
     import subprocess
-    p = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    result = p.stdout.read().decode('utf-8')
-    status = p.poll()
-    return status, result
+
+    if wait:
+        p = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result = p.stdout.read().decode('utf-8')
+        status = p.poll()
+        return status, result
+    else:
+        p = subprocess.Popen(
+            cmd + " &", # avoid affecting foreground program print 
+            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return None, None
 
 def is_installed(cmd):
     status, _ = run_command("%s -v"%cmd)
@@ -66,6 +73,12 @@ def ezblock_update():
     
 def mapping(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+def constrain(x, min_val, max_val):
+    '''
+    Constrains value to be within a range.
+    '''
+    return max(min_val, min(max_val, x))
 
 def getIP(ifaces=['wlan0', 'eth0']):
     if isinstance(ifaces, str):
@@ -191,5 +204,18 @@ def lists_sort(my_list, type, reverse):
     list_cpy = list(my_list) # Clone the list.
     return sorted(list_cpy, key=key_func, reverse=reverse)
 
-# if __name__ == "__main__":
-#     is_installed("espeak")
+def get_battery():
+    from .adc import ADC
+    voltage = round(ADC('A4').read() / 4095.0 * 3.3 * 3,2)
+    percent = round(min(max((voltage - 7.0) / 1.4, 0) * 100,100),2)
+    return voltage, percent
+
+def reset_mcu():
+    from .pin import Pin
+    rst_pin = Pin.pin_dict["MCURST"]
+    # Use system command control to avoid "GPIO busy"
+    run_command(f"pinctrl set {rst_pin} op dl")
+    time.sleep(0.01)
+    run_command(f"pinctrl set {rst_pin} op dh")
+    time.sleep(0.2)
+
