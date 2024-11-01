@@ -1,10 +1,11 @@
 #!/usr/bin/python3
-# -*- coding utf-8 -*-
 import platform
 import os
 import sys
 import time
 
+# utils
+# =================================================================
 def log(msg:str=None,level='Entry',end='\n',flush=False,timestamp=True):
     with open('/opt/ezblock/log','a+') as log_file:
         if timestamp == True:
@@ -17,19 +18,52 @@ def log(msg:str=None,level='Entry',end='\n',flush=False,timestamp=True):
             print('%s'%msg, end=end, flush=flush, file=log_file)
             print('%s'%msg, end=end, flush=flush, file=sys.stdout)
 
+def run_command(cmd=""):
+    import subprocess
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = p.stdout.read().decode('utf-8')
+    status = p.poll()
+    return status, result
+
+# Program self-test
+# =================================================================
 line = '-'*24
-_time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
-log('\n%s%s%s'%(line,_time,line),timestamp=False)
-log('python_version: %s'%platform.python_version())
-        
+start_time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+python_ver = sys.version
+_, kernel_ver = run_command("uname -a")
+_, os_ver = run_command("lsb_release -a|grep Description")
+_, pcb_info = run_command("cat /proc/cpuinfo|grep -E \'Revision|Model\'")
+
+try:
+    from ezblock.version import VERSION
+    ezb_ver = VERSION
+except Exception as e:
+    ezb_ver = f'\n{e}'
+
+log('\n%s%s%s'%(line,start_time,line), timestamp=False)
+log(f'ezblock version: {ezb_ver}\n', timestamp=False)
+log(f'python version: {python_ver}\n', timestamp=False)
+log(f'Kernel version:\n{kernel_ver}', timestamp=False)
+log(f'OS version:\n{os_ver}', timestamp=False)
+log(f'PCB info:\n{pcb_info}', timestamp=False)
+
+
 if __name__ == '__main__':
     try:
         from ezblock import websockets
-        from ezblock import version
-        log('ezblock-service start version: %s '%version.VERSION)
+        from ezblock import VERSION
+
+        if "debug" in sys.argv:
+            print("\n[***************** debug mode *****************]\n")
+            websockets.DEBUG = True
+
+        log(f'start >>>')
         websockets.Ezb_Service.start_service()
     except KeyboardInterrupt:
-        os.system('sudo killall ezblock-service')
+        os.system('sudo killall -9 ezblock-service')
     except Exception as e:
-        log("ezblock-service start failed: \n%s"%e)
-        log("\nPlease try to fix it yourself, or contact service@sunfounder.com with this message")
+        log(f"ezblock-service start failed: \n"
+            +f"{e}\n\n"
+            +f"Please try to fix it yourself, or contact service@sunfounder.com with this message."
+        )
