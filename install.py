@@ -89,7 +89,7 @@ def working_tip():
     sys.stdout.flush()  
 
 def do(msg="", cmd=""):
-    print(" - %s... " % (msg), end='', flush=True)
+    print(" - %s ... " % (msg), end='', flush=True)
     # at_work_tip start 
     global at_work_tip_sw
     at_work_tip_sw = True
@@ -101,8 +101,7 @@ def do(msg="", cmd=""):
     # print(status, result)
     # at_work_tip stop
     at_work_tip_sw = False
-    while _thread.is_alive():
-        time.sleep(0.005)
+    _thread.join()
     # status
     if status == 0 or status == None or result == "":
         print('Done')
@@ -186,52 +185,75 @@ class Config(object):
             return -1, e
 
 def cleanup():
+    import signal
+
+    def handle(signal, frame):
+        print('\nplease wait for cleanup ... ', end='')
+
+    def handle_timeout(signum, frame):
+        raise TimeoutError('function timeout')
+
+    signal.signal(signal.SIGINT, handle)
+    signal.signal(signal.SIGALRM, handle_timeout)
+    signal.alarm(5) # 5s timeout
+
+
     do(msg="cleanup",
         cmd=f'rm -rf {abspath}/ezblock/ezblock.egg-info')
 
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.alarm(0)
+    
 # dependencies list installed with apt
 # =================================================================
 APT_INSTALL_LIST = [
     # 
-    "python3-pip",
+    'python3-pip',
+    'python3-setuptools',
     # --- robot_hat ---
     'raspi-config',
     "i2c-tools",
     "bluez-firmware",  # Update bluez firmware
-    'python3-dbus',
+    'python3-dbus', # ble
     "lsof",  # tcp port
     "mplayer", # music player
     'libsdl2-dev',
     'libsdl2-mixer-dev',
     "python3-pyaudio",
+    'portaudio19-dev',  # pyaudio
     "espeak", # tts
+    'libttspico-utils', # tts pico2wave
     # --- vilib ---
     "python3-libcamera",
     "python3-picamera2",
     "python3-opencv",
     "ffmpeg",
     "python3-flask",
+    'libzbar0', # pyzbar dependencies
 ]
 
 # dependencies list installed with pip3
 # =================================================================
 PIP_INSTALL_LIST = [
-    # robot_hat
+    # --- robot_hat ---
     "gpiozero",
     "smbus2",
     "spidev",
     "pyserial",
     "pillow",
     "pygame>=2.1.2",
-    # websockets
+    # --- websockets ---
     "websockets",
-    # iot
+    # --- iot ---
     "paho-mqtt",
-    # vilib
+    # --- vilib ---
     "tflite-runtime",
     "pyzbar", # QR codes
     "pyzbar[scripts]",
     "imutils",
+    'numpy==1.26.4',
+    # --- process management --- 
+    'psutil',
 ]
 
 # main function
@@ -278,11 +300,6 @@ def install():
         for dep in APT_INSTALL_LIST:
             do(msg=f"install {dep}",
                 cmd=f'apt-get install {dep} -y')
-
-        # install pico2wave
-        do(msg=f'install pico2wave',
-            cmd='apt-get install -f ./libttspico0_1.0+git20130326-9_armhf.deb'
-            +' ./libttspico-utils_1.0+git20130326-9_armhf.deb -y')
         
         # install dependencies with pip
         # ===================================
@@ -338,7 +355,24 @@ def install():
         name="gpu_mem",
         value="128"
     )
-
+    # Copy sound files
+    # ===================================
+    if not os.path.exists(f"{user_home}/Music/"):
+        do(msg="mkdir ~/Music/",
+        cmd=f'mkdir {user_home}/Music/'
+        + f' && chown {user_name}:{user_name} {user_home}/Music/'
+        + f' && chmod 774 {user_home}/Music/'
+        )
+    if not os.path.exists(f"{user_home}/Sound/"):
+        do(msg="mkdir ~/Sound/",
+        cmd=f'mkdir {user_home}/Sound/'
+        + f' && chown {user_name}:{user_name} {user_home}/Sound/'
+        + f' && chmod 774 {user_home}/Sound/'
+        )
+    do(msg="copy sound files",
+        cmd=f'cp -arf ./music/* {user_home}/Music/'
+        + f' && cp -arf ./sound/* {user_home}/Sound/'
+        )
     # Setup ezblock service
     # ===================================
     print("Setup ezblock service")
@@ -434,9 +468,10 @@ if __name__ == "__main__":
     try:
         install()
     except KeyboardInterrupt:
-        print("Canceled.")
+        print("\n\n User Canceled.")
     finally:
         cleanup()
+        sys.stdout.write(' \033[1D')
         sys.stdout.write('\033[?25h') # cursor visible 
         sys.stdout.flush()
 
