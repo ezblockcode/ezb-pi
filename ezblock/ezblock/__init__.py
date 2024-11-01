@@ -43,12 +43,12 @@ def _print(msg:str, end='\n'):
     sys.stdout.write(msg + end)
 
 
-def __reset_mcu__():
-    mcurst = Pin("MCURST")
-    mcurst.off()
-    delay(1)
-    mcurst.on()
-
+def get_firmware_version():
+    ADDR = [0x14, 0x15]
+    VERSSION_REG_ADDR = 0x05
+    i2c = I2C(ADDR)
+    version = i2c.mem_read(3, 0x14, VERSSION_REG_ADDR)
+    _print(f"Robot HAT Firmare version: {version[0]}.{version[1]}.{version[2]}")
 
 def __main__():
    
@@ -60,6 +60,7 @@ Usage:
 
 Options:
     reset-mcu   Reset MCU on Ezblock
+    version     Get firmware version
     -h          Show this help text and exit
 '''
     option = ""
@@ -74,7 +75,10 @@ Options:
         quit()
     elif option == "reset-mcu":
         _print("MCU Reset.")
-        __reset_mcu__()
+        reset_mcu()
+    elif sys.argv[1] == "version":
+        get_firmware_version()
+        quit()
     else:
         _print(usage)
         quit()
