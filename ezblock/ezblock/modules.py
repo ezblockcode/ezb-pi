@@ -1,4 +1,6 @@
-from ezblock import I2C
+from .i2c import I2C
+from .pin import Pin
+
 import time
 
 class Ultrasonic():
@@ -7,23 +9,33 @@ class Ultrasonic():
         self.echo = echo
         self.timeout = timeout
 
+        trig.close()
+        echo.close()
+        self.trig = Pin(trig._pin)
+        self.echo = Pin(echo._pin, Pin.IN, Pin.PULL_DOWN)
+
     def _read(self):
-        self.trig.low()
+        self.trig.off()
         time.sleep(0.01)
-        self.trig.high()
+        self.trig.on()
         time.sleep(0.00001)
-        self.trig.low()
+        self.trig.off()
+
         pulse_end = 0
         pulse_start = 0
         timeout_start = time.time()
-        while self.echo.value()==0:
+
+        while self.echo.gpio.value == 0:
             pulse_start = time.time()
             if pulse_start - timeout_start > self.timeout:
                 return -1
-        while self.echo.value()==1:
+        while self.echo.gpio.value == 1:
             pulse_end = time.time()
             if pulse_end - timeout_start > self.timeout:
                 return -1
+        if pulse_start == 0 or pulse_end == 0:
+            return -2
+
         during = pulse_end - pulse_start
         cm = round(during * 340 / 2 * 100, 2)
         return cm
@@ -34,7 +46,7 @@ class Ultrasonic():
             if a != -1:
                 return a
         return -1
-                
+
 
 class DS18X20():
     def __init__(self, pin):
