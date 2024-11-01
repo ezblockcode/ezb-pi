@@ -171,11 +171,18 @@ class BLE_UART():
         service_manager = dbus.Interface(
                                     bus.get_object(SERVICE_NAME, adapter),
                                     GATT_MANAGER_INTERFACE)
+        # service_manager.SetProperty('Discoverable', dbus.Boolean(True))
+        service_manager.Discoverable = True
+
         self.adv_manager = dbus.Interface(bus.get_object(SERVICE_NAME, adapter),
                                     LE_ADVERTISING_MANAGER_INTERFACE)
         agent_manager = dbus.Interface(
                                     bus.get_object(SERVICE_NAME, "/org/bluez"),
                                     "org.bluez.AgentManager1")
+
+        # agent_manager.SetProperty('Discoverable', dbus.Boolean(True))
+        agent_manager.Discoverable = True
+
 
         profile = Profile(bus, [profile_uuid])
  
