@@ -3,29 +3,9 @@ import json
 import time
 import os
 import re
-from .utils import log
+from .utils import log, run_command, getIP
 from .user_info import USER, USER_HOME
 
-def getIP(ifaces=['wlan0', 'eth0']):
-    if isinstance(ifaces, str):
-        ifaces = [ifaces]
-    for iface in list(ifaces):
-        search_str = 'ip addr show {}'.format(iface)
-        result = os.popen(search_str).read()
-        com = re.compile(r'(?<=inet )(.*)(?=\/)', re.M)
-        ipv4 = re.search(com, result)
-        if ipv4:
-            ipv4 = ipv4.groups()[0]
-            return ipv4
-    return False
-
-def run_command(cmd):
-    import subprocess
-    p = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    result = p.stdout.read().decode('utf-8')
-    status = p.poll()
-    return status, result
 
 
 class IOT():

@@ -2,7 +2,21 @@ from .basic import _Basic_class
 from smbus2 import SMBus
 from .utils import run_command
 import time
-from multiprocessing import Value
+
+
+def _retry_wrapper(func):
+
+    def wrapper(self, *arg, **kwargs):
+        for _ in range(self.RETRY):
+            try:
+                return func(self, *arg, **kwargs)
+            except OSError:
+                self._debug(f"OSError: {func.__name__}")
+                continue
+        else:
+            return False
+
+    return wrapper
 
 
 def log(msg):
@@ -11,19 +25,17 @@ def log(msg):
     print(msg)
 
 class I2C(_Basic_class):
-    MASTER = 0
-    SLAVE  = 1
+
     RETRY = 5
 
-    def __init__(self, *args, **kargs):     # *args表示位置参数（形式参数），可无，； **kargs表示默认值参数，可无。
+    def __init__(self, *args, **kargs): 
         super().__init__()
 
         self._bus = 1
         self._smbus = SMBus(self._bus)
 
-
         
-    def _i2c_write_byte(self, addr, data):   # i2C 写系列函数
+    def _i2c_write_byte(self, addr, data):
         self._debug("_i2c_write_byte: [0x{:02X}] [0x{:02X}]".format(addr, data))
         return self._smbus.write_byte(addr, data)
     
@@ -39,7 +51,7 @@ class I2C(_Basic_class):
         self._debug("_i2c_write_i2c_block_data: [0x{:02X}] [0x{:02X}] {}".format(addr, reg, data))
         return self._smbus.write_i2c_block_data(addr, reg, data)
     
-    def _i2c_read_byte(self, addr):   # i2C 读系列函数
+    def _i2c_read_byte(self, addr):
         self._debug("_i2c_read_byte: [0x{:02X}]".format(addr))
         return self._smbus.read_byte(addr)
 
@@ -58,51 +70,51 @@ class I2C(_Basic_class):
         else:
             return False
 
-    def scan(self):                             # 查看有哪些i2c设备
+    def scan(self):                            
         cmd = "i2cdetect -y %s" % self._bus
-        _, output = self.run_command(cmd)          # 调用basic中的方法，在linux中运行cmd指令，并返回运行后的内容
+        _, output = run_command(cmd)         
         
-        outputs = output.split('\n')[1:]        # 以回车符为分隔符，分割第二行之后的所有行
+        outputs = output.split('\n')[1:]       
         self._debug("outputs")
         addresses = []
         for tmp_addresses in outputs:
             if tmp_addresses == "":
                 continue
             tmp_addresses = tmp_addresses.split(':')[1]
-            tmp_addresses = tmp_addresses.strip().split(' ')    # strip函数是删除字符串两端的字符，split函数是分隔符
+            tmp_addresses = tmp_addresses.strip().split(' ')    
             for address in tmp_addresses:
                 if address != '--':
                     addresses.append(int(address, 16))
-        self._debug("Conneceted i2c device: %s"%addresses)                   # append以列表的方式添加address到addresses中
+        self._debug("Conneceted i2c device: %s"%addresses)                 
         return addresses
 
-    def send(self, send, addr, timeout=0):                      # 发送数据，addr为从机地址，send为数据
+    def send(self, send, addr, timeout=0):                     
 
         if isinstance(send, bytearray):
             data_all = list(send)
         elif isinstance(send, int):
             data_all = []
             d = "{:X}".format(send)
-            d = "{}{}".format("0" if len(d)%2 == 1 else "", d)  # format是将()中的内容对应填入{}中，（）中的第一个参数是一个三目运算符，if条件成立则为“0”，不成立则为“”(空的意思)，第二个参数是d，此行代码意思为，当字符串为奇数位时，在字符串最强面添加‘0’，否则，不添加， 方便以下函数的应用
+            d = "{}{}".format("0" if len(d)%2 == 1 else "", d) 
             # print(d)
-            for i in range(len(d)-2, -1, -2):       # 从字符串最后开始取，每次取2位
-                tmp = int(d[i:i+2], 16)             # 将两位字符转化为16进制
+            for i in range(len(d)-2, -1, -2):
+                tmp = int(d[i:i+2], 16)
                 # print(tmp)
-                data_all.append(tmp)                # 添加到data_all数组中
+                data_all.append(tmp) 
             data_all.reverse()
         elif isinstance(send, list):
             data_all = send
         else:
             raise ValueError("send data must be int, list, or bytearray, not {}".format(type(send)))
 
-        if len(data_all) == 1:                      # 如果data_all只有一组数
+        if len(data_all) == 1:
             data = data_all[0]
             self._i2c_write_byte(addr, data)
-        elif len(data_all) == 2:                    # 如果data_all只有两组数
+        elif len(data_all) == 2:
             reg = data_all[0]
             data = data_all[1]
             self._i2c_write_byte_data(addr, reg, data)
-        elif len(data_all) == 3:                    # 如果data_all只有三组数
+        elif len(data_all) == 3:
             reg = data_all[0]
             data = (data_all[2] << 8) + data_all[1]
             self._i2c_write_word_data(addr, reg, data)
@@ -111,9 +123,9 @@ class I2C(_Basic_class):
             data = list(data_all[1:])
             self._i2c_write_i2c_block_data(addr, reg, data)
 
-    def recv(self, recv, addr=0x00, timeout=0):     # 接收数据
+    def recv(self, recv, addr=0x00, timeout=0):
 
-        if isinstance(recv, int):                   # 将recv转化为二进制数
+        if isinstance(recv, int):
             result = bytearray(recv)
         elif isinstance(recv, bytearray):
             result = recv
@@ -160,6 +172,3 @@ class I2C(_Basic_class):
     def writeto_mem(self, addr, memaddr, data):
         self.mem_write(data, addr, memaddr)
 
-# i2c = I2C()
-# i2c.scan()
-# i2c.mem_write(0xff53773, 20, 20)

@@ -1,4 +1,4 @@
-import math
+import smbus2, math
 from .i2c import I2C
 
 timer = [
@@ -9,7 +9,7 @@ timer = [
 
 class PWM(I2C):
     REG_CHN = 0x20
-    REG_FRE = 0x30
+    # REG_FRE = 0x30
     REG_PSC = 0x40
     REG_ARR = 0x44
 
@@ -23,18 +23,20 @@ class PWM(I2C):
             if channel.startswith("P"):
                 channel = int(channel[1:])
             else:
-                raise ValueError("PWM channel should be between [P1, P14], not {0}".format(channel))
-        try:
-            self.send(0x2C, self.ADDR)
-            self.send(0, self.ADDR)
-            self.send(0, self.ADDR)
-        except IOError:
-            self.ADDR = 0x15
+                raise ValueError(f"PWM channel should be between [P0, P14], not {channel}")
+        # try:
+        #     self.send(0x2C, self.ADDR)
+        #     self.send(0, self.ADDR)
+        #     self.send(0, self.ADDR)
+        # except IOError:
+        #     self.ADDR = 0x15
 
         self.debug = debug
         self._debug("PWM address: {:02X}".format(self.ADDR))
         self.channel = channel
         self.timer = int(channel/4)
+        # print(f'timer: {self.timer}')
+        self.bus = smbus2.SMBus(1)
         self._pulse_width = 0
         self._freq = 50
         self.freq(50)
@@ -81,6 +83,8 @@ class PWM(I2C):
             self._debug("Set prescaler to: %s"%self._prescaler)
             self.i2c_write(reg, self._prescaler)
 
+            # print(f'prescaler: 0x{reg:02X}')
+
     def period(self, *arr):
         global timer
         if len(arr) == 0:
@@ -91,6 +95,8 @@ class PWM(I2C):
             self._debug("Set arr to: %s"%timer[self.timer]["arr"])
             self.i2c_write(reg, timer[self.timer]["arr"])
 
+            # print(f'period: 0x{reg:02X}')
+
     def pulse_width(self, *pulse_width):
         if len(pulse_width) == 0:
             return self._pulse_width
@@ -98,6 +104,8 @@ class PWM(I2C):
             self._pulse_width = int(pulse_width[0])
             reg = self.REG_CHN + self.channel
             self.i2c_write(reg, self._pulse_width)
+
+            # print(f'pulse_width: 0x{reg:02X}')
 
     def pulse_width_percent(self, *pulse_width_percent):
         global timer

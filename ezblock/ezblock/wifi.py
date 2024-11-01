@@ -1,5 +1,5 @@
 from .basic import _Basic_class
-from .utils import getIP
+from .utils import getIP, run_command
 import time
 
 class WiFi(_Basic_class):
@@ -33,7 +33,7 @@ update_config=1 """
         
         for _ in range(3):
             print("connet: ",_)
-            self.run_command("sudo wpa_cli -i wlan0 reconfigure")
+            run_command("sudo wpa_cli -i wlan0 reconfigure")
             time.sleep(1)
             time_start = time.time()
             while True:
@@ -51,14 +51,14 @@ update_config=1 """
         return False
 
     def get_current_ssid(self):
-        _, result = self.run_command("iwgetid")
+        _, result = run_command("iwgetid")
         if result != "":
             result = result.split(":")[1].strip().strip('"')
         return result
     
     def set_country(self, country):
         print("Setting country")
-        _, result = self.run_command("wpa_cli -i wlan0 set country {}".format(country))
+        _, result = run_command("wpa_cli -i wlan0 set country {}".format(country))
         result = result.strip()
         # print(result)
         # print(result != "OK")
@@ -67,20 +67,20 @@ update_config=1 """
             # ble.write("Set country failed")
             with open("/etc/wpa_supplicant/wpa_supplicant.conf", "w") as f:
                 f.write(self.text)
-            self.run_command("sudo systemctl enable wpa_supplicant.service")
-            self.run_command("sudo systemctl restart dhcpcd")
-            # self.run_command("sudo service networking restart")
+            run_command("sudo systemctl enable wpa_supplicant.service")
+            run_command("sudo systemctl restart dhcpcd")
+            # run_command("sudo service networking restart")
             return False
-        _, result = self.run_command("wpa_cli -i wlan0 save_config")
+        _, result = run_command("wpa_cli -i wlan0 save_config")
         result = result.strip()
         if result != "OK":
             print("Save country config failed")
             return False
-        self.run_command("sudo iw reg set {}".format(country))
-        self.run_command("hash rfkill")
-        self.run_command("rfkill unblock wifi")
+        run_command("sudo iw reg set {}".format(country))
+        run_command("hash rfkill")
+        run_command("rfkill unblock wifi")
         self.country = country
-        # self.run_command("sudo service networking restart")
+        # run_command("sudo service networking restart")
         print("Set country success")
         
 

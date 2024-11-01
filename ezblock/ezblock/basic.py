@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-import time
 
 class _Basic_class(object):
     _class_name = '_Basic_class'
@@ -42,15 +41,6 @@ class _Basic_class(object):
         self.ch.setLevel(self.DEBUG_LEVELS[self._debug_level])
         self._debug('Set logging level to [%s]' % self._debug_level)
 
-    def run_command(self, cmd):
-        import subprocess
-        p = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        result = p.stdout.read().decode('utf-8')
-        status = p.poll()
-        # print(result)
-        # print(status)
-        return status, result
 
     def map(self, x, in_min, in_max, out_min, out_max):
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
