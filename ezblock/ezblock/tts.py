@@ -1,5 +1,5 @@
 from .basic import _Basic_class
-from .utils import log
+from .utils import log, run_command
 from .music import Music
 from distutils.spawn import find_executable
 import json
@@ -104,25 +104,24 @@ class TTS(_Basic_class):
         self._pitch = pitch
 
     def espeak(self, words):
-        log('espeak: [%s]' % (words))
+        print('espeak: [%s]' % (words))
         if not self._check_executable('espeak'):
-            log('espeak is busy. Pass')
+            debug_2_app('espeak is busy. Pass')
+            print('espeak is busy. Pass')
 
         cmd = 'espeak -a%d -s%d -g%d -p%d \"%s\" --stdout | aplay 2>/dev/null & ' % (self._amp, self._speed, self._gap, self._pitch, words)
-        self.run_command(cmd)
-        # log('command: %s' %cmd)
+        run_command(cmd)
 
     def pico2wave(self, words):
         output_file = "/opt/ezblock/tts_output.wav"
-        log('pico2wave: [%s]' % (words))
+        print('pico2wave: [%s]' % (words))
         if not self._check_executable('pico2wave'):
             debug_2_app('pico2wave is busy. Pass')
-            log('pico2wave is busy. Pass')
+            print('pico2wave is busy. Pass')
 
         cmd = 'pico2wave -l \"%s\" -w \"%s\" \"%s\" '% (self._lang, output_file, words)
-        self.run_command(cmd)
-        # log('command: %s' %cmd)
-        self.run_command("sudo aplay %s  2>/dev/null &"%output_file)
+        run_command(cmd)
+        run_command("sudo aplay %s  2>/dev/null &"%output_file)
 
     def gtts(self, words):
         sound_file = "/opt/ezblock/output.mp3"
