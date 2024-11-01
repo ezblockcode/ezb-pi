@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
 import os
-from sys import flags
 import time
 import datetime
-from ezblock.utils import log
-log('Launching vilib ...')
+
+# from ezblock.utils import log
+# from ezblock.user_info import USER, USER_HOME
+
+USER = os.popen("ls -l /opt/ |grep ezblock | awk '{print $3}'").readline().strip()
+USER_HOME = os.popen(f'getent passwd {USER} | cut -d: -f 6').readline().strip()
+
+def log(msg):
+    print(msg)
+
+
+log('vilib launching...')
+
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from picamera.array import PiRGBArray
-from picamera import PiCamera
+
+from picamera2 import Picamera2
+import libcamera
 
 import tflite_runtime.interpreter as tflite
 from pyzbar import pyzbar
@@ -19,15 +30,15 @@ from multiprocessing import Process, Manager
 
 from flask import Flask, render_template, Response
 
-from ezblock.user_info import USER, USER_HOME
-
 
 # Default path for pictures and videos
+# =================================================================
 Default_Pictures_Path = '%s/picture_file/'%USER_HOME
 Default_Videos_Path = '%s/video_file/'%USER_HOME
 raspistill_path = "/opt/ezblock/raspistill_out.jpg"
 
 # utils
+# =================================================================
 def run_command(cmd):
     import subprocess
     p = subprocess.Popen(
@@ -57,7 +68,8 @@ def getIP():
     return wlan0,eth0
 
 
-# region Main : parameter definition
+# parameter definition
+# =================================================================
 traffic_num_list = [i for i in range(4)]
 ges_num_list = [i for i in range(3)]
 
@@ -65,7 +77,7 @@ traffic_list = ['stop','right','left','forward']
 gesture_list = ["paper","scissor","rock"]
 # rock, scissor, paper
 
-traffic_dict = dict(zip(traffic_num_list,traffic_list))   # 构建模型返回数字对应的类型的字典
+traffic_dict = dict(zip(traffic_num_list,traffic_list))
 ges_dict = dict(zip(ges_num_list,gesture_list))
 
 traffic_sign_model_path = "/opt/ezblock/tf_150_dr0.2.tflite"
@@ -81,15 +93,16 @@ interpreter_2.allocate_tensors()
 input_details_1 = interpreter_1.get_input_details()
 output_details_1 = interpreter_1.get_output_details()
 
-
 # Get input and output tensors.
 input_details_2 = interpreter_2.get_input_details()
 output_details_2 = interpreter_2.get_output_details()
-# endregion : parameter definition
 
-# region Main : flask
-os.environ['FLASK_ENV'] =  'development'
+# flask
+# =================================================================
+# os.environ['FLASK_ENV'] =  'development'
+os.environ['FLASK_DEBUG'] =  'development'
 app = Flask(__name__)
+
 @app.route('/')
 def index():
     """Video streaming home page."""
@@ -163,9 +176,11 @@ def web_camera_start():
         app.run(host='0.0.0.0', port=9000, threaded=True, debug=False)
     except Exception as e:
         log(e)
-# endregion : flask
 
-# 滤镜
+
+
+# EFFECTS
+# =================================================================
 EFFECTS = [
     "none",
     "negative",
@@ -569,140 +584,93 @@ class Vilib(object):
     def camera():
         global effect
 
-        camera = None
-        rawCapture = None
-        last_e ='none'
-        camera_val = 0
-        last_show_content_list = []
-        show_content_list = []
-        change_type_val  = []
-        change_type_dict = {"shutter_speed":0,"resolution":[2592,1944], "brightness":50, "contrast":0, "sharpness":0, "saturation":0, "iso":0, "exposure_compensation":0, "exposure_mode":'auto', \
-            "meter_mode":'average' ,"rotation":0 ,"awb_mode":'auto',"drc_strength":'off',"hflip":False,"vflip":True}
-        
-        def camera_init():
-            nonlocal camera, rawCapture  # Note the addition of a <nonlocal> statement
-            camera = PiCamera()
-            camera.resolution = (640, 480)
-            camera.image_effect = EFFECTS[Vilib.detect_obj_parameter['eff']]
-            camera.framerate = 24
-            camera.rotation = 0
-            # camera.rotation = 180
-            camera.brightness = 50    #(0 to 100)
-            camera.sharpness = 0      #(-100 to 100)
-            camera.contrast = 0       #(-100 to 100)
-            camera.saturation = 0     #(-100 to 100)
-            camera.iso = 0            #(automatic)(100 to 800)
-            camera.exposure_compensation = 0   #(-25 to 25)
-            camera.exposure_mode = 'auto'
-            camera.meter_mode = 'average'
-            camera.awb_mode = 'auto'
-            camera.hflip = False
-            camera.vflip = Vilib.detect_obj_parameter['camera_flip']
-            camera.crop = (0.0, 0.0, 1.0, 1.0)
-            rawCapture = PiRGBArray(camera, size=camera.resolution)
-            # camera.framerate = 10
-        #
-        camera_init()
+        # init picamera
+        picam2 = Picamera2()
+
+        preview_config = picam2.preview_configuration
+        # preview_config.size = (800, 600)
+        preview_config.size = (640, 480)
+        preview_config.format = 'RGB888'  # 'XRGB8888', 'XBGR8888', 'RGB888', 'BGR888', 'YUV420'
+        preview_config.transform = libcamera.Transform(
+                                        hflip=False,
+                                        vflip=Vilib.detect_obj_parameter['camera_flip']
+                                    )
+        preview_config.colour_space = libcamera.ColorSpace.Sycc()
+        preview_config.buffer_count = 4
+        preview_config.queue = True
+        # preview_config.raw = {'size': (2304, 1296)}
+        preview_config.controls = {'FrameRate': 60} # change picam2.capture_array() takes time
+
+        try:
+            picam2.start()
+        except Exception as e:
+            print(f"\033[38;5;1mError:\033[0m\n{e}")
+            print("\nPlease check whether the camera is connected well" +\
+                "You can use the \"libcamea-hello\" command to test the camera"
+                )
+            exit(1)
+
         start_time = 0
         end_time = 0
         try:
             while True:
-                # for, loop , until there is no data
-                for frame in camera.capture_continuous(rawCapture, format="bgr",use_video_port=True):# use_video_port=True
-                    start_time = time.time()
-                    img = frame.array
-                    bak_img = img.copy()
-                    img = Vilib.gesture_calibrate(img)
-                    img = Vilib.traffic_detect(img)
-                    img = Vilib.color_detect_func(img)
-                    img = Vilib.human_detect_func(img)
-                    img = Vilib.gesture_recognition(img)
-                    img = Vilib.qrcode_detect_func(img)
-                    # change_camera_setting
-                    if Vilib.detect_obj_parameter['change_setting_flag'] == True:
-                        Vilib.detect_obj_parameter['change_setting_flag'] = False
-                        change_setting_cmd = "camera." + Vilib.detect_obj_parameter['change_setting_type'] + '=' + str(Vilib.detect_obj_parameter['change_setting_val'])
-                        print(change_setting_cmd)
-                        exec(change_setting_cmd)
-                        change_type_dict[Vilib.detect_obj_parameter['change_setting_type']] = Vilib.detect_obj_parameter['change_setting_val']
-                    
-                    if Vilib.detect_obj_parameter['content_num'] != 0:
-                        for i in range(Vilib.detect_obj_parameter['content_num']):
-                            exec("Vilib.detect_obj_parameter['process_si'] = Vilib.detect_obj_parameter['process_content_" + str(i+1) + "'" + "]")
-                            cv2.putText(img, str(Vilib.detect_obj_parameter['process_si'][0]),Vilib.detect_obj_parameter['process_si'][1],cv2.FONT_HERSHEY_SIMPLEX,Vilib.detect_obj_parameter['process_si'][3],Vilib.detect_obj_parameter['process_si'][2],2)
-                    
-                    if Vilib.detect_obj_parameter['setting_flag'] == True:
-                        setting_type = Camera_SETTING[Vilib.detect_obj_parameter['setting']]
-                        if setting_type == "resolution":
-                            Vilib.detect_obj_parameter['setting_val'] = Vilib.detect_obj_parameter['setting_resolution']
-                            change_type_dict["resolution"] = list(Vilib.detect_obj_parameter['setting_resolution'])
-                            cv2.putText(img, 'resolution:' + str(Vilib.detect_obj_parameter['setting_resolution']),(10,20),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
-                        elif setting_type == "shutter_speed":
-                            change_type_dict["shutter_speed"] = Vilib.detect_obj_parameter['change_setting_val']
-                            cv2.putText(img, 'shutter_speed:' + str(Vilib.detect_obj_parameter['change_setting_val']),(10,20),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
-                        else:
-                            cmd_text = "Vilib.detect_obj_parameter['setting_val'] = camera." + Camera_SETTING[Vilib.detect_obj_parameter['setting']]
-                            exec(cmd_text)
-                            cv2.putText(img, setting_type + ': ' + str(Vilib.detect_obj_parameter['setting_val']),(10,20),cv2.FONT_HERSHEY_SIMPLEX,0.6,(255,255,255),2)
+                start_time = time.time()
+                img = picam2.capture_array()
 
-                    e = EFFECTS[Vilib.detect_obj_parameter['eff']]
-                    if last_e != e:
-                        camera.image_effect = e
-                    last_e = e
-                    if last_e != 'none':
-                        cv2.putText(img, str(last_e),(0,15),cv2.FONT_HERSHEY_SIMPLEX,0.6,(204,209,72),2)
+                bak_img = img.copy()
+                img = Vilib.gesture_calibrate(img)
+                img = Vilib.traffic_detect(img)
+                img = Vilib.color_detect_func(img)
+                img = Vilib.human_detect_func(img)
+                img = Vilib.gesture_recognition(img)
+                img = Vilib.qrcode_detect_func(img)
 
-                    Vilib.img_array[0] = img
-                    rawCapture.truncate(0)
-                    end_time = time.time()
-                    end_time = end_time - start_time
+                Vilib.img_array[0] = img
 
-                    # take photo
-                    if Vilib.detect_obj_parameter['picture_flag'] == True or Vilib.detect_obj_parameter['photo_button_flag'] == True:
-                        picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-                        Vilib.detect_obj_parameter['picture_path'] = Default_Pictures_Path + picture_time + '.jpg'
+                end_time = time.time()
+                end_time = end_time - start_time
 
-                        if Vilib.detect_obj_parameter['process_picture'] == True:
-                            Vilib.take_photo(img)
-                        else:
-                            Vilib.take_photo(bak_img)
-                        # watermark
-                        if Vilib.detect_obj_parameter['watermark_flag'] == True:
-                            add_text_to_image(Vilib.detect_obj_parameter['picture_path'],Vilib.detect_obj_parameter['watermark'])
+                # take photo
+                if Vilib.detect_obj_parameter['picture_flag'] == True or Vilib.detect_obj_parameter['photo_button_flag'] == True:
+                    picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                    Vilib.detect_obj_parameter['picture_path'] = Default_Pictures_Path + picture_time + '.jpg'
 
-                        log('photo saved as: %s'%Vilib.detect_obj_parameter['picture_path'])
+                    if Vilib.detect_obj_parameter['process_picture'] == True:
+                        Vilib.take_photo(img)
+                    else:
+                        Vilib.take_photo(bak_img)
+                    # watermark
+                    if Vilib.detect_obj_parameter['watermark_flag'] == True:
+                        add_text_to_image(Vilib.detect_obj_parameter['picture_path'],Vilib.detect_obj_parameter['watermark'])
 
-                        break
+                    log('photo saved as: %s'%Vilib.detect_obj_parameter['picture_path'])
 
-                # The picamera needs to be closed before using raspistill
-                # cannot run camera.close() in  camera.capture_continuous()
-                camera.close()
-                # raspistill
-                picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-                vf = ''
-                if Vilib.detect_obj_parameter['camera_flip']:
-                    vf = '-vf'
-                a_t = "sudo raspistill -t 250  -w 2592 -h 1944 %s -rot %s -ifx %s -o %s " %(
-                    vf,
-                    str(change_type_dict['rotation']),
-                    str(EFFECTS[Vilib.detect_obj_parameter['eff']]),
-                    Default_Pictures_Path + picture_time + '_HQ.jpg',
-                    )
-                status, _ = run_command(a_t)
-                if status == 0:
-                    log('photo saved as: %s'%(Default_Pictures_Path + picture_time + '_HQ.jpg'))
-                    run_command("sudo cp -pf %s %s"%(Default_Pictures_Path + picture_time + '_HQ.jpg', raspistill_path))
-                else:
-                    raise Exception('raspistill failed')
-                # clear Flag
-                Vilib.detect_obj_parameter['picture_flag'] = False
-                Vilib.detect_obj_parameter['photo_button_flag'] = False
-
-                # restart picamera
-                camera_init()
+                # # The picamera needs to be closed before using raspistill
+                # # cannot run camera.close() in  camera.capture_continuous()
+                # picam2.close()
+                # # raspistill
+                # picture_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+                # vf = ''
+                # if Vilib.detect_obj_parameter['camera_flip']:
+                #     vf = '-vf'
+                # a_t = "sudo raspistill -t 250  -w 2592 -h 1944 %s -rot %s -ifx %s -o %s " %(
+                #     vf,
+                #     str(change_type_dict['rotation']),
+                #     str(EFFECTS[Vilib.detect_obj_parameter['eff']]),
+                #     Default_Pictures_Path + picture_time + '_HQ.jpg',
+                #     )
+                # status, _ = run_command(a_t)
+                # if status == 0:
+                #     log('photo saved as: %s'%(Default_Pictures_Path + picture_time + '_HQ.jpg'))
+                #     run_command("sudo cp -pf %s %s"%(Default_Pictures_Path + picture_time + '_HQ.jpg', raspistill_path))
+                # else:
+                #     raise Exception('raspistill failed')
+                # # clear Flag
+                # Vilib.detect_obj_parameter['picture_flag'] = False
+                # Vilib.detect_obj_parameter['photo_button_flag'] = False
 
         finally:
-            camera.close()
+            picam2.close()
 
 # 手势校准接口
     @staticmethod
@@ -807,7 +775,6 @@ class Vilib(object):
         if Vilib.detect_obj_parameter['ts_flag']  == True:
 
             hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)              # 2.从BGR转换到HSV
-            cv2.circle(img, (160,120), 1, (255,255,255), -1)
 
             ### red
             mask_red_1 = cv2.inRange(hsv,(157,20,20), (180,255,255))
@@ -844,9 +811,8 @@ class Vilib(object):
                                
                                 if circles is not None:
                                     for i in circles[0,:]:
-                                    # cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
                                         traffic_sign_coor = (int(x+i[0]),int(y+i[1]))
-                                        cv2.circle(img,traffic_sign_coor,i[2],(255,0,255),2)
+                                        cv2.circle(img, traffic_sign_coor, int(i[2]), (255,0,255), 2)
                                         cv2.putText(img,str(traffic_dict[traffic_type]) +': ' + str(round(acc_val)),(int(x+i[0]-i[2]),int(y+i[1]-i[2])), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255),2)#加减10是调整字符位置
                                         if w * h > max_area:
                                             max_area = w * h
