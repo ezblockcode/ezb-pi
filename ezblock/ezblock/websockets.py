@@ -428,10 +428,11 @@ class WS():
                             pass
                     # --- Spider ---
                     elif type == "SpiderForPi":
-                        if isinstance(cali_cmmd_dict, dict) and "enter" in cali_cmmd_dict.keys():
+                        if "cmd" in cali_cmmd_dict.keys():
+                            _cmd = cali_cmmd_dict["cmd"]
+                            sp.cali_helper_web(int(_cmd[0]), _cmd[1], 0)
+                        elif "enter" in cali_cmmd_dict.keys():
                             sp.cali_helper_web(0, 0, 1)
-                        elif isinstance(cali_cmmd_dict, list) and len(cali_cmmd_dict) == 3 and int(cali_cmmd_dict[2]) == 0:
-                            sp.cali_helper_web(int(cali_cmmd_dict[0]), cali_cmmd_dict[1], 0)
                     # --- Sloth ---
                     elif type == "SlothForPi":
                         if isinstance(cali_cmmd_dict, dict) and "enter" in cali_cmmd_dict.keys():
@@ -691,8 +692,10 @@ class WS():
                     self.calibration_process_start()
             # calibration cmd
             elif "OF" in self.recv_dict.keys():
-                _log(f'recv "OF"')
-                self.cali_cmmd_dict.update(self.recv_dict["OF"])
+                if isinstance(self.recv_dict["OF"], dict):
+                    self.cali_cmmd_dict.update(self.recv_dict["OF"])
+                else:
+                    self.cali_cmmd_dict.update({"cmd": self.recv_dict["OF"]})
             # set name
             elif "NA" in self.recv_dict.keys():
                 _log(f'recv "NA": {self.recv_dict["NA"]}')
@@ -707,13 +710,15 @@ class WS():
                     _log('set-hostname failed: %s'%e)
             # set device type
             elif "Type" in self.recv_dict.keys():
+                _log(f'recv "Type": {self.recv_dict["Type"]}')
                 self.type = self.recv_dict["Type"]
                 write_info("type", self.type)
                 self.send_dict["type"] = self.type
                 Ezb_Service.reset_servo()
             # set user block auto-run
             elif "Auto-run" in self.recv_dict.keys():
-                reslut = self.recv_dict["Type"]
+                _log(f'recv "Auto-run": {self.recv_dict["Auto-run"]}')
+                reslut = self.recv_dict["Auto-run"]
                 write_info("auto-run", reslut)
                 self.send_dict["auto-run"] = reslut
                 Ezb_Service.reset_servo()
