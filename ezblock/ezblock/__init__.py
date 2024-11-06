@@ -21,7 +21,6 @@ from .serial_sound import Serial_Sound
 from .nrf24 import NRF24
 from .music import Music
 from .color import Color
-from .camera import Camera
 from .iot import IOT
 from .tts import TTS
 from .irq import IRQ

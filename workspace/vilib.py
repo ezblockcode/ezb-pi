@@ -139,7 +139,6 @@ def gen():
 
 @app.route('/still.jpg')  # high_quality_pic
 def video_still_jpg():
-    # from camera import Camera
     """Video Still image route. Put this in the src attribute of an img tag."""
     response = Response(get_raspistill_picture(), mimetype="image/jpeg")
     response.headers.add("Access-Control-Allow-Origin", "*")
@@ -147,7 +146,6 @@ def video_still_jpg():
 
 @app.route('/mjpg')   ## video
 def video_feed():
-    # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
     response = Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -156,7 +154,6 @@ def video_feed():
 
 @app.route('/mjpg.jpg')  # jpg
 def video_feed_jpg():
-    # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
     response = Response(get_frame(), mimetype="image/jpeg")
     response.headers.add("Access-Control-Allow-Origin", "*")
@@ -164,7 +161,6 @@ def video_feed_jpg():
 
 @app.route('/mjpg.png')  # png
 def video_feed_png():
-    # from camera import Camera
     """Video streaming route. Put this in the src attribute of an img tag."""
     response = Response(get_png_frame(), mimetype="image/png")
     response.headers.add("Access-Control-Allow-Origin", "*")
@@ -575,7 +571,6 @@ class Vilib(object):
     def qrcode_detect_switch(flag=False):
         Vilib.detect_obj_parameter['qr_flag']  = flag
 
-# camera()
     @staticmethod
     def camera_clone():
         Vilib.camera()
