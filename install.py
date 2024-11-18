@@ -351,7 +351,7 @@ def install():
         name="lirc-rpi:gpio_in_pin",
         value="26"
     )
-    set_config(msg="et gpu memory to 128",
+    set_config(msg="set gpu memory to 128",
         name="gpu_mem",
         value="128"
     )
