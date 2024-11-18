@@ -23,7 +23,7 @@ class PWM(I2C):
             if channel.startswith("P"):
                 channel = int(channel[1:])
             else:
-                raise ValueError(f"PWM channel should be between [P0, P14], not {channel}")
+                raise ValueError(f"PWM channel should be between [P0, P13], not {channel}")
         # try:
         #     self.send(0x2C, self.ADDR)
         #     self.send(0, self.ADDR)
