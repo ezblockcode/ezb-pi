@@ -21,7 +21,10 @@ def _log(msg:str, location='Update', end='\n', flush=False, timestamp=True, colo
 
 class Ezbupdate(object):
 
-    def __init__(self,url='http://ezblock.cc/fileUpload/'):
+    SERVER_URL = 'http://ezblock.cc/fileUpload/'
+    VERSION_URL = '/version33.json'
+
+    def __init__(self,url=SERVER_URL):
         self.config = ConfigParser()
         self.file_address = "/opt/ezblock/ezb-info.ini"
         self.url = url
@@ -46,7 +49,7 @@ class Ezbupdate(object):
         # Get information from the server
         for i in range(1,6,1):
             try:
-                r = requests.get(self.url+'/version32.json',timeout=5)
+                r = requests.get(self.SERVER_URL+self.VERSION_URL,timeout=5)
                 if r.status_code != 200:
                     _log('Failed to connect server. Reconnect ... %s'% i)
                 else:
