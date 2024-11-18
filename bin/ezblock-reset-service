@@ -1,118 +1,111 @@
 #!/usr/bin/python3
-# -*- coding utf-8 -*-
 
-from ezblock import Pin, delay,PWM, Servo
-from gpiozero import Button
+import sys
 import time
-import tempfile
-import subprocess
+import gpiozero
 
-reset_switch = Button(16)
-user_switch = Button(25)
-mcu_reset = Pin("MCURST")
-status_led = Pin("LED")
+#
+# =================================================================
+RST_BTN_PIN = 16
+USER_BTN_PIN = 25
 
-resize_script = "/usr/bin/resize_once"
-  
-is_reset = None
-is_user = None
+# utils
+# =================================================================
+def log(msg:str=None,level='RESET-SERVICE',end='\n',flush=False,timestamp=True):
+    with open('/opt/ezblock/log','a+') as log_file:
+        if timestamp == True:
+            _time = time.strftime("%y/%m/%d %H:%M:%S", time.localtime())
+            ct = time.time()
+            _msecs = '%03d '%((ct - int(ct)) * 1000)
+            print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=log_file)
+            print('%s,%s[%s] %s'%(_time,_msecs,level,msg), end=end, flush=flush, file=sys.stdout)
+        else:
+            print('%s'%msg, end=end, flush=flush, file=log_file)
+            print('%s'%msg, end=end, flush=flush, file=sys.stdout)
 
-# close external bluetooth
-def close_ex_ble():
-    # close external bluetooth
-    ble_reset = Pin("D20")
-    ble_reset.off()
+def run_command(cmd=""):
+    import subprocess
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = p.stdout.read().decode('utf-8')
+    status = p.poll()
+    return status, result
 
-def log(msg):
-    msg = "Ezblock-Reset-Service [{}] [DEBUG] {}".format(time.asctime(), msg)
-    run_command("echo {} >> /opt/ezblock/log".format(msg))
-    print(msg)
+#
+# =================================================================
 
-def run_command(cmd):
-    with tempfile.TemporaryFile() as f:
-        subprocess.call(cmd, shell=True, stdout=f, stderr=f)
-        f.seek(0)
-        output = f.read()
-        return output.decode()
+def restart_ezblock():
+    log("restart ezblock service")
+    run_command("sudo service ezblock restart")
 
+def reset_mcu():
+    from ezblock import reset_mcu
+    reset_mcu()
 
 def reset_servos():
-    PINS = ["P0","P1","P2","P3","P4","P5","P6","P7","P8","P9","P10","P11"]
-    for pin in PINS:
-        print(pin, end=" ")
-        pwm = PWM(pin)
-        servo = Servo(pwm)
+    from ezblock import Servo, PWM
+
+    log("reset servos")
+    for i in range(12):
+        servo = Servo(PWM(i))
         servo.angle(10)
         time.sleep(0.1)
         servo.angle(0)
         time.sleep(0.1)
 
-    print(' ... done')
-    
+def stop_motors():
+    from ezblock import PWM
 
-    
-def reset_pressed_callback(ev):
-    global is_reset
-    is_reset = True
-    status_led.value(0)
+    log("stop motors")
+    PWM(12).pulse_width_percent(0)
+    PWM(13).pulse_width_percent(0)
 
-def reset_released_callback(ev):
-    global is_reset
-    is_reset = False
-    status_led.value(0)
+def is_user_pressed():
+    run_command(f"pinctrl set {USER_BTN_PIN} ip pu ") # input, pull-up
+    _, result = run_command(f"pinctrl get {USER_BTN_PIN} |grep ip |grep lo") # low-level means pressed
+    return (result != "") # 
 
-def user_pressed_callback(ev):
-    global is_user
-    is_user = True
-    #status_led.value(0)
-
-def user_released_callback(ev):
-    global is_user
-    is_user = False
-    #status_led.value(0)
-
-reset_switch.when_pressed = reset_pressed_callback
-reset_switch.when_released = reset_released_callback
-user_switch.when_pressed = user_pressed_callback
-user_switch.when_released = user_released_callback
-
-log("Check resize script")
-output = run_command("ls {}".format(resize_script))
-if output != "":
-    log("Resizing...")
-    run_command("{}".format(resize_script))
-    run_command("rm {}".format(resize_script))
-    log("Done.")
-else:
-    log("Skip")
-log('Start')
-log('Setup irq')
-log('Finished')
-
+# main
+# =================================================================
 def main():
-    global is_reset
-    global is_user
-    count = 0
-    user_flag = False
+
+    log("ezblock-reset-service start ...")
+
+    mode = 0
+
+    rst_btn = gpiozero.InputDevice(RST_BTN_PIN, pull_up=True) # RST_BTN_PIN, pull_up -> low level -> value is 1
+    # usr_btn = gpiozero.InputDevice(USER_BTN_PIN, pull_up=True)
+
     while True:
         try:
-            if is_reset:
-                if is_user:
-                    log("servos  reset")
-                    run_command("sudo service ezblock stop")
-                    status_led.value(0)
-                    reset_servos()
-                    time.sleep(0.01)
-
-                else:
-                    log("soft reset")
-                    # mcu_reset.off()
-                    # time.sleep(0.001)
-                    # mcu_reset.on()
-                    # time.sleep(0.01)
-                    log("restart ezblock service")
-                    run_command("sudo service ezblock restart")
+            # --- check btns ----
+            mode = 0
+            if rst_btn.value == 1: # 
+                time.sleep(0.02) # anti-shake
+                if rst_btn.value == 1:
+                    mode = 1
+                    if is_user_pressed():
+                        time.sleep(0.02) # anti-shake
+                        if is_user_pressed:
+                            mode = 2
+            
+            # --- restart_ezblock ---
+            if mode == 1:
+                restart_ezblock()
                 time.sleep(2)
+
+            # --- reseting servos and reseting motors ---
+            elif mode == 2:
+                reset_mcu()
+                time.sleep(0.2)
+                stop_motors()
+                reset_servos()
+                time.sleep(2)
+
+            # --- wait for RST btn release ---
+            while rst_btn.value == 1:
+                time.sleep(.02)
+
         except OSError:
             log("OSError")
             time.sleep(1)
@@ -120,14 +113,10 @@ def main():
             log("error: %s"%e)
             time.sleep(1)
 
-        time.sleep(0.5)
+        # --- loop interval ---
+        time.sleep(.01)
 
 
 if __name__ == "__main__":
-    try:
-        close_ex_ble()
-        main()
-    finally:
-        close_ex_ble()
+    main()
 
-        
