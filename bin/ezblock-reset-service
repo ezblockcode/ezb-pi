@@ -33,6 +33,20 @@ def run_command(cmd=""):
 
 #
 # =================================================================
+def resize_filesystem():
+    RESIZE_SCRIPT = "/usr/bin/resize_once"
+    
+    log("Check resize script")
+    
+    _, result = run_command(f"ls {RESIZE_SCRIPT}")
+    if result != "":
+        log("Resizing rootfs ...")
+        _, result = run_command(f"{RESIZE_SCRIPT}")
+        log(f"\n{result}")
+        run_command(f"rm {RESIZE_SCRIPT}")
+    else:
+        log("Skipping resize rootfs.")
+
 
 def restart_ezblock():
     log("restart ezblock service")
@@ -70,6 +84,8 @@ def is_user_pressed():
 def main():
 
     log("ezblock-reset-service start ...")
+
+    resize_filesystem()
 
     mode = 0
 

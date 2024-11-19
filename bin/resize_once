@@ -1,3 +1,5 @@
 #!/bin/bash
 
+# sudo raspi-config nonint do_expand_rootfs
+
 sudo resize2fs /dev/mmcblk0p2
