@@ -177,7 +177,8 @@
 
     -
 
-[Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/EzBlock3.1
+[Unreleased]: https://github.com/ezblockcode/ezb-pi/tree/bookworm
+[2.0.2]: https://github.com/ezblockcode/ezb-pi/tree/2.0.2
 [1.2.2]: https://github.com/ezblockcode/ezb-pi/tree/1.2.2
 [1.2.1]: https://github.com/ezblockcode/ezb-pi/tree/1.2.1
 [1.2.0]: https://github.com/ezblockcode/ezb-pi/tree/1.2.0
