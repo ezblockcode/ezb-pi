@@ -1,11 +1,8 @@
 import smbus, math
 from .i2c import I2C
 
-timer = [
-    {
-        "arr": 0
-    }
-] * 4
+timer = [{"arr": 0} for _ in range(4)] # donot use timer = [{'arr': 0}]*4
+
 
 class PWM(I2C):
     REG_CHN = 0x20
@@ -13,7 +10,7 @@ class PWM(I2C):
     REG_PSC = 0x40
     REG_ARR = 0x44
 
-    ADDR = 0x14
+    ADDR = [0x14, 0x15]
 
     CLOCK = 72000000
 
@@ -23,16 +20,20 @@ class PWM(I2C):
             if channel.startswith("P"):
                 channel = int(channel[1:])
             else:
-                raise ValueError("PWM channel should be between [P1, P14], not {0}".format(channel))
-        try:
-            self.send(0x2C, self.ADDR)
-            self.send(0, self.ADDR)
-            self.send(0, self.ADDR)
-        except IOError:
-            self.ADDR = 0x15
+                raise ValueError("PWM channel should be between [P1, P13], not {0}".format(channel))
 
+        # 
+        connected_devices = self.scan()
+        for _addr in self.ADDR:
+            if _addr in connected_devices:
+                self.address = _addr
+                break
+        else:
+            self.address = self.ADDR[0]
+
+        #
         self.debug = debug
-        self._debug("PWM address: {:02X}".format(self.ADDR))
+        self._debug("PWM address: {:02X}".format(self.address))
         self.channel = channel
         self.timer = int(channel/4)
         self.bus = smbus.SMBus(1)
@@ -43,8 +44,8 @@ class PWM(I2C):
     def i2c_write(self, reg, value):
         value_h = value >> 8
         value_l = value & 0xff
-        self._debug("i2c write: [0x%02X, 0x%02X, 0x%02X, 0x%02X]"%(self.ADDR, reg, value_h, value_l))
-        self.send([reg, value_h, value_l], self.ADDR)
+        self._debug("i2c write: [0x%02X, 0x%02X, 0x%02X, 0x%02X]"%(self.address, reg, value_h, value_l))
+        self.send([reg, value_h, value_l], self.address)
 
     def freq(self, *freq):
         if len(freq) == 0:
