@@ -3,7 +3,9 @@ import time
 import threading
 import pyaudio
 import numpy as np
+import os
 from .user_info import USER, USER_HOME
+from .utils import command_exists
 
 class Music(_Basic_class):
     MUSIC_BEAT = 500
@@ -50,9 +52,37 @@ class Music(_Basic_class):
     }
 
     def __init__(self):
+        import warnings
+        warnings_bk = warnings.filters
+        warnings.filterwarnings("ignore")
+        # close welcome message of pygame, and the value must be <str> 
+        os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1" 
         import pygame
+        warnings.filters = warnings_bk
+
+        # --- Initialize music ---
         self.pygame = pygame
         self.pygame.mixer.init()
+        #
+        Music.enable_speaker()
+
+    @staticmethod
+    def enable_speaker():
+        if command_exists("pinctrl"):
+            os.popen("pinctrl set 20 op dh")
+        elif command_exists("raspi-gpio"):
+            os.popen("raspi-gpio set 20 op dh")
+        else:
+            print("Can't find `pinctrl` or `raspi-gpio` to enable speaker")
+
+    @staticmethod
+    def disable_speaker():
+        if command_exists("pinctrl"):
+            os.popen("pinctrl set 20 op dl")
+        elif command_exists("raspi-gpio"):
+            os.popen("raspi-gpio set 20 op dl")
+        else:
+            print("Can't find `pinctrl` or `raspi-gpio` to disable speaker")
 
     @property
     def MUSIC_LIST(self):

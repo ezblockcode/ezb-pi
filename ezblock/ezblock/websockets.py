@@ -7,10 +7,11 @@ import json
 import time
 import sys,os
 import RPi.GPIO as GPIO
-from .utils import delay, getIP, run_command, log
+from .utils import delay, getIP, run_command, log, command_exists
 from .ble import BLE
 from ezblock import Pin, PWM, Servo, I2C, ADC, VERSION
 from .user_info import USER, USER_HOME
+from .music import Music
 
 log(f"user:{USER}")
 log(f"userhome:{USER_HOME}")
@@ -41,7 +42,8 @@ else: # new board
 def music_by_system(path:str, is_background=False):
     def mp(path:str):
         try:
-           run_command('sudo mplayer %s'%path)
+            Music.enable_speaker()
+            run_command('sudo mplayer %s'%path)
         except Exception as e:
             _log(e, location='Sound effect')
     

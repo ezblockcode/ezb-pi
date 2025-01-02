@@ -25,6 +25,14 @@ def set_volume(value):
     cmd = "sudo amixer -M sset 'PCM' %d%%" % value
     os.system(cmd)
 
+def command_exists(cmd):
+    import subprocess
+    try:
+        subprocess.check_output(['which', cmd], stderr=subprocess.STDOUT)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
 def run_command(cmd):
     import subprocess
     p = subprocess.Popen(
